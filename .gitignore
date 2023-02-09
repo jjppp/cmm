@@ -1,5 +1,8 @@
 # Binary
 parser
+.gdbinit
+.clang-format
+tags
 
 # Prerequisites
 *.d

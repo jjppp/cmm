@@ -28,12 +28,17 @@ syntax-c: $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
+test-symtab: symtab.c symtab.h test-symtab.c
+	$(CC) symtab.c test-symtab.c -fsanitize=address -g -O0 -o test-symtab
+
 # 定义的一些伪目标
 .PHONY: clean test
 test:
+	./test-symtab
 	./parser ../Test/test1.cmm
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
+	rm -f test-symtab
 	rm -f *~
