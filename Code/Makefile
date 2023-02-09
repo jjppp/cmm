@@ -31,14 +31,18 @@ syntax-c: $(YFILE)
 test-symtab: symtab.c symtab.h test-symtab.c
 	$(CC) symtab.c test-symtab.c -fsanitize=address -g -O0 -o test-symtab
 
+test-visitor: ast.h ast.c eval.c test-visitor.c
+	$(CC) ast.c eval.c test-visitor.c -fsanitize=address -g -O0 -o test-visitor
+
 # 定义的一些伪目标
 .PHONY: clean test
 test:
 	./test-symtab
+	./test-visitor
 	./parser ../Test/test1.cmm
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
-	rm -f test-symtab
+	rm -f test-symtab test-visitor
 	rm -f *~
