@@ -9,8 +9,8 @@ int yylex(void);
 void yyerror(char* s) {
 	extern char* yytext;
 	extern int yylineno;
-	extern bool syntax_error_detected;
-	syntax_error_detected = true;
+	extern bool syn_err;
+	syn_err = true;
 	printf("Error type B At Line %d: syntax error, Content: %s\n", yylineno, yytext);
 }
 

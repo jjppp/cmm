@@ -4,11 +4,9 @@
 #include "ast.h"
 
 void yyrestart(FILE *input_file);
+int  yyparse(void);
 
-int yyparse(void);
-
-bool lexical_error_detected;
-bool syntax_error_detected;
+bool lex_err, syn_err, sem_err;
 
 ast_t *root = NULL;
 
@@ -25,7 +23,7 @@ int main(int argc, char **argv) {
     // yydebug = 1;
     yyrestart(file);
     yyparse();
-    if (!lexical_error_detected && !syntax_error_detected) {
+    if (!lex_err && !syn_err) {
         puts("NO ERR");
         void print(FILE * file, ast_t * node, ...);
         print(stdout, root);

@@ -44,7 +44,7 @@
 		return res;
 	}
 %}
-DELIM [ \t]|((\r)?\n)
+DELIM [ \t\r]
 WS {DELIM}+
 LETTER [_a-zA-Z]
 DIGIT [0-9]
@@ -86,6 +86,9 @@ LC \{
 RC \}
 ID {LETTER}({LETTER}|{DIGIT})*
 %%
+"\n" {
+    yycolumn = 1;
+}
 {WS} {
 	// do nothing ..
 }
@@ -95,6 +98,9 @@ ID {LETTER}({LETTER}|{DIGIT})*
 "\/\*" {
 	for (char ch; true; ) {
 		for (ch = input(); (ch != '*') && (ch != 0); ) {
+            if (ch == '\n') {
+                yycolumn = 1;
+            }
 			ch = input();
 		}
 		if (ch == '*') {
@@ -103,7 +109,9 @@ ID {LETTER}({LETTER}|{DIGIT})*
 			}
 			if (ch =='/') {
 				break;
-			}
+			} else if (ch == '\n') {
+                yycolumn = 1;
+            }
 		}
 		if (ch == 0) {
 			yyerror("0");
@@ -227,5 +235,9 @@ ID {LETTER}({LETTER}|{DIGIT})*
 {RC} {
 	return(RC);
 }
-. { printf("Error type A at Line %d: character \"%s\"\n", yylineno, yytext); }
+. {
+    extern bool lex_err;
+    lex_err = true;
+    printf("Error type A :%d:%d character \"%s\"\n", yylineno, yycolumn, yytext);
+}
 %%
