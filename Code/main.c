@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "symtab.h"
 #include "ast.h"
 
 void yyrestart(FILE *input_file);
@@ -19,15 +18,13 @@ int main(int argc, char **argv) {
         perror(argv[1]);
         return 1;
     }
-    // extern int yydebug;
-    // yydebug = 1;
     yyrestart(file);
     yyparse();
     if (!lex_err && !syn_err) {
         puts("NO ERR");
         void print(FILE * file, ast_t * node, ...);
         print(stdout, root);
-        // PrintTree(tree_root, 0);
     }
+    del_ast_node(root);
     return 0;
 }

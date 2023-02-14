@@ -51,6 +51,7 @@ typedef int8_t   i8;
     /* Exprs */      \
     F(EXPR_CALL)     \
     F(EXPR_IDEN)     \
+    F(EXPR_ARR)      \
     F(EXPR_ASS)      \
     F(EXPR_DOT)      \
     F(EXPR_INT)      \
@@ -60,6 +61,28 @@ typedef int8_t   i8;
     /* Constructs */ \
     F(DECL_VAR)      \
     F(DECL_FUN)
+
+#define AST_NODES_WITH_ARG(F, ARG) \
+    F(CONS_PROG, ARG)              \
+    /* Stmts */                    \
+    F(STMT_EXPR, ARG)              \
+    F(STMT_SCOP, ARG)              \
+    F(STMT_IFTE, ARG)              \
+    F(STMT_WHLE, ARG)              \
+    F(STMT_RET, ARG)               \
+    /* Exprs */                    \
+    F(EXPR_CALL, ARG)              \
+    F(EXPR_IDEN, ARG)              \
+    F(EXPR_ARR, ARG)               \
+    F(EXPR_ASS, ARG)               \
+    F(EXPR_DOT, ARG)               \
+    F(EXPR_INT, ARG)               \
+    F(EXPR_FLT, ARG)               \
+    F(EXPR_BIN, ARG)               \
+    F(EXPR_UNR, ARG)               \
+    /* Constructs */               \
+    F(DECL_VAR, ARG)               \
+    F(DECL_FUN, ARG)
 
 #define OPS(F) \
     F(OP_ADD)  \
@@ -81,5 +104,11 @@ typedef int8_t   i8;
 static inline void *zalloc(u32 size) {
     void *ptr = malloc(size);
     bzero(ptr, size);
+    LOG("zalloc %u @ %p\n", size, ptr);
     return ptr;
+}
+
+static inline void zfree(void *ptr) {
+    LOG("zfree @ %p\n", ptr);
+    free(ptr);
 }

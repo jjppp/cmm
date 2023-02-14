@@ -4,9 +4,20 @@
 #include "symtab.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #define MAX_CHILD 512
 
+#define VISITOR_METHOD_ASSIGN(NAME) \
+    .visit_##NAME = (void *) visit_##NAME,
+#define VISITOR_METHOD_DECLARE(NAME, ARG_TYPE) \
+    static void visit_##NAME(ast_t *node, ARG_TYPE);
+#define VISITOR_DEF(NAME, ARG_TYPE)                                  \
+    AST_NODES_WITH_ARG(VISITOR_METHOD_DECLARE, ARG_TYPE)             \
+    const struct ast_visitor visitor_##NAME = (struct ast_visitor) { \
+        .name = STRINGIFY(NAME),                                     \
+        AST_NODES(VISITOR_METHOD_ASSIGN)                             \
+    }
 #define ast_foreach(NODE, IT) \
     for (ast_t * (IT) = (NODE); (NODE) != NULL && (IT) != NULL; (IT) = (IT)->next)
 
@@ -94,6 +105,11 @@ struct EXPR_ASS_node_t {
     ast_t *lhs, *rhs;
 };
 
+struct EXPR_ARR_node_t {
+    EXTENDS(ast_t);
+    ast_t *arr, *ind;
+};
+
 struct EXPR_DOT_node_t {
     EXTENDS(ast_t);
     ast_t *base, *field;
@@ -154,6 +170,8 @@ struct ast_visitor {
            "instanceof %s", AST_NODE_NAMES[KIND]); \
     KIND##_node_t *cnode = (KIND##_node_t *) NODE;
 
-void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p);
-
 ast_t *new_ast_node(ast_kind_t kind, u32 fst_l, ...);
+
+void del_ast_node(ast_t *node);
+
+void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p);

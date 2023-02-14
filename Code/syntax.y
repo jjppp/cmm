@@ -24,7 +24,7 @@ void yyerror(char* s) {
     type_t      type_type;
 }
 
-%token <type_node>      STRUCT RETURN IF WHILE SEMI COMMA LC RC
+%token                  STRUCT RETURN IF WHILE SEMI COMMA LC RC
 %token <type_float>     FLOAT 
 %token <type_int>       INT 
 %token <type_str>       ID 
@@ -53,6 +53,18 @@ void yyerror(char* s) {
 %right <type_node> NOT _MINUS
 // 1Priority
 %left <type_node> LP RP LB RB DOT
+
+%destructor {
+    if ($$ != NULL) {
+        zfree($$);
+    } 
+} <type_str>
+
+%destructor {
+    if (root == NULL) { // to avoid cleanup popups
+        del_ast_node($$);
+    }
+} <type_node>
 %%
 
 /* A Program consists of a string of ExtDefs */
@@ -110,8 +122,7 @@ StructSpecifier
             .decls = $4
         };
         if ($2 != NULL) {
-            symcpy($$.str, $2);
-            free($2);
+            symmov($$.str, $2);
         }
     }
 	| STRUCT error ID LC DefList RC { TODO; yyerrok; }
@@ -227,9 +238,9 @@ Exp : Exp ASSIGNOP Exp { $$ = new_ast_node(EXPR_ASS, @1.first_line, $1, $3); }
 	| MINUS Exp %prec _MINUS { $$ = new_ast_node(EXPR_UNR, @1.first_line, OP_NEG, $2); }
 	| NOT Exp { $$ = new_ast_node(EXPR_UNR, @1.first_line, OP_NOT, $2); }
 	| ID LP Args RP { $$ = new_ast_node(EXPR_CALL,@1.first_line, $1, $3); }
-	| ID LP RP { $$ = new_ast_node(EXPR_CALL,@1.first_line, $1); }
-	| Exp LB Exp RB { $$ = new_ast_node(EXPR_CALL,@1.first_line, $1); }
-	| Exp LB error RB { TODO; }
+	| ID LP RP { $$ = new_ast_node(EXPR_CALL,@1.first_line, $1, NULL); }
+	| Exp LB Exp RB { $$ = new_ast_node(EXPR_ARR,@1.first_line, $1, $3); }
+	| Exp LB error RB { $$ = new_ast_node(EXPR_ARR,@1.first_line, $1, NULL); yyerrok; }
 	| Exp DOT ID { $$ = new_ast_node(EXPR_DOT, @1.first_line, $1, $3); }
 	| ID { $$ = new_ast_node(EXPR_IDEN,@1.first_line, $1); }
 	| INT { $$ = new_ast_node(EXPR_INT, @1.first_line, $1); }

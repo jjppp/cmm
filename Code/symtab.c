@@ -47,7 +47,7 @@ void sym_scope_pop() {
     ASSERT(init, "symtab used before initialized");
     hashtab_t *hashtab = top;
     top                = top->prev;
-    free(hashtab);
+    zfree(hashtab);
 }
 
 syment_t *salloc() {
@@ -87,5 +87,5 @@ void symcpy(char *dst, const char *src) {
 
 void symmov(char *dst, char *src) {
     symcpy(dst, src);
-    free(src);
+    zfree(src);
 }
