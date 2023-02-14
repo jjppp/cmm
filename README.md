@@ -5,6 +5,7 @@ cmm stands for C-- compiler.
 
 # Project structure
 
+```
 Lab
 ├── Code
 │   ├── Makefile
@@ -17,6 +18,7 @@ Lab
 │   └── test2.cmm
 ├── parser
 └── report.pdf
+```
 
 ## Code dir
 
