@@ -199,7 +199,7 @@ StmtList
         }
     }
 	| %empty { $$ = NULL; }
-	| error StmtList { TODO; }
+	| error StmtList { $$ = $2; }
 ;
 
 Stmt: Exp SEMI { $$ = new_ast_node(STMT_EXPR, @1.first_line, $1); }
@@ -240,7 +240,7 @@ Def : Specifier DecList SEMI {
             cnode->type = $1;
         }
     }
-	| Specifier error SEMI { TODO; yyerrok; }
+	| Specifier error SEMI { $$ = NULL; yyerrok; }
 ;
 
 DecList

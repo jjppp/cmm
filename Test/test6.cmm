@@ -1,0 +1,8 @@
+int main() {
+    int   i = 0123;
+    int   j = 0x3F;
+    int   k = 09;
+    int   l = 0x3G;
+    float f = 1.05e-4;
+    float g = 1.05e;
+}
