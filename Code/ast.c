@@ -47,6 +47,7 @@ ast_t *new_ast_node(ast_kind_t kind, u32 fst_l, ...) {
     }
     ptr->ast_kind = kind;
     ptr->fst_l    = fst_l;
+    ptr->next     = NULL;
     visitor_dispatch(visitor_new, ptr, ap);
 
     va_end(ap);

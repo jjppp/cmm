@@ -59,7 +59,16 @@ void yyerror(char* s) {
 Program : ExtDefList { root = new_ast_node(CONS_PROG, @1.first_line, $1); } ;
 
 ExtDefList 
-    : ExtDef ExtDefList { $$ = $1; $$->next = $2; }
+    : ExtDef ExtDefList {
+        // concat 2 lists
+        $$ = $1;
+        ast_foreach($$, it) {
+            if (it->next == NULL) {
+                it->next = $2;
+                break;
+            }
+        }
+    }
 	| %empty { $$ = NULL; }
 ;
 

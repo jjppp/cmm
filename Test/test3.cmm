@@ -2,7 +2,8 @@ int fun(int iarg, float farg, int iarr[50]) {
     return iarg * farg;
 }
 
-int global_wjp;
+int A, B, C;
+int D, E, F;
 
 int main() {
     int u;
