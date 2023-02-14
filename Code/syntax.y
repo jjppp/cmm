@@ -65,7 +65,13 @@ ExtDefList
 
 /* global variables, struct types, functions */
 ExtDef 
-    : Specifier ExtDecList SEMI { TODO; }
+    : Specifier ExtDecList SEMI { 
+        ast_foreach($2, it) {
+            INSTANCE_OF(it, DECL_VAR);
+            cnode->type = $1;
+        }
+        $$ = $2;
+    }
 	| Specifier SEMI { TODO; }
 	| Specifier FunDec CompSt { 
         $$ = $2;
@@ -78,8 +84,8 @@ ExtDef
 
 /* variable declarations */
 ExtDecList 
-    : VarDec { TODO; }
-	| VarDec COMMA ExtDecList { TODO; }
+    : VarDec { $$ = $1; }
+	| VarDec COMMA ExtDecList { $$ = $1; $$->next = $3; }
 ;
 
 /* different types */
