@@ -35,24 +35,24 @@ void yyerror(char* s) {
 %type  <type_str>       OptTag Tag
 
 %nonassoc LOWER_THAN_ELSE
-%nonassoc <type_node> ELSE
+%nonassoc ELSE
 
 // 8Priority
-%right <type_node> ASSIGNOP
+%right ASSIGNOP
 // 7Priority
-%left <type_node> OR
+%left OR
 // 6Priority
-%left <type_node> AND
+%left AND
 // 5Priority
-%left <type_node> LE LT GE GT EQ NE
+%left LE LT GE GT EQ NE
 // 4Priority
-%left <type_node> MINUS PLUS
+%left MINUS PLUS
 // 3Priority
-%left <type_node> STAR DIV
+%left STAR DIV
 // 2Priority
-%right <type_node> NOT _MINUS
+%right NOT _MINUS
 // 1Priority
-%left <type_node> LP RP LB RB DOT
+%left LP RP LB RB DOT
 
 %destructor {
     if ($$ != NULL) {
@@ -73,11 +73,15 @@ Program : ExtDefList { root = new_ast_node(CONS_PROG, @1.first_line, $1); } ;
 ExtDefList 
     : ExtDef ExtDefList {
         // concat 2 lists
-        $$ = $1;
-        ast_foreach($$, it) {
-            if (it->next == NULL) {
-                it->next = $2;
-                break;
+        if ($1 == NULL) {
+            $$ = $2;
+        } else {
+            $$ = $1; 
+            ast_foreach($$, it) {
+                if (it->next == NULL) {
+                    it->next = $2;
+                    break;
+                }
             }
         }
     }
@@ -93,7 +97,13 @@ ExtDef
         }
         $$ = $2;
     }
-	| Specifier SEMI { TODO; }
+	| Specifier SEMI { 
+        if ($1.spec_type == TYPE_STRUCT) {
+            $$ = new_ast_node(DECL_TYP, @1.first_line, $1);
+        } else {
+            $$ = NULL;
+        }
+    }
 	| Specifier FunDec CompSt { 
         $$ = $2;
         INSTANCE_OF($$, DECL_FUN);
@@ -126,7 +136,13 @@ StructSpecifier
         }
     }
 	| STRUCT error ID LC DefList RC { TODO; yyerrok; }
-	| STRUCT Tag { TODO; }
+	| STRUCT Tag {
+        $$ = (type_t) {
+            .spec_type = TYPE_STRUCT,
+            .decls = NULL,
+        };
+        symmov($$.str, $2);
+    }
 ;
 
 OptTag
@@ -145,7 +161,7 @@ VarDec
         INSTANCE_OF($$, DECL_VAR);
         cnode->dim = $3;
     }
-	| VarDec LB error RB { TODO; $$ = NULL; }
+	| VarDec LB error RB { $$ = $1; yyerrok; }
 ;
 
 FunDec 
@@ -174,13 +190,20 @@ CompSt
     : LC DefList StmtList RC { $$ = new_ast_node(STMT_SCOP, @1.first_line, $2, $3); } ;
 
 StmtList 
-    : Stmt StmtList { $$ = $1; $$->next = $2; }
+    : Stmt StmtList {
+        if ($1 != NULL) {
+            $$ = $1;
+            $$->next = $2;
+        } else {
+            $$ = $2;
+        }
+    }
 	| %empty { $$ = NULL; }
 	| error StmtList { TODO; }
 ;
 
 Stmt: Exp SEMI { $$ = new_ast_node(STMT_EXPR, @1.first_line, $1); }
-	| error SEMI { TODO; }
+	| error SEMI { $$ = NULL; }
 	| CompSt { $$ = $1; }
 	| RETURN Exp SEMI { $$ = new_ast_node(STMT_RET, @1.first_line, $2);  }
 	| RETURN error SEMI { TODO; }
@@ -193,7 +216,20 @@ Stmt: Exp SEMI { $$ = new_ast_node(STMT_EXPR, @1.first_line, $1); }
 ;
 
 DefList 
-    : Def DefList { $$ = $1; $$->next = $2; }
+    // concat 2 lists
+    : Def DefList {
+        if ($1 == NULL) {
+            $$ = $2;
+        } else {
+            $$ = $1;
+            ast_foreach($1, it) {
+                if (it->next == NULL) {
+                    it->next = $2;
+                    break;
+                }
+            }
+        }
+    }
 	| %empty { $$ = NULL; }
 ;
 

@@ -1,4 +1,6 @@
 #include "ast.h"
+#include "symtab.h"
+#include <stdarg.h>
 
 VISITOR_DEF(new, va_list);
 
@@ -28,6 +30,7 @@ ast_t *new_ast_node(ast_kind_t kind, u32 fst_l, ...) {
 static void visit_EXPR_INT(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_INT);
     cnode->value = va_arg(ap, i32);
+    LOG("%d\n", cnode->value);
 }
 
 static void visit_EXPR_FLT(ast_t *node, va_list ap) {
@@ -79,8 +82,8 @@ static void visit_STMT_SCOP(ast_t *node, va_list ap) {
 
 static void visit_EXPR_DOT(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_DOT);
-    cnode->base  = va_arg(ap, ast_t *);
-    cnode->field = va_arg(ap, ast_t *);
+    cnode->base = va_arg(ap, ast_t *);
+    symmov(cnode->str, va_arg(ap, char *));
 }
 
 static void visit_EXPR_ASS(ast_t *node, va_list ap) {
@@ -104,6 +107,7 @@ static void visit_DECL_VAR(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_VAR);
     symmov(cnode->str, va_arg(ap, char *));
     cnode->dim = va_arg(ap, i32);
+    LOG("   %s\n", cnode->str);
 }
 
 static void visit_EXPR_ARR(ast_t *node, va_list ap) {
@@ -121,4 +125,9 @@ static void visit_EXPR_CALL(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_CALL);
     symmov(cnode->str, va_arg(ap, char *));
     cnode->expr = va_arg(ap, ast_t *);
+}
+
+static void visit_DECL_TYP(ast_t *node, va_list ap) {
+    INSTANCE_OF(node, DECL_TYP);
+    cnode->type = va_arg(ap, type_t);
 }

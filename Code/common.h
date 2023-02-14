@@ -60,6 +60,7 @@ typedef int8_t   i8;
     F(EXPR_UNR)      \
     /* Constructs */ \
     F(DECL_VAR)      \
+    F(DECL_TYP)      \
     F(DECL_FUN)
 
 #define AST_NODES_WITH_ARG(F, ARG) \
@@ -82,6 +83,7 @@ typedef int8_t   i8;
     F(EXPR_UNR, ARG)               \
     /* Constructs */               \
     F(DECL_VAR, ARG)               \
+    F(DECL_TYP, ARG)               \
     F(DECL_FUN, ARG)
 
 #define OPS(F) \

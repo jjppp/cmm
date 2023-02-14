@@ -158,12 +158,15 @@ ID {LETTER}({LETTER}|{DIGIT})*
 	return(INT);
 }
 {OCT_INT} {
+    yylval.type_int = atoi_oct(yytext);
 	return(INT);
 }
 {HEX_INT} {
+    yylval.type_int = atoi_hex(yytext);
 	return(INT);
 }
 {FLOAT} {
+    yylval.type_float = atof(yytext);
 	return(FLOAT);
 }
 {SEMI} {

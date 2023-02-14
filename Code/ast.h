@@ -112,7 +112,8 @@ struct EXPR_ARR_node_t {
 
 struct EXPR_DOT_node_t {
     EXTENDS(ast_t);
-    ast_t *base, *field;
+    char   str[MAX_SYM_LEN];
+    ast_t *base;
 };
 
 struct EXPR_INT_node_t {
@@ -153,6 +154,11 @@ struct DECL_FUN_node_t {
     ast_t *params;
     type_t type;
     ast_t *body;
+};
+
+struct DECL_TYP_node_t {
+    EXTENDS(ast_t);
+    type_t type;
 };
 
 typedef void (*ast_visitor_fun_t)(ast_t *, void *);

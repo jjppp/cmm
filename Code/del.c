@@ -60,7 +60,6 @@ static void visit_STMT_SCOP(ast_t *node, va_list ap) {
 static void visit_EXPR_DOT(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_DOT);
     del_ast_node(cnode->base);
-    del_ast_node(cnode->field);
 }
 
 static void visit_EXPR_ASS(ast_t *node, va_list ap) {
@@ -78,9 +77,13 @@ static void visit_DECL_FUN(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_FUN);
     del_ast_node(cnode->params);
     del_ast_node(cnode->body);
+    del_ast_node(cnode->type.decls);
 }
 
 static void visit_DECL_VAR(ast_t *node, va_list ap) {
+    INSTANCE_OF(node, DECL_VAR);
+    del_ast_node(cnode->expr);
+    del_ast_node(cnode->type.decls);
 }
 
 static void visit_EXPR_ARR(ast_t *node, va_list ap) {
@@ -97,4 +100,9 @@ static void visit_STMT_EXPR(ast_t *node, va_list ap) {
 static void visit_EXPR_CALL(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_CALL);
     del_ast_node(cnode->expr);
+}
+
+static void visit_DECL_TYP(ast_t *node, va_list ap) {
+    INSTANCE_OF(node, DECL_TYP);
+    del_ast_node(cnode->type.decls);
 }

@@ -75,3 +75,6 @@ static void visit_STMT_EXPR(ast_t *node, f32 *p_res) {
 
 static void visit_EXPR_CALL(ast_t *node, f32 *p_res) {
 }
+
+static void visit_DECL_TYP(ast_t *node, f32 *p_res) {
+}

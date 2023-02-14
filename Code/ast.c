@@ -1,7 +1,6 @@
 #include "ast.h"
 #include "common.h"
 #include "symtab.h"
-#include <stdarg.h>
 #include <string.h>
 
 #define STRING_LIST(NODE) STRINGIFY(NODE),

@@ -1,0 +1,10 @@
+struct Complex {
+    struct {
+        int g;
+    } r;
+};
+
+int main() {
+    struct Complex x;
+    y.r.g = 2;
+}

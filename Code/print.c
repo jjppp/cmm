@@ -88,7 +88,7 @@ static void visit_STMT_IFTE(ast_t *node, va_list ap) {
 static void visit_EXPR_DOT(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_DOT);
     print_(cnode->base);
-    print_(cnode->field);
+    display("%s\n", cnode->str);
 }
 
 static void visit_EXPR_ASS(ast_t *node, va_list ap) {
@@ -149,4 +149,19 @@ static void visit_EXPR_CALL(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_CALL);
     display("CALL %s\n", cnode->str);
     print_(cnode->expr);
+}
+
+static void visit_DECL_TYP(ast_t *node, va_list ap) {
+    INSTANCE_OF(node, DECL_TYP);
+    switch (cnode->type.spec_type) {
+        case TYPE_PRIM_INT: display("INT\n"); break;
+        case TYPE_PRIM_FLT: display("FLT\n"); break;
+        case TYPE_STRUCT: display("STRUCT\n"); break;
+    }
+    display("%s\n", cnode->type.str);
+    if (cnode->type.spec_type == TYPE_STRUCT) {
+        ast_foreach(cnode->type.decls, it) {
+            print_(it);
+        }
+    }
 }
