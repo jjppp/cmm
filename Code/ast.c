@@ -78,7 +78,7 @@ static void visit_unr(ast_t *node, va_list ap) {
 
 static void visit_iden(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_IDEN);
-    cnode->sym = sym_lookup(va_arg(ap, const char *));
+    symmov(cnode->str, va_arg(ap, char *));
 }
 
 static void visit_ret(ast_t *node, va_list ap) {
@@ -124,17 +124,13 @@ static void visit_prog(ast_t *node, va_list ap) {
 
 static void visit_fun(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_FUN);
-    char *cp = va_arg(ap, char *);
-    symcpy(cnode->str, cp);
-    free(cp);
+    symmov(cnode->str, va_arg(ap, char *));
     cnode->params = va_arg(ap, ast_t *);
 }
 
 static void visit_var(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_VAR);
-    char *cp = va_arg(ap, char *);
-    symcpy(cnode->str, cp);
-    free(cp);
+    symmov(cnode->str, va_arg(ap, char *));
     cnode->dim = va_arg(ap, i32);
 }
 

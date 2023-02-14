@@ -3,6 +3,9 @@ parser
 .gdbinit
 .clang-format
 tags
+lex.yy.c
+syntax.tab.h
+syntax.tab.c
 
 # Prerequisites
 *.d

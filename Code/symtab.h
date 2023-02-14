@@ -38,4 +38,6 @@ syment_t *sym_lookup(const char *str);
 
 void symcpy(char *dst, const char *src);
 
+void symmov(char *dst, char *src);
+
 #endif

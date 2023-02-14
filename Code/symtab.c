@@ -84,3 +84,8 @@ void symtab_fini() {
 void symcpy(char *dst, const char *src) {
     strncpy(dst, src, MAX_SYM_LEN - 1);
 }
+
+void symmov(char *dst, char *src) {
+    symcpy(dst, src);
+    free(src);
+}

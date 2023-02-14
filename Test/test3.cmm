@@ -1,7 +1,11 @@
-int main(int argc, float f) {
+int fun(int iarg, float farg, int iarr[50]) {
+    return iarg * farg;
+}
+
+int main() {
     int u;
     struct st {
-        int fi;
+        int   fi;
         float ff;
         struct {
             int wjp[255];
