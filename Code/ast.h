@@ -1,31 +1,31 @@
-#ifndef __AST_H__
-#define __AST_H__
+#pragma once
 
 #include "common.h"
+#include "symtab.h"
 #include <stdio.h>
 #include <stdlib.h>
 
 #define MAX_CHILD 512
 
-typedef struct ast_node_t ast_node_t;
+#define ast_foreach(NODE, IT) \
+    for (ast_t * (IT) = (NODE); (NODE) != NULL && (IT) != NULL; (IT) = (IT)->next)
 
-#define AST_KIND_ENUM(NODE) \
-    NODE,
-
-#define AST_NODE_NAME(NODE) \
-    STRINGIFY(NODE),
+typedef struct ast_t ast_t;
 
 typedef enum {
-    AST_NODES(AST_KIND_ENUM)
+    AST_NODES(LIST)
 } ast_kind_t;
 
-static const char *AST_NODE_NAMES[] = {
-    AST_NODES(AST_NODE_NAME) "\0"};
+typedef enum {
+    OPS(LIST)
+} op_kind_t;
 
-struct ast_node_t {
-    u32         fst_l;
-    ast_kind_t  ast_kind;
-    ast_node_t *chld[MAX_CHILD];
+extern const char *AST_NODE_NAMES[];
+
+struct ast_t {
+    ast_t     *next;
+    u32        fst_l;
+    ast_kind_t ast_kind;
 };
 
 #define AST_NODE_EXTEND(NODE) \
@@ -33,128 +33,127 @@ struct ast_node_t {
 
 AST_NODES(AST_NODE_EXTEND);
 
-struct PROGRAM_node_t {
-    EXTENDS(ast_node_t);
+struct CONS_PROG_node_t {
+    EXTENDS(ast_t);
+    ast_t *decls;
 };
 
 /* Types */
 typedef struct type_t {
-    enum {
+    enum kind_t {
         TYPE_PRIM_INT,
         TYPE_PRIM_FLT,
         TYPE_STRUCT
     } spec_type;
-    // TODO: list of var decls
-    DECL_VAR_node_t *var_decls[MAX_CHILD];
+    char   str[MAX_SYM_LEN];
+    ast_t *decls;
 } type_t;
 
 /* Stmts */
 struct STMT_SCOP_node_t {
-    EXTENDS(ast_node_t);
-    // TODO: list of var decls
-    // TODO: list of stmts
-    DECL_VAR_node_t *var_decls[MAX_CHILD];
-    ast_node_t      *stmts[MAX_CHILD];
+    EXTENDS(ast_t);
+    ast_t *decls, *stmts;
 };
 
 struct STMT_IFTE_node_t {
-    EXTENDS(ast_node_t);
-    ast_node_t *cond;
-    ast_node_t *tru_stmt;
-    ast_node_t *fls_stmt; // nullable
+    EXTENDS(ast_t);
+    ast_t *cond, *tru_stmt, *fls_stmt;
 };
 
 struct STMT_WHLE_node_t {
-    EXTENDS(ast_node_t);
-    ast_node_t *cond;
-    ast_node_t *body;
+    EXTENDS(ast_t);
+    ast_t *cond, *body;
+};
+
+struct STMT_EXPR_node_t {
+    EXTENDS(ast_t);
+    ast_t *expr;
 };
 
 struct STMT_RET_node_t {
-    EXTENDS(ast_node_t);
-    ast_node_t *expr;
-};
-
-struct STMT_DOT_node_t {
-    EXTENDS(ast_node_t);
-    ast_node_t *base;
-    ast_node_t *field;
-};
-
-struct STMT_ASS_node_t {
-    EXTENDS(ast_node_t);
-    ast_node_t *lhs;
-    ast_node_t *rhs;
+    EXTENDS(ast_t);
+    ast_t *expr;
 };
 
 /* Exprs */
 struct EXPR_IDEN_node_t {
-    EXTENDS(ast_node_t);
-    // TODO: use handle to represent symbols
+    EXTENDS(ast_t);
+    syment_t *sym;
+    char      str[MAX_SYM_LEN];
+};
+
+struct EXPR_CALL_node_t {
+    EXTENDS(ast_t);
+    syment_t *fun;
+    ast_t    *expr; // nullable
+    char      str[MAX_SYM_LEN];
+};
+
+struct EXPR_ASS_node_t {
+    EXTENDS(ast_t);
+    ast_t *lhs, *rhs;
+};
+
+struct EXPR_DOT_node_t {
+    EXTENDS(ast_t);
+    ast_t *base, *field;
 };
 
 struct EXPR_INT_node_t {
-    EXTENDS(ast_node_t);
+    EXTENDS(ast_t);
     i32 value;
 };
 
 struct EXPR_FLT_node_t {
-    EXTENDS(ast_node_t);
+    EXTENDS(ast_t);
     f32 value;
 };
 
 struct EXPR_BIN_node_t {
-    EXTENDS(ast_node_t);
-    ast_node_t *lhs;
-    ast_node_t *rhs;
-    enum {
-        OP_ADD,
-        OP_SUB,
-        OP_MUL,
-        OP_DIV,
-        OP_MOD,
-        OP_AND,
-        OP_OR
-    } op;
+    EXTENDS(ast_t);
+    ast_t    *lhs;
+    ast_t    *rhs;
+    op_kind_t op;
 };
 
 struct EXPR_UNR_node_t {
-    EXTENDS(ast_node_t);
-    ast_node_t *sub;
-    enum {
-        OP_NEG,
-        OP_NOT,
-    } op;
+    EXTENDS(ast_t);
+    ast_t    *sub;
+    op_kind_t op;
 };
 
 struct DECL_VAR_node_t {
-    EXTENDS(ast_node_t);
-    type_t type;
-    // TODO: use handle to represent symbols
+    EXTENDS(ast_t);
+    syment_t *sym;
+    type_t    type;
+    ast_t    *expr; // init val
+    char      str[MAX_SYM_LEN];
+    u32       dim;
 };
 
 struct DECL_FUN_node_t {
-    EXTENDS(ast_node_t);
+    EXTENDS(ast_t);
+    char   str[MAX_SYM_LEN];
+    ast_t *params;
     type_t type;
-    // TODO: use handle to represent symbols
-    // TODO: list of parameters
-    DECL_VAR_node_t *params[MAX_CHILD];
-    ast_node_t      *body;
+    ast_t *body;
 };
 
-typedef void (*ast_visitor_fun_t)(ast_node_t *, void *);
+typedef void (*ast_visitor_fun_t)(ast_t *, void *);
 
 #define AST_NODE_VISIT(NODE) \
     ast_visitor_fun_t visit_##NODE;
 
-typedef struct ast_visitor_t ast_visitor_t;
-
-struct ast_visitor_t {
+struct ast_visitor {
+    char name[MAX_SYM_LEN];
     AST_NODES(AST_NODE_VISIT)
 };
 
-void visitor_dispatch(const ast_visitor_t visitor, ast_node_t *node, void *p);
+#define INSTANCE_OF(NODE, KIND)                    \
+    ASSERT(NODE->ast_kind == KIND,                 \
+           "instanceof %s", AST_NODE_NAMES[KIND]); \
+    KIND##_node_t *cnode = (KIND##_node_t *) NODE;
 
-ast_node_t *new_ast_node(ast_kind_t kind);
+void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p);
 
-#endif
+ast_t *new_ast_node(ast_kind_t kind, u32 fst_l, ...);

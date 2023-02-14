@@ -7,6 +7,7 @@
 #define MAX_SYM_LEN 16
 #define MAX_SYM 128
 #define MAX_CHAR 63
+#define SYM_STR_SIZE (sizeof(char) * MAX_SYM_LEN)
 
 typedef struct __syment_t  syment_t;
 typedef struct __hashtab_t hashtab_t;
@@ -15,11 +16,10 @@ struct __syment_t {
     char  str[MAX_SYM_LEN];
     void *data; // own, copy before use
     u32   fst_l, fst_c;
-    bool  valid;
 };
 
 struct __hashtab_t {
-    syment_t   bucket[MAX_SYM];
+    syment_t  *bucket[MAX_SYM];
     hashtab_t *prev;
 };
 
@@ -35,5 +35,7 @@ void sym_scope_push();
 void sym_scope_pop();
 
 syment_t *sym_lookup(const char *str);
+
+void symcpy(char *dst, const char *src);
 
 #endif

@@ -2,7 +2,8 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-CFLAGS = -std=c99
+GCFLAGS = -std=c99 -ggdb3 -fsanitize=address -I. -DNDEBUG
+CFLAGS = -std=c99 -ggdb3 -Wall -Werror -fsanitize=address -I. -DNDEBUG
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
@@ -15,10 +16,10 @@ LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
 
 parser: syntax $(filter-out $(LFO),$(OBJS))
-	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
+	$(CC) $(GCFLAGS) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
 
 syntax: lexical syntax-c
-	$(CC) -c $(YFC) -o $(YFO)
+	$(CC) $(GCFLAGS) -c $(YFC) -o $(YFO)
 
 lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
@@ -28,11 +29,11 @@ syntax-c: $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
-test-symtab: symtab.c symtab.h test-symtab.c
-	$(CC) symtab.c test-symtab.c -fsanitize=address -g -O0 -o test-symtab
+test-symtab: symtab.c symtab.h ../Test/test-symtab.c
+	$(CC) $(CFLAGS) symtab.c ../Test/test-symtab.c -O0 -o ../Test/test-symtab
 
-test-visitor: ast.h ast.c eval.c test-visitor.c
-	$(CC) ast.c eval.c test-visitor.c -fsanitize=address -g -O0 -o test-visitor
+test-visitor: symtab.c symtab.h ast.h ast.c eval.c ../Test/test-visitor.c
+	$(CC) $(CFLAGS) ast.c print.c eval.c symtab.c ../Test/test-visitor.c -O0 -o ../Test/test-visitor
 
 # 定义的一些伪目标
 .PHONY: clean test
@@ -44,5 +45,6 @@ clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
+	rm -f *.o
 	rm -f test-symtab test-visitor
 	rm -f *~

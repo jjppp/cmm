@@ -1,0 +1,21 @@
+int main(int argc, float f) {
+    int u;
+    struct st {
+        int fi;
+        float ff;
+        struct {
+            int wjp[255];
+            struct {
+                int uu;
+            } qq[44];
+        } complex;
+    } jj;
+    if (1) {
+        return 0;
+    } else {
+        return 1;
+    }
+    while (0) {
+        return 1;
+    }
+}

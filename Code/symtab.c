@@ -1,9 +1,12 @@
 #include "symtab.h"
+#include "common.h"
 #include <string.h>
-#include <assert.h>
+
+#define MAX_ENTRY 4096
 
 static hashtab_t *top  = NULL;
 static bool       init = false;
+static syment_t   entries[MAX_ENTRY];
 
 static u32 str_hash(const char *s) {
     u32 hash = 0;
@@ -13,20 +16,20 @@ static u32 str_hash(const char *s) {
     return hash;
 }
 
-static syment_t *lookup(hashtab_t *hashtab, const char *str) {
-    syment_t *bucket = hashtab->bucket;
-    u32       hash   = str_hash(str);
-    while (bucket[hash].valid && strcmp(bucket[hash].str, str)) {
+static syment_t **lookup(hashtab_t *hashtab, const char *str) {
+    syment_t **bucket = hashtab->bucket;
+    u32        hash   = str_hash(str);
+    while (bucket[hash] && strcmp(bucket[hash]->str, str)) {
         hash = (hash + 1) % MAX_SYM;
     }
     return &bucket[hash];
 }
 
 syment_t *sym_lookup(const char *str) {
-    assert(init);
-    for (hashtab_t *cur = top; cur != NULL; cur = cur->prev) {
-        syment_t *sym = lookup(cur, str);
-        if (!strcmp(sym->str, str)) {
+    ASSERT(init, "symtab used before initialized");
+    for (hashtab_t *cur = top; cur; cur = cur->prev) {
+        syment_t *sym = *lookup(cur, str);
+        if (sym && !strcmp(sym->str, str)) {
             return sym;
         }
     }
@@ -34,36 +37,36 @@ syment_t *sym_lookup(const char *str) {
 }
 
 void sym_scope_push() {
-    assert(init);
+    ASSERT(init, "symtab used before initialized");
     hashtab_t *hashtab = zalloc(sizeof(hashtab_t));
     hashtab->prev      = top;
     top                = hashtab;
 }
 
 void sym_scope_pop() {
-    assert(init);
-    for (u32 i = 0; i < MAX_SYM; i++) {
-        if (top->bucket[i].valid) {
-            free(top->bucket[i].data);
-        }
-    }
+    ASSERT(init, "symtab used before initialized");
     hashtab_t *hashtab = top;
     top                = top->prev;
     free(hashtab);
 }
 
-void sym_insert(const char *str, void *data, u32 fst_l, u32 fst_c) {
-    assert(init);
-    assert(strlen(str) < MAX_SYM_LEN);
-    syment_t *sym = lookup(top, str);
-    assert(!sym->valid);
+syment_t *salloc() {
+    static syment_t *ptr = entries;
+    return ptr++;
+}
 
-    *sym = (syment_t){
+void sym_insert(const char *str, void *data, u32 fst_l, u32 fst_c) {
+    ASSERT(init, "symtab used before initialized");
+    ASSERT(strlen(str) < MAX_SYM_LEN, "sym_insert exceeds MAX_SYM_LEN")
+    syment_t **sym = lookup(top, str);
+    ASSERT(*sym == NULL, "sym inserted twice");
+
+    *sym  = salloc();
+    **sym = (syment_t){
         .data  = data,
         .fst_c = fst_c,
-        .fst_l = fst_l,
-        .valid = true};
-    memcpy(sym->str, str, strlen(str));
+        .fst_l = fst_l};
+    memcpy((*sym)->str, str, strlen(str));
 }
 
 void symtab_init() {
@@ -76,4 +79,8 @@ void symtab_fini() {
         sym_scope_pop();
     }
     init = false;
+}
+
+void symcpy(char *dst, const char *src) {
+    strncpy(dst, src, MAX_SYM_LEN - 1);
 }

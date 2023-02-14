@@ -1,7 +1,5 @@
 #include "common.h"
 #include "symtab.h"
-#include <assert.h>
-#include <stdlib.h>
 
 static const char *syms[] = {
     "sym1", "arr", "struct", "_ddd", "0x12345"};

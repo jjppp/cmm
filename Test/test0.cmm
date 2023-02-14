@@ -1,0 +1,19 @@
+//there is acomment
+/* thisldfl
+stikldsjldf
+*/
+// /*thkdlsjtklsdj*/
+int main() {
+  int a,b /*kldsjflkj*/;
+  a = 3;
+  // \\\\\////sdjgljdslkfjlkj*/
+  /* /* ///sdkfljsldkjflk]\\\////
+  /////* /* /*
+  */
+  b = a + 4;
+  while(a</*>_<*/ b) {
+    a = a + a;
+    b = b + 4;
+  }
+  return a;
+}
