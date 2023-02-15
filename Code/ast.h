@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "symtab.h"
+#include "cst.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -176,8 +177,8 @@ struct ast_visitor {
            "instanceof %s", AST_NODE_NAMES[KIND]); \
     KIND##_node_t *cnode = (KIND##_node_t *) NODE;
 
-ast_t *new_ast_node(ast_kind_t kind, u32 fst_l, ...);
+ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...);
 
-void del_ast_node(ast_t *node);
+void ast_free(ast_t *node);
 
 void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p);

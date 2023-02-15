@@ -4,7 +4,7 @@
 
 VISITOR_DEF(new, va_list);
 
-ast_t *new_ast_node(ast_kind_t kind, u32 fst_l, ...) {
+ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...) {
 #define AST_NODE_ALLOC(NODE)                 \
     case NODE:                               \
         ptr = zalloc(sizeof(NODE##_node_t)); \

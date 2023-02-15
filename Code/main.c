@@ -7,7 +7,8 @@ int  yyparse(void);
 
 bool lex_err, syn_err, sem_err;
 
-ast_t *root = NULL;
+cst_t *croot = NULL;
+ast_t *root  = NULL;
 
 int main(int argc, char **argv) {
     if (argc <= 1) {
@@ -22,9 +23,9 @@ int main(int argc, char **argv) {
     yyparse();
     if (!lex_err && !syn_err) {
         puts("NO ERR");
-        void print(FILE * file, ast_t * node, ...);
-        print(stdout, root);
+        cst_print(croot, 0);
+        cst_free(croot);
     }
-    del_ast_node(root);
+    ast_free(root);
     return 0;
 }

@@ -88,6 +88,7 @@ ID {LETTER}({LETTER}|{DIGIT})*
 %%
 "\n" {
     yycolumn = 1;
+    yylineno ++;
 }
 {WS} {
 	// do nothing ..
@@ -120,122 +121,165 @@ ID {LETTER}({LETTER}|{DIGIT})*
 	}
 }
 {T_INT} {
-    yylval.type_type = (type_t) {
+    yylval.type_type.typ = (type_t) {
         .spec_type = TYPE_PRIM_INT,
         .decls = NULL
     };
+    yylval.type_type.cst = cst_alloc("TYPE", yytext, yylineno, 0);
 	return(TYPE);
 }
 {T_FLOAT} {
-    yylval.type_type = (type_t) {
+    yylval.type_type.typ = (type_t) {
         .spec_type = TYPE_PRIM_FLT,
         .decls = NULL
     };
+    yylval.type_type.cst = cst_alloc("TYPE", yytext, yylineno, 0);
 	return(TYPE);
 }
 {IF} {
+    yylval.type_cst.cst = cst_alloc("IF", yytext, yylineno, 0);
 	return(IF);
 }
 {ELSE} {
+    yylval.type_cst.cst = cst_alloc("ELSE", yytext, yylineno, 0);
 	return(ELSE);
 }
 {WHILE} {
+    yylval.type_cst.cst = cst_alloc("WHILE", yytext, yylineno, 0);
 	return(WHILE);
 }
 {RETURN} {
+    yylval.type_cst.cst = cst_alloc("RETURN", yytext, yylineno, 0);
 	return(RETURN);
 }
 {STRUCT} {
+    yylval.type_cst.cst = cst_alloc("STRUCT", yytext, yylineno, 0);
 	return(STRUCT);
 }
 {ID} {
-    yylval.type_str = zalloc(SYM_STR_SIZE);
-    symcpy(yylval.type_str, yytext);
+    yylval.type_str.str = zalloc(SYM_STR_SIZE);
+    yylval.type_str.cst = cst_alloc("ID", yytext, yylineno, 0);
+    symcpy(yylval.type_str.str, yytext);
 	return(ID);
 }
 {DEC_INT} {
-    yylval.type_int = atoi(yytext);
+    static char __DEC_INT_buf[64];
+    yylval.type_int.val = atoi(yytext);
+    snprintf(__DEC_INT_buf, 63, "%d", yylval.type_int.val);
+    yylval.type_int.cst = cst_alloc("INT", __DEC_INT_buf, yylineno, 0);
 	return(INT);
 }
 {OCT_INT} {
-    yylval.type_int = atoi_oct(yytext);
+    static char __OCT_INT_buf[MAX_SYM_LEN];
+    yylval.type_int.val = atoi_oct(yytext);
+    snprintf(__OCT_INT_buf, MAX_SYM_LEN - 1, "%d", yylval.type_int.val);
+    yylval.type_int.cst = cst_alloc("INT", __OCT_INT_buf, yylineno, 0);
 	return(INT);
 }
 {HEX_INT} {
-    yylval.type_int = atoi_hex(yytext);
+    static char __HEX_INT_buf[MAX_SYM_LEN];
+    yylval.type_int.val = atoi_hex(yytext);
+    snprintf(__HEX_INT_buf, MAX_SYM_LEN - 1, "%d", yylval.type_int.val);
+    yylval.type_int.cst = cst_alloc("INT", __HEX_INT_buf, yylineno, 0);
 	return(INT);
 }
 {FLOAT} {
-    yylval.type_float = atof(yytext);
+    static char __FLT_buf[MAX_SYM_LEN];
+    yylval.type_float.val = atof(yytext);
+    snprintf(__FLT_buf, MAX_SYM_LEN - 1, "%lf", yylval.type_float.val);
+    yylval.type_float.cst = cst_alloc("FLOAT", __FLT_buf, yylineno, 0);
 	return(FLOAT);
 }
 {SEMI} {
+    yylval.type_cst.cst = cst_alloc("SEMI", yytext, yylineno, 0);
 	return(SEMI);
 }
 {COMMA} {
+    yylval.type_cst.cst = cst_alloc("COMMA", yytext, yylineno, 0);
 	return(COMMA);
 }
 {DOT} {
+    yylval.type_cst.cst = cst_alloc("DOT", yytext, yylineno, 0);
 	return(DOT);
 }
 {LE} {
+    yylval.type_cst.cst = cst_alloc("RELOP", "LE", yylineno, 0);
 	return(LE);
 }
 {GE} {
+    yylval.type_cst.cst = cst_alloc("RELOP", "GE", yylineno, 0);
 	return(GE);
 }
 {GT} {
+    yylval.type_cst.cst = cst_alloc("RELOP", "GT", yylineno, 0);
 	return(GT);
 }
 {LT} {
+    yylval.type_cst.cst = cst_alloc("RELOP", "LT", yylineno, 0);
 	return(LT);
 }
 {EQ} {
+    yylval.type_cst.cst = cst_alloc("RELOP", "EQ", yylineno, 0);
 	return(EQ);
 }
 {NE} {
+    yylval.type_cst.cst = cst_alloc("RELOP", "NE", yylineno, 0);
 	return(NE);
 }
 {NOT} {
+    yylval.type_cst.cst = cst_alloc("NOT", yytext, yylineno, 0);
 	return(NOT);
 }
 {ASSIGNOP} {
+    yylval.type_cst.cst = cst_alloc("ASSIGNOP", yytext, yylineno, 0);
 	return(ASSIGNOP);
 }
 {PLUS} {
+    yylval.type_cst.cst = cst_alloc("PLUS", yytext, yylineno, 0);
 	return(PLUS);
 }
 {MINUS} {
+    yylval.type_cst.cst = cst_alloc("MINUS", yytext, yylineno, 0);
 	return(MINUS);
 }
 {STAR} {
+    yylval.type_cst.cst = cst_alloc("STAR", yytext, yylineno, 0);
 	return(STAR);
 }
 {DIV} {
+    yylval.type_cst.cst = cst_alloc("DIV", yytext, yylineno, 0);
 	return(DIV);
 }
 {AND} {
+    yylval.type_cst.cst = cst_alloc("AND", yytext, yylineno, 0);
 	return(AND);
 }
 {OR} {
+    yylval.type_cst.cst = cst_alloc("OR", yytext, yylineno, 0);
 	return(OR);
 }
 {LP} {
+    yylval.type_cst.cst = cst_alloc("LP", yytext, yylineno, 0);
 	return(LP);
 }
 {LB} {
+    yylval.type_cst.cst = cst_alloc("LB", yytext, yylineno, 0);
 	return(LB);
 }
 {RP} {
+    yylval.type_cst.cst = cst_alloc("RP", yytext, yylineno, 0);
 	return(RP);
 }
 {RB} {
+    yylval.type_cst.cst = cst_alloc("RB", yytext, yylineno, 0);
 	return(RB);
 }
 {LC} {
+    yylval.type_cst.cst = cst_alloc("LC", yytext, yylineno, 0);
 	return(LC);
 }
 {RC} {
+    yylval.type_cst.cst = cst_alloc("RC", yytext, yylineno, 0);
 	return(RC);
 }
 . {

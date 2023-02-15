@@ -4,7 +4,7 @@
 #include "common.h"
 #include <stdbool.h>
 
-#define MAX_SYM_LEN 16
+#define MAX_SYM_LEN 64
 #define MAX_SYM 128
 #define MAX_CHAR 63
 #define SYM_STR_SIZE (sizeof(char) * MAX_SYM_LEN)
@@ -39,5 +39,7 @@ syment_t *sym_lookup(const char *str);
 void symcpy(char *dst, const char *src);
 
 void symmov(char *dst, char *src);
+
+int symcmp(const char *x, const char *y);
 
 #endif
