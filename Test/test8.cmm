@@ -1,0 +1,10 @@
+int main() {
+    int i = 0x1234;
+    /*
+    dddfsdf
+    sdf
+    asdgfiklsad;fjk
+    ksld;afghlk
+    */
+    float i = 1.05e-4;
+}

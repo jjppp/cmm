@@ -77,13 +77,41 @@ void yyerror(char* s) {
     if ($$.str != NULL) {
         zfree($$.str);
     } 
+    if (root == NULL) {
+        cst_free($$.cst);
+    }
 } <type_str>
 
 %destructor {
     if (root == NULL) { // to avoid cleanup popups
         ast_free($$.ast);
+        cst_free($$.cst);
     }
 } <type_node>
+
+%destructor {
+    if (root == NULL) {
+        cst_free($$.cst);
+    }
+} <type_cst>
+
+%destructor {
+    if (root == NULL) {
+        cst_free($$.cst);
+    }
+} <type_int>
+
+%destructor {
+    if (root == NULL) {
+        cst_free($$.cst);
+    }
+} <type_float>
+
+%destructor {
+    if (root == NULL) {
+        cst_free($$.cst);
+    }
+} <type_type>
 %%
 
 /* A Program consists of a string of ExtDefs */
@@ -215,7 +243,11 @@ VarDec
         INSTANCE_OF($$.ast, DECL_VAR);
         cnode->dim = $3.val;
     }
-	| VarDec LB error RB { $$.ast = $1.ast; yyerrok; }
+	| VarDec LB error RB {
+        $$.cst = cst_alloc("VarDec", "", @1.first_line, 3, $1.cst, $2.cst, $4.cst);
+        $$.ast = $1.ast;
+        yyerrok;
+    }
 ;
 
 FunDec 
@@ -273,14 +305,20 @@ StmtList
         $$.cst = NULL;
         $$.ast = NULL; 
     }
-	| error StmtList { $$.ast = $2.ast; }
+	| error StmtList {
+        $$.cst = cst_alloc("StmtList", "", @1.first_line, 1, $2.cst);
+        $$.ast = $2.ast;
+    }
 ;
 
 Stmt: Exp SEMI { 
         $$.cst = cst_alloc("Stmt", "", @1.first_line, 2, $1.cst, $2.cst);
         $$.ast = ast_alloc(STMT_EXPR, @1.first_line, $1.ast); 
     }
-	| error SEMI { $$.ast = NULL; }
+	| error SEMI {
+        $$.cst = cst_alloc("Stmt", "", @1.first_line, 1, $2.cst);
+        $$.ast = NULL; 
+    }
 	| CompSt {
         $$.cst = cst_alloc("Stmt", "", @1.first_line, 1, $1.cst);
         $$.ast = $1.ast; 
@@ -345,7 +383,11 @@ Def : Specifier DecList SEMI {
             cnode->type = $1.typ;
         }
     }
-	| Specifier error SEMI { $$.ast = NULL; yyerrok; }
+	| Specifier error SEMI {
+        $$.cst = cst_alloc("Def", "", @1.first_line, 2, $1.cst, $3.cst);
+        $$.ast = NULL;
+        yyerrok;
+    }
 ;
 
 DecList
@@ -449,7 +491,9 @@ Exp : Exp ASSIGNOP Exp {
         $$.ast = ast_alloc(EXPR_ARR,@1.first_line, $1.ast, $3.ast); 
     }
 	| Exp LB error RB { 
-        $$.ast = ast_alloc(EXPR_ARR,@1.first_line, $1.ast, NULL); yyerrok; 
+        $$.cst = cst_alloc("Exp", "", @1.first_line, 3, $1.cst, $2.cst, $4.cst);
+        $$.ast = ast_alloc(EXPR_ARR,@1.first_line, $1.ast, NULL);
+        yyerrok; 
     }
 	| Exp DOT ID { 
         $$.cst = cst_alloc("Exp", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
