@@ -51,10 +51,9 @@ typedef int8_t   i8;
 
 #define POINTS_FREE(PTR)                \
     do {                                \
-        ASSERT((PTR) != NULL,           \
-               "freeing NULL ptr");     \
         shared *__tmp = (void *) (PTR); \
         (PTR)         = NULL;           \
+        if (__tmp == NULL) break;       \
         __tmp->nref--;                  \
         if (__tmp->nref == 0) {         \
             zfree(__tmp);               \
