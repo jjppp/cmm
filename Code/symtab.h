@@ -15,6 +15,7 @@ typedef enum {
 } sym_kind_t;
 
 struct syment_t {
+    EXTENDS(shared);
     sym_kind_t kind;
     char       str[MAX_SYM_LEN];
     u32        fst_l, fst_c;

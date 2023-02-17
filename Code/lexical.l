@@ -122,7 +122,7 @@ ID {LETTER}({LETTER}|{DIGIT})*
 }
 {T_INT} {
     yylval.type_type.typ = (type_t) {
-        .spec_type = TYPE_PRIM_INT,
+        .spec_typ = TYPE_PRIM_INT,
         .decls = NULL
     };
     yylval.type_type.cst = cst_alloc("TYPE", yytext, yylineno, 0);
@@ -130,7 +130,7 @@ ID {LETTER}({LETTER}|{DIGIT})*
 }
 {T_FLOAT} {
     yylval.type_type.typ = (type_t) {
-        .spec_type = TYPE_PRIM_FLT,
+        .spec_typ = TYPE_PRIM_FLT,
         .decls = NULL
     };
     yylval.type_type.cst = cst_alloc("TYPE", yytext, yylineno, 0);

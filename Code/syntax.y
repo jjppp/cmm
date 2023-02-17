@@ -148,13 +148,13 @@ ExtDef
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         ast_foreach($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
-            cnode->type = $1.typ;
+            cnode->typ = $1.typ;
         }
         $$.ast = $2.ast;
     }
 	| Specifier SEMI { 
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 2, $1.cst, $2.cst);
-        if ($1.typ.spec_type == TYPE_STRUCT) {
+        if ($1.typ.spec_typ == TYPE_STRUCT) {
             $$.ast = ast_alloc(DECL_TYP, @1.first_line, $1.typ);
         } else {
             $$.ast = NULL;
@@ -164,7 +164,7 @@ ExtDef
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $2.ast;
         INSTANCE_OF($$.ast, DECL_FUN);
-        cnode->type = $1.typ;
+        cnode->typ = $1.typ;
         cnode->body = $3.ast; 
     }
 	| error SEMI { TODO; $$.ast = NULL; }
@@ -198,7 +198,7 @@ StructSpecifier
     : STRUCT OptTag LC DefList RC { 
         $$.cst = cst_alloc("StructSpecifier", "", @1.first_line, 5, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst);
         $$.typ = (type_t) {
-            .spec_type = TYPE_STRUCT,
+            .spec_typ = TYPE_STRUCT,
             .decls = $4.ast
         };
         if ($2.str != NULL) {
@@ -209,7 +209,7 @@ StructSpecifier
 	| STRUCT Tag {
         $$.cst = cst_alloc("StructSpecifier", "", @1.first_line, 2, $1.cst, $2.cst);
         $$.typ = (type_t) {
-            .spec_type = TYPE_STRUCT,
+            .spec_typ = TYPE_STRUCT,
             .decls = NULL,
         };
         symmov($$.typ.str, $2.str);
@@ -279,7 +279,7 @@ ParamDec
         $$.cst = cst_alloc("ParamDec", "", @1.first_line, 2, $1.cst, $2.cst);
         ast_foreach($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
-            cnode->type = $1.typ;
+            cnode->typ = $1.typ;
         }
         $$.ast = $2.ast;
     }
@@ -380,7 +380,7 @@ Def : Specifier DecList SEMI {
         $$.ast = $2.ast;
         ast_foreach($$.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
-            cnode->type = $1.typ;
+            cnode->typ = $1.typ;
         }
     }
 	| Specifier error SEMI {

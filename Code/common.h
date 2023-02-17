@@ -15,22 +15,21 @@ typedef int8_t   i8;
 #define STRINGIFY(S) STRINGIFY_(S)
 #define STRINGIFY_(S) #S
 #define TODO                                                               \
-    {                                                                      \
+    do {                                                                   \
         fprintf(stderr, "TODO in " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
         abort();                                                           \
-    }                                                                      \
-    while (0)
+    } while (0)
 #define ASSERT(COND, ...)             \
     if (!(COND)) {                    \
         fprintf(stderr, __VA_ARGS__); \
+        fprintf(stderr, "\n");        \
         assert(COND);                 \
     }
 #define UNREACHABLE                                                                 \
-    {                                                                               \
+    do {                                                                            \
         fprintf(stderr, "should not reach " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
         abort();                                                                    \
-    }                                                                               \
-    while (0)
+    } while (0)
 #define LIST(NODE) NODE,
 #define ARR_LEN(ARR) (sizeof(ARR) / sizeof(ARR[0]))
 #define EXTENDS(SUPER) SUPER super
@@ -39,6 +38,34 @@ typedef int8_t   i8;
 #else
 #define LOG(...) fprintf(stderr, __VA_ARGS__);
 #endif
+
+/* refcount ptr. obj must extend struct shared. */
+#define POINTS_TO(PTR, OBJ)                                    \
+    do {                                                       \
+        shared *__tmp = (void *) (OBJ);                        \
+        (PTR)         = (void *) __tmp;                        \
+        if (__tmp == NULL) break;                              \
+        __tmp->nref++;                                         \
+        LOG(STRINGIFY(PTR) " -> %p, #%u", (PTR), __tmp->nref); \
+    } while (0)
+
+#define POINTS_FREE(PTR)                \
+    do {                                \
+        ASSERT((PTR) != NULL,           \
+               "freeing NULL ptr");     \
+        shared *__tmp = (void *) (PTR); \
+        (PTR)         = NULL;           \
+        __tmp->nref--;                  \
+        if (__tmp->nref == 0) {         \
+            zfree(__tmp);               \
+        }                               \
+    } while (0);
+
+typedef struct shared shared;
+
+struct shared {
+    u32 nref;
+};
 
 #define AST_NODES(F) \
     F(CONS_PROG)     \

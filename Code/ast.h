@@ -19,8 +19,12 @@
         .name = STRINGIFY(NAME),                                     \
         AST_NODES(VISITOR_METHOD_ASSIGN)                             \
     }
+
 #define ast_foreach(NODE, IT) \
     for (ast_t * (IT) = (NODE); (NODE) != NULL && (IT) != NULL; (IT) = (IT)->next)
+
+#define sym_foreach(SYM, IT) \
+    for (syment_t * (IT) = (void *) (SYM); (SYM) != NULL && (IT) != NULL; (IT) = (IT)->next)
 
 typedef struct ast_t ast_t;
 
@@ -33,6 +37,11 @@ typedef enum {
 } op_kind_t;
 
 extern const char *AST_NODE_NAMES[];
+
+#define SYMS_EXTEND(SYM) \
+    typedef struct SYM##_entry SYM##_entry;
+
+SYMS(SYMS_EXTEND)
 
 struct ast_t {
     ast_t     *next;
@@ -57,19 +66,19 @@ typedef struct type_t {
         TYPE_PRIM_FLT,
         TYPE_PRIM_BOT,
         TYPE_STRUCT
-    } spec_type;
+    } spec_typ;
     char   str[MAX_SYM_LEN];
     ast_t *decls;
     u32    dim;
 } type_t;
 
-#define IS_SCALAR(TYPE)                        \
-    ((TYPE).dim == 0)                          \
-        && (((TYPE).spec_type == TYPE_PRIM_INT \
-             || (TYPE).spec_type == TYPE_PRIM_FLT))
+#define IS_SCALAR(TYPE)                       \
+    ((TYPE).dim == 0)                         \
+        && (((TYPE).spec_typ == TYPE_PRIM_INT \
+             || (TYPE).spec_typ == TYPE_PRIM_FLT))
 
-#define IS_LOGIC(TYPE)                   \
-    (((TYPE).spec_type == TYPE_PRIM_INT) \
+#define IS_LOGIC(TYPE)                  \
+    (((TYPE).spec_typ == TYPE_PRIM_INT) \
      && IS_SCALAR(TYPE))
 
 /* Stmts */
@@ -101,15 +110,15 @@ struct STMT_RET_node_t {
 /* Exprs */
 struct EXPR_IDEN_node_t {
     EXTENDS(ast_t);
-    syment_t *sym;
-    char      str[MAX_SYM_LEN];
+    SYM_VAR_entry *sym;
+    char           str[MAX_SYM_LEN];
 };
 
 struct EXPR_CALL_node_t {
     EXTENDS(ast_t);
-    syment_t *fun;
-    ast_t    *expr; // nullable
-    char      str[MAX_SYM_LEN];
+    SYM_FUN_entry *fun;
+    ast_t         *expr; // nullable
+    char           str[MAX_SYM_LEN];
 };
 
 struct EXPR_ASS_node_t {
@@ -153,30 +162,25 @@ struct EXPR_UNR_node_t {
 
 struct DECL_VAR_node_t {
     EXTENDS(ast_t);
-    syment_t *sym;
-    type_t    type;
-    ast_t    *expr; // init val
-    char      str[MAX_SYM_LEN];
-    u32       dim;
+    SYM_VAR_entry *sym;
+    type_t         typ;
+    ast_t         *expr; // init val
+    char           str[MAX_SYM_LEN];
+    u32            dim;
 };
 
 struct DECL_FUN_node_t {
     EXTENDS(ast_t);
     char   str[MAX_SYM_LEN];
     ast_t *params;
-    type_t type;
+    type_t typ;
     ast_t *body;
 };
 
 struct DECL_TYP_node_t {
     EXTENDS(ast_t);
-    type_t type;
+    type_t typ;
 };
-
-#define SYMS_EXTEND(SYM) \
-    typedef struct SYM##_entry SYM##_entry;
-
-SYMS(SYMS_EXTEND)
 
 struct SYM_TYP_entry {
     EXTENDS(syment_t);
@@ -190,8 +194,8 @@ struct SYM_VAR_entry {
 
 struct SYM_FUN_entry {
     EXTENDS(syment_t);
-    type_t    typ;
-    syment_t *params;
+    type_t         typ;
+    SYM_VAR_entry *params;
 };
 
 typedef void (*ast_visitor_fun_t)(ast_t *, void *);

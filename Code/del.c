@@ -1,4 +1,6 @@
 #include "ast.h"
+#include "common.h"
+#include "symtab.h"
 
 VISITOR_DEF(del, va_list);
 
@@ -31,6 +33,8 @@ static void visit_EXPR_UNR(ast_t *node, va_list ap) {
 /* sym does not own the syment_t object
  */
 static void visit_EXPR_IDEN(ast_t *node, va_list ap) {
+    INSTANCE_OF(node, EXPR_IDEN);
+    POINTS_FREE(cnode->sym);
 }
 
 static void visit_STMT_RET(ast_t *node, va_list ap) {
@@ -77,13 +81,14 @@ static void visit_DECL_FUN(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_FUN);
     ast_free(cnode->params);
     ast_free(cnode->body);
-    ast_free(cnode->type.decls);
+    ast_free(cnode->typ.decls);
 }
 
 static void visit_DECL_VAR(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_VAR);
+    POINTS_FREE(cnode->sym);
     ast_free(cnode->expr);
-    ast_free(cnode->type.decls);
+    ast_free(cnode->typ.decls);
 }
 
 static void visit_EXPR_ARR(ast_t *node, va_list ap) {
@@ -99,10 +104,21 @@ static void visit_STMT_EXPR(ast_t *node, va_list ap) {
 
 static void visit_EXPR_CALL(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_CALL);
+    // fun->params also point to shared objects
+    if (cnode->fun->super.super.nref == 1) {
+        syment_t *fsym = NULL;
+        sym_foreach(cnode->fun->params, it) {
+            if (fsym != NULL) {
+                POINTS_FREE(fsym);
+            }
+            fsym = it;
+        }
+    }
+    POINTS_FREE(cnode->fun);
     ast_free(cnode->expr);
 }
 
 static void visit_DECL_TYP(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_TYP);
-    ast_free(cnode->type.decls);
+    ast_free(cnode->typ.decls);
 }

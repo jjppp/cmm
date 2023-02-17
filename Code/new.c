@@ -129,5 +129,5 @@ static void visit_EXPR_CALL(ast_t *node, va_list ap) {
 
 static void visit_DECL_TYP(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_TYP);
-    cnode->type = va_arg(ap, type_t);
+    cnode->typ = va_arg(ap, type_t);
 }

@@ -51,7 +51,7 @@ void *sym_insert(u32 size, const char *str, sym_kind_t kind, u32 fst_l, u32 fst_
     ASSERT(init, "symtab used before initialized");
     ASSERT(strlen(str) < MAX_SYM_LEN, "sym_insert exceeds MAX_SYM_LEN")
     syment_t **sym = lookup(top, str);
-    ASSERT(*sym == NULL, "sym inserted twice");
+    ASSERT(*sym == NULL, "sym \"%s\" inserted twice", str);
 
     *sym  = zalloc(size);
     **sym = (syment_t){

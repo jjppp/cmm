@@ -113,15 +113,15 @@ static void visit_DECL_FUN(ast_t *node, va_list ap) {
 
 static void visit_DECL_VAR(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_VAR);
-    switch (cnode->type.spec_type) {
+    switch (cnode->typ.spec_typ) {
         case TYPE_PRIM_INT: display("INT\n"); break;
         case TYPE_PRIM_FLT: display("FLT\n"); break;
         case TYPE_STRUCT: display("STRUCT\n"); break;
         default: TODO;
     }
     display("%s\n", cnode->str);
-    if (cnode->type.spec_type == TYPE_STRUCT) {
-        ast_foreach(cnode->type.decls, it) {
+    if (cnode->typ.spec_typ == TYPE_STRUCT) {
+        ast_foreach(cnode->typ.decls, it) {
             print_(it);
         }
     }
@@ -154,15 +154,15 @@ static void visit_EXPR_CALL(ast_t *node, va_list ap) {
 
 static void visit_DECL_TYP(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_TYP);
-    switch (cnode->type.spec_type) {
+    switch (cnode->typ.spec_typ) {
         case TYPE_PRIM_INT: display("INT\n"); break;
         case TYPE_PRIM_FLT: display("FLT\n"); break;
         case TYPE_STRUCT: display("STRUCT\n"); break;
         default: TODO;
     }
-    display("%s\n", cnode->type.str);
-    if (cnode->type.spec_type == TYPE_STRUCT) {
-        ast_foreach(cnode->type.decls, it) {
+    display("%s\n", cnode->typ.str);
+    if (cnode->typ.spec_typ == TYPE_STRUCT) {
+        ast_foreach(cnode->typ.decls, it) {
             print_(it);
         }
     }
