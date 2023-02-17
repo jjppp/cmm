@@ -108,9 +108,7 @@ static void visit_EXPR_CALL(ast_t *node, va_list ap) {
     if (cnode->fun->super.super.nref == 1) {
         syment_t *fsym = NULL;
         sym_foreach(cnode->fun->params, it) {
-            if (fsym != NULL) {
-                POINTS_FREE(fsym);
-            }
+            POINTS_FREE(fsym);
             fsym = it;
         }
     }

@@ -12,7 +12,7 @@ void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p) {
     if (node == NULL) {
         return;
     }
-    LOG("%s at %s\n", visitor.name, AST_NODE_NAMES[node->ast_kind]);
+    LOG("%s at %s", visitor.name, AST_NODE_NAMES[node->ast_kind]);
 #define AST_NODE_DISPATCH(NODE)                                      \
     case NODE:                                                       \
         ASSERT(visitor.visit_##NODE != NULL,                         \

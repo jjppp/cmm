@@ -36,7 +36,11 @@ typedef int8_t   i8;
 #ifdef NDEBUG
 #define LOG(...)
 #else
-#define LOG(...) fprintf(stderr, __VA_ARGS__);
+#define LOG(...)                      \
+    do {                              \
+        fprintf(stderr, __VA_ARGS__); \
+        fprintf(stderr, "\n");        \
+    } while (0);
 #endif
 
 /* refcount ptr. obj must extend struct shared. */
@@ -142,11 +146,11 @@ struct shared {
 static inline void *zalloc(u32 size) {
     void *ptr = malloc(size);
     bzero(ptr, size);
-    LOG("zalloc %u @ %p\n", size, ptr);
+    LOG("zalloc %u @ %p", size, ptr);
     return ptr;
 }
 
 static inline void zfree(void *ptr) {
-    LOG("zfree @ %p\n", ptr);
+    LOG("zfree @ %p", ptr);
     free(ptr);
 }

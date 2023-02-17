@@ -30,7 +30,7 @@ ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...) {
 static void visit_EXPR_INT(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_INT);
     cnode->value = va_arg(ap, i32);
-    LOG("%d\n", cnode->value);
+    LOG("%d", cnode->value);
 }
 
 static void visit_EXPR_FLT(ast_t *node, va_list ap) {
@@ -107,7 +107,7 @@ static void visit_DECL_VAR(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_VAR);
     symmov(cnode->str, va_arg(ap, char *));
     cnode->dim = va_arg(ap, i32);
-    LOG("   %s\n", cnode->str);
+    LOG("   %s", cnode->str);
 }
 
 static void visit_EXPR_ARR(ast_t *node, va_list ap) {
