@@ -1,3 +1,5 @@
+// biop typecheck
+
 int fun(int iarg, float farg, int iarr[50]) {
     return iarg * farg;
 }

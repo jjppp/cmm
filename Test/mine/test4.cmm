@@ -1,3 +1,5 @@
+// lex err
+
 int main() {
     return arr[0, 5];
 }

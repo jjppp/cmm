@@ -1,0 +1,5 @@
+// fun args order
+
+float fun(int i, float f) {
+    return fun(1, f);
+}
