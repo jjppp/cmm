@@ -221,8 +221,16 @@ static void visit_DECL_FUN(ast_t *node, type_t *typ) {
         INSTANCE_OF_VAR(it, DECL_VAR, vnode);
 
         visit_DECL_VAR(it, typ);
-        vnode->sym->super.next = (void *) sym->params;
-        POINTS_TO(sym->params, vnode->sym);
+        if (sym->params == NULL) {
+            POINTS_TO(sym->params, vnode->sym);
+        } else {
+            sym_foreach(sym->params, jt) {
+                if (jt->next == NULL) {
+                    POINTS_TO(jt->next, vnode->sym);
+                    break;
+                }
+            }
+        }
     }
 
     POINTS_TO(cur_fun, sym);
