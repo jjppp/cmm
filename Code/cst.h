@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "symtab.h"
+#include <stdbool.h>
 
 typedef struct cst_t cst_t;
 

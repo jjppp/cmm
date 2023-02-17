@@ -103,6 +103,16 @@ typedef int8_t   i8;
     F(OP_NEG)  \
     F(OP_NOT)
 
+#define LOGIC_OPS(F) \
+    F(OP_AND)        \
+    F(OP_OR)         \
+    F(OP_NOT)
+
+#define SYMS(F) \
+    F(SYM_TYP)  \
+    F(SYM_VAR)  \
+    F(SYM_FUN)
+
 static inline void *zalloc(u32 size) {
     void *ptr = malloc(size);
     bzero(ptr, size);

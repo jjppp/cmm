@@ -55,11 +55,22 @@ typedef struct type_t {
     enum kind_t {
         TYPE_PRIM_INT,
         TYPE_PRIM_FLT,
+        TYPE_PRIM_BOT,
         TYPE_STRUCT
     } spec_type;
     char   str[MAX_SYM_LEN];
     ast_t *decls;
+    u32    dim;
 } type_t;
+
+#define IS_SCALAR(TYPE)                        \
+    ((TYPE).dim == 0)                          \
+        && (((TYPE).spec_type == TYPE_PRIM_INT \
+             || (TYPE).spec_type == TYPE_PRIM_FLT))
+
+#define IS_LOGIC(TYPE)                   \
+    (((TYPE).spec_type == TYPE_PRIM_INT) \
+     && IS_SCALAR(TYPE))
 
 /* Stmts */
 struct STMT_SCOP_node_t {
@@ -162,6 +173,27 @@ struct DECL_TYP_node_t {
     type_t type;
 };
 
+#define SYMS_EXTEND(SYM) \
+    typedef struct SYM##_entry SYM##_entry;
+
+SYMS(SYMS_EXTEND)
+
+struct SYM_TYP_entry {
+    EXTENDS(syment_t);
+    type_t typ;
+};
+
+struct SYM_VAR_entry {
+    EXTENDS(syment_t);
+    type_t typ;
+};
+
+struct SYM_FUN_entry {
+    EXTENDS(syment_t);
+    type_t    typ;
+    syment_t *params;
+};
+
 typedef void (*ast_visitor_fun_t)(ast_t *, void *);
 
 #define AST_NODE_VISIT(NODE) \
@@ -177,8 +209,15 @@ struct ast_visitor {
            "instanceof %s", AST_NODE_NAMES[KIND]); \
     KIND##_node_t *cnode = (KIND##_node_t *) NODE;
 
+#define INSTANCE_OF_VAR(NODE, KIND, CNODE)         \
+    ASSERT(NODE->ast_kind == KIND,                 \
+           "instanceof %s", AST_NODE_NAMES[KIND]); \
+    KIND##_node_t *CNODE = (KIND##_node_t *) NODE;
+
 ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...);
 
 void ast_free(ast_t *node);
+
+void ast_check(ast_t *node, type_t *typ);
 
 void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p);

@@ -117,6 +117,7 @@ static void visit_DECL_VAR(ast_t *node, va_list ap) {
         case TYPE_PRIM_INT: display("INT\n"); break;
         case TYPE_PRIM_FLT: display("FLT\n"); break;
         case TYPE_STRUCT: display("STRUCT\n"); break;
+        default: TODO;
     }
     display("%s\n", cnode->str);
     if (cnode->type.spec_type == TYPE_STRUCT) {
@@ -157,6 +158,7 @@ static void visit_DECL_TYP(ast_t *node, va_list ap) {
         case TYPE_PRIM_INT: display("INT\n"); break;
         case TYPE_PRIM_FLT: display("FLT\n"); break;
         case TYPE_STRUCT: display("STRUCT\n"); break;
+        default: TODO;
     }
     display("%s\n", cnode->type.str);
     if (cnode->type.spec_type == TYPE_STRUCT) {

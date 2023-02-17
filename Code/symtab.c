@@ -1,12 +1,9 @@
 #include "symtab.h"
-#include "common.h"
 #include <string.h>
-
-#define MAX_ENTRY 4096
+#include <stdbool.h>
 
 static hashtab_t *top  = NULL;
 static bool       init = false;
-static syment_t   entries[MAX_ENTRY];
 
 static u32 str_hash(const char *s) {
     u32 hash = 0;
@@ -25,7 +22,7 @@ static syment_t **lookup(hashtab_t *hashtab, const char *str) {
     return &bucket[hash];
 }
 
-syment_t *sym_lookup(const char *str) {
+void *sym_lookup(const char *str) {
     ASSERT(init, "symtab used before initialized");
     for (hashtab_t *cur = top; cur; cur = cur->prev) {
         syment_t *sym = *lookup(cur, str);
@@ -50,23 +47,19 @@ void sym_scope_pop() {
     zfree(hashtab);
 }
 
-syment_t *salloc() {
-    static syment_t *ptr = entries;
-    return ptr++;
-}
-
-void sym_insert(const char *str, void *data, u32 fst_l, u32 fst_c) {
+void *sym_insert(u32 size, const char *str, sym_kind_t kind, u32 fst_l, u32 fst_c) {
     ASSERT(init, "symtab used before initialized");
     ASSERT(strlen(str) < MAX_SYM_LEN, "sym_insert exceeds MAX_SYM_LEN")
     syment_t **sym = lookup(top, str);
     ASSERT(*sym == NULL, "sym inserted twice");
 
-    *sym  = salloc();
+    *sym  = zalloc(size);
     **sym = (syment_t){
-        .data  = data,
+        .kind  = kind,
         .fst_c = fst_c,
         .fst_l = fst_l};
-    memcpy((*sym)->str, str, strlen(str));
+    symcpy((*sym)->str, str);
+    return *sym;
 }
 
 void symtab_init() {

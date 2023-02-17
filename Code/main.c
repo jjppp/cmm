@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
+#include "symtab.h"
 
 void yyrestart(FILE *input_file);
 int  yyparse(void);
@@ -21,11 +22,18 @@ int main(int argc, char **argv) {
     }
     yyrestart(file);
     yyparse();
-    if (!lex_err && !syn_err) {
-        puts("NO ERR");
-        cst_print(croot, 0);
-        cst_free(croot);
+    if (lex_err || syn_err) {
+        goto done;
     }
+    symtab_init();
+    type_t typ;
+    ast_check(root, &typ);
+    if (sem_err) {
+        goto done;
+    }
+    cst_print(croot, 0);
+    cst_free(croot);
+done:
     ast_free(root);
     return 0;
 }
