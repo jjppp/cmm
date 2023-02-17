@@ -1,0 +1,3 @@
+struct Pair_Int_Int {
+    int first, second;
+} j;

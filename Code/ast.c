@@ -9,7 +9,9 @@ const char *AST_NODE_NAMES[] = {AST_NODES(STRING_LIST) "\0"};
 const char *OP_NAMES[]       = {OPS(STRING_LIST) "\0"};
 
 void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p) {
-    ASSERT(node != NULL, "%s is NULL", AST_NODE_NAMES[node->ast_kind]);
+    if (node == NULL) {
+        return;
+    }
     LOG("%s at %s\n", visitor.name, AST_NODE_NAMES[node->ast_kind]);
 #define AST_NODE_DISPATCH(NODE)                                      \
     case NODE:                                                       \

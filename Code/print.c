@@ -19,8 +19,6 @@ static void display(const char *fmt, ...) {
 
 static void print_(ast_t *node) {
     ASSERT(node != NULL, "print NULL");
-    void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p);
-
     tabs++;
     display("%s\n", AST_NODE_NAMES[node->ast_kind]);
     visitor_dispatch(visitor_print, node, NULL);

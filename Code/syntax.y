@@ -150,7 +150,8 @@ ExtDef
             INSTANCE_OF(it, DECL_VAR);
             cnode->typ = $1.typ;
         }
-        $$.ast = $2.ast;
+        $$.ast = ast_alloc(DECL_TYP, @1.first_line, $1.typ);
+        $$.ast->next = $2.ast;
     }
 	| Specifier SEMI { 
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 2, $1.cst, $2.cst);
