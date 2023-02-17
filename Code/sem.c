@@ -208,12 +208,11 @@ static void visit_DECL_TYP(ast_t *node, type_t *typ) {
 static void visit_DECL_FUN(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, DECL_FUN);
     // TODO: sym position
-    SYM_FUN_entry *sym;
-    POINTS_TO(sym, sym_insert(
-                       sizeof(SYM_FUN_entry),
-                       cnode->str,
-                       SYM_FUN,
-                       0, 0));
+    SYM_FUN_entry *sym = sym_insert(
+        sizeof(SYM_FUN_entry),
+        cnode->str,
+        SYM_FUN,
+        0, 0);
     sym->typ = cnode->typ;
 
     sym_scope_push();

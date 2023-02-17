@@ -7,8 +7,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-#define MAX_CHILD 512
-
 #define VISITOR_METHOD_ASSIGN(NAME) \
     .visit_##NAME = (void *) visit_##NAME,
 #define VISITOR_METHOD_DECLARE(NAME, ARG_TYPE) \
