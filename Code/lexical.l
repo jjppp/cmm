@@ -121,13 +121,13 @@ ID {LETTER}({LETTER}|{DIGIT})*
 	}
 }
 {T_INT} {
-    yylval.type_type.ast = ast_alloc(CONS_SPEC, yylineno, TYPE_PRIM_INT);
-    yylval.type_type.cst = cst_alloc("TYPE", yytext, yylineno, 0);
+    yylval.type_node.ast = ast_alloc(CONS_SPEC, yylineno, TYPE_PRIM_INT);
+    yylval.type_node.cst = cst_alloc("TYPE", yytext, yylineno, 0);
 	return(TYPE);
 }
 {T_FLOAT} {
-    yylval.type_type.ast = ast_alloc(CONS_SPEC, yylineno, TYPE_PRIM_FLT);
-    yylval.type_type.cst = cst_alloc("TYPE", yytext, yylineno, 0);
+    yylval.type_node.ast = ast_alloc(CONS_SPEC, yylineno, TYPE_PRIM_FLT);
+    yylval.type_node.cst = cst_alloc("TYPE", yytext, yylineno, 0);
 	return(TYPE);
 }
 {IF} {

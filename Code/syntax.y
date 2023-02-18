@@ -37,19 +37,15 @@ void yyerror(char* s) {
         int    val;
         cst_t *cst;
     } type_int;
-    struct {
-        ast_t *ast;
-        cst_t *cst;
-    } type_type;
 }
 
 %token <type_cst>       STRUCT RETURN IF ELSE WHILE SEMI COMMA LC RC
 %token <type_float>     FLOAT 
 %token <type_int>       INT 
 %token <type_str>       ID 
-%token <type_type>      TYPE
+%token <type_node>      TYPE
 
-%type  <type_type>      Specifier StructSpecifier
+%type  <type_node>      Specifier StructSpecifier
 %type  <type_node>      FunDec Stmt CompSt Program Def Dec DecList Exp ParamDec ExtDef ExtDefList ExtDecList DefList VarList StmtList Args VarDec
 %type  <type_str>       OptTag Tag
 
@@ -106,13 +102,6 @@ void yyerror(char* s) {
         cst_free($$.cst);
     }
 } <type_float>
-
-%destructor {
-    if (root == NULL) {
-        ast_free($$.ast);
-        cst_free($$.cst);
-    }
-} <type_type>
 %%
 
 /* A Program consists of a string of ExtDefs */

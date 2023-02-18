@@ -1,7 +1,6 @@
 #include "ast.h"
 #include "common.h"
 #include "symtab.h"
-#include "type.h"
 #include <stdbool.h>
 
 VISITOR_DEF(sem, type_t *);
@@ -9,7 +8,7 @@ VISITOR_DEF(sem, type_t *);
 extern bool sem_err;
 
 // no nested functions, a pointer is sufficient
-static SYM_FUN_entry *cur_fun;
+static syment_t *cur_fun;
 
 void ast_check(ast_t *node, type_t *typ) {
     visitor_dispatch(visitor_sem, node, typ);
@@ -77,13 +76,13 @@ static void visit_STMT_RET(ast_t *node, type_t *typ) {
 
 static void visit_EXPR_CALL(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, EXPR_CALL);
-    POINTS_TO(cnode->fun, sym_lookup(cnode->str));
+    cnode->fun = sym_lookup(cnode->str);
 
     if (cnode->fun == NULL) {
         TODO("CALL undef fun");
     }
 
-    SYM_VAR_entry *sit = cnode->fun->params;
+    syment_t *sit = cnode->fun->params;
     ast_foreach(cnode->expr, nit) {
         if (sit == NULL) {
             TODO("CALL arg cnt");
@@ -92,7 +91,7 @@ static void visit_EXPR_CALL(ast_t *node, type_t *typ) {
         if (!type_eq(*typ, sit->typ)) {
             TODO("CALL arg typ");
         }
-        sit = (void *) sit->super.next;
+        sit = sit->next;
     }
     if (sit != NULL) {
         TODO("CALL arg cnt");
@@ -102,7 +101,7 @@ static void visit_EXPR_CALL(ast_t *node, type_t *typ) {
 
 static void visit_EXPR_IDEN(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, EXPR_IDEN);
-    POINTS_TO(cnode->sym, sym_lookup(cnode->str));
+    cnode->sym = sym_lookup(cnode->str);
 
     if (cnode->sym == NULL) {
         TODO("EXPR undef IDEN");
@@ -185,23 +184,22 @@ static void visit_EXPR_UNR(ast_t *node, type_t *typ) {
 
 static void visit_DECL_VAR(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, DECL_VAR);
+    type_t expr_typ;
 
     if (cnode->expr != NULL) {
-        type_t expr_typ;
         ast_check(cnode->expr, &expr_typ);
-        ast_check(cnode->spec, typ);
+    }
+    ast_check(cnode->spec, typ);
+    if (cnode->expr != NULL) {
         if (!type_eq(*typ, expr_typ)) {
             TODO("DECL_VAR init typ");
         }
-    } else {
-        ast_check(cnode->spec, typ);
     }
 
-    POINTS_TO(cnode->sym, sym_insert(
-                              sizeof(SYM_VAR_entry),
-                              cnode->str,
-                              SYM_VAR,
-                              0, 0));
+    cnode->sym = sym_insert(
+        cnode->str,
+        SYM_VAR,
+        0, 0);
     cnode->sym->typ = *typ;
 }
 
@@ -215,13 +213,12 @@ static void visit_DECL_FUN(ast_t *node, type_t *typ) {
     ast_check(cnode->spec, typ);
 
     // TODO: sym position
-    SYM_FUN_entry *sym = sym_insert(
-        sizeof(SYM_FUN_entry),
+    syment_t *sym = sym_insert(
         cnode->str,
         SYM_FUN,
         0, 0);
-    sym->typ = *typ;
-    POINTS_TO(cnode->sym, sym);
+    sym->typ   = *typ;
+    cnode->sym = sym;
 
     sym_scope_push();
     ast_foreach(cnode->params, it) {
@@ -229,21 +226,20 @@ static void visit_DECL_FUN(ast_t *node, type_t *typ) {
 
         visit_DECL_VAR(it, typ);
         if (sym->params == NULL) {
-            POINTS_TO(sym->params, vnode->sym);
+            sym->params = vnode->sym;
         } else {
             sym_foreach(sym->params, jt) {
                 if (jt->next == NULL) {
-                    POINTS_TO(jt->next, vnode->sym);
+                    jt->next = vnode->sym;
                     break;
                 }
             }
         }
     }
 
-    POINTS_TO(cur_fun, sym);
+    cur_fun = sym;
     ast_check(cnode->body, typ);
 
-    POINTS_FREE(cur_fun->params, sym_free);
     POINTS_FREE(cur_fun, zfree);
     sym_scope_pop();
 }
@@ -272,11 +268,11 @@ static void visit_CONS_SPEC(ast_t *node, type_t *typ) {
                     tail       = tail->next;
                 }
             }
-            sym_insert(
-                sizeof(SYM_TYP_entry),
+            syment_t *sym = sym_insert(
                 typ->str,
                 SYM_TYP,
                 0, 0);
+            sym->typ = *typ;
             break;
         case TYPE_ARRAY:
             TODO("TYPE_ARRAY");

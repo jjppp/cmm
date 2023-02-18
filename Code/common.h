@@ -6,6 +6,11 @@
 #include <strings.h>
 #include <assert.h>
 
+#define MAX_SYM_LEN 64
+#define MAX_SYM 128
+#define MAX_CHAR 63
+#define SYM_STR_SIZE (sizeof(char) * MAX_SYM_LEN)
+
 typedef double   f32;
 typedef uint32_t u32;
 typedef int32_t  i32;

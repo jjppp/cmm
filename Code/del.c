@@ -34,8 +34,6 @@ static void visit_EXPR_UNR(ast_t *node, va_list ap) {
 /* sym does not own the syment_t object
  */
 static void visit_EXPR_IDEN(ast_t *node, va_list ap) {
-    INSTANCE_OF(node, EXPR_IDEN);
-    POINTS_FREE(cnode->sym, sym_free);
 }
 
 static void visit_STMT_RET(ast_t *node, va_list ap) {
@@ -83,12 +81,10 @@ static void visit_DECL_FUN(ast_t *node, va_list ap) {
     ast_free(cnode->params);
     ast_free(cnode->body);
     POINTS_FREE(cnode->spec, ast_free);
-    POINTS_FREE(cnode->sym, sym_free);
 }
 
 static void visit_DECL_VAR(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_VAR);
-    POINTS_FREE(cnode->sym, sym_free);
     ast_free(cnode->expr);
     POINTS_FREE(cnode->spec, ast_free);
 }
@@ -106,11 +102,6 @@ static void visit_STMT_EXPR(ast_t *node, va_list ap) {
 
 static void visit_EXPR_CALL(ast_t *node, va_list ap) {
     INSTANCE_OF(node, EXPR_CALL);
-    // fun->params also point to shared objects
-    if (cnode->fun->super.super.nref == 1) {
-        POINTS_FREE(cnode->fun->params, sym_free);
-    }
-    POINTS_FREE(cnode->fun, sym_free);
     ast_free(cnode->expr);
 }
 

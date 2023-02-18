@@ -1,7 +1,6 @@
 #include "ast.h"
 #include "common.h"
 #include "symtab.h"
-#include "type.h"
 #include <stdarg.h>
 
 VISITOR_DEF(new, va_list);

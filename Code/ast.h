@@ -3,7 +3,6 @@
 #include "common.h"
 #include "symtab.h"
 #include "cst.h"
-#include "type.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -36,11 +35,6 @@ typedef enum {
 } op_kind_t;
 
 extern const char *AST_NODE_NAMES[];
-
-#define SYMS_EXTEND(SYM) \
-    typedef struct SYM##_entry SYM##_entry;
-
-SYMS(SYMS_EXTEND)
 
 struct ast_t {
     EXTENDS(shared);
@@ -96,15 +90,15 @@ struct STMT_RET_node_t {
 /* Exprs */
 struct EXPR_IDEN_node_t {
     EXTENDS(ast_t);
-    SYM_VAR_entry *sym;
-    char           str[MAX_SYM_LEN];
+    syment_t *sym;
+    char      str[MAX_SYM_LEN];
 };
 
 struct EXPR_CALL_node_t {
     EXTENDS(ast_t);
-    SYM_FUN_entry *fun;
-    ast_t         *expr; // nullable
-    char           str[MAX_SYM_LEN];
+    syment_t *fun;
+    ast_t    *expr; // nullable
+    char      str[MAX_SYM_LEN];
 };
 
 struct EXPR_ASS_node_t {
@@ -148,41 +142,25 @@ struct EXPR_UNR_node_t {
 
 struct DECL_VAR_node_t {
     EXTENDS(ast_t);
-    SYM_VAR_entry *sym;
-    ast_t         *spec;
-    ast_t         *expr; // init val
-    char           str[MAX_SYM_LEN];
-    u32            dim;
+    syment_t *sym;
+    ast_t    *spec;
+    ast_t    *expr; // init val
+    char      str[MAX_SYM_LEN];
+    u32       dim;
 };
 
 struct DECL_FUN_node_t {
     EXTENDS(ast_t);
-    char           str[MAX_SYM_LEN];
-    SYM_FUN_entry *sym;
-    ast_t         *params;
-    ast_t         *spec;
-    ast_t         *body;
+    char      str[MAX_SYM_LEN];
+    syment_t *sym;
+    ast_t    *params;
+    ast_t    *spec;
+    ast_t    *body;
 };
 
 struct DECL_TYP_node_t {
     EXTENDS(ast_t);
     ast_t *spec;
-};
-
-struct SYM_TYP_entry {
-    EXTENDS(syment_t);
-    type_t typ;
-};
-
-struct SYM_VAR_entry {
-    EXTENDS(syment_t);
-    type_t typ;
-};
-
-struct SYM_FUN_entry {
-    EXTENDS(syment_t);
-    type_t         typ;
-    SYM_VAR_entry *params;
 };
 
 typedef void (*ast_visitor_fun_t)(ast_t *, void *);

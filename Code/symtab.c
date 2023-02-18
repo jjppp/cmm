@@ -1,11 +1,12 @@
 #include "symtab.h"
 #include "ast.h"
-#include "type.h"
+#include "common.h"
 #include <string.h>
 #include <stdbool.h>
 
 static hashtab_t *top  = NULL;
 static bool       init = false;
+static syment_t   entries[MAX_SYM];
 
 static u32 str_hash(const char *s) {
     u32 hash = 0;
@@ -49,13 +50,19 @@ void sym_scope_pop() {
     zfree(hashtab);
 }
 
-void *sym_insert(u32 size, const char *str, sym_kind_t kind, u32 fst_l, u32 fst_c) {
+void *salloc(u32 size) {
+    static syment_t *ptr = entries;
+    ASSERT(ptr - entries != MAX_SYM, "entries overflow");
+    return ptr++;
+}
+
+void *sym_insert(const char *str, sym_kind_t kind, u32 fst_l, u32 fst_c) {
     ASSERT(init, "symtab used before initialized");
     ASSERT(strlen(str) < MAX_SYM_LEN, "sym_insert exceeds MAX_SYM_LEN")
     syment_t **sym = lookup(top, str);
     ASSERT(*sym == NULL, "sym \"%s\" inserted twice", str);
 
-    *sym  = zalloc(size);
+    *sym  = salloc(sizeof(syment_t));
     **sym = (syment_t){
         .kind  = kind,
         .fst_c = fst_c,
@@ -87,13 +94,4 @@ void symmov(char *dst, char *src) {
 
 int symcmp(const char *x, const char *y) {
     return strncmp(x, y, MAX_SYM_LEN);
-}
-
-void sym_free(syment_t *sym) {
-    SYM_TYP_entry *sent = (void *) sym;
-    typ_free(sent->typ);
-    if (sym->next) {
-        POINTS_FREE(sym->next, sym_free);
-    }
-    zfree(sym);
 }
