@@ -11,6 +11,9 @@ extern bool sem_err;
 // no nested functions, a pointer is sufficient
 static syment_t *cur_fun;
 
+// do not insert fields into symtab
+static u32 nested_struct = 0;
+
 void ast_check(ast_t *node, type_t *typ) {
     visitor_dispatch(visitor_sem, node, typ);
 }
@@ -210,11 +213,12 @@ static void visit_DECL_VAR(ast_t *node, type_t *typ) {
         }
     }
 
-    cnode->sym = sym_insert(
-        cnode->str,
-        SYM_VAR,
-        0, 0);
-    cnode->sym->typ = *typ;
+    if (!nested_struct) {
+        cnode->sym = sym_insert(
+            cnode->str,
+            SYM_VAR,
+            *typ, 0, 0);
+    }
 }
 
 static void visit_DECL_TYP(ast_t *node, type_t *typ) {
@@ -230,8 +234,7 @@ static void visit_DECL_FUN(ast_t *node, type_t *typ) {
     syment_t *sym = sym_insert(
         cnode->str,
         SYM_FUN,
-        0, 0);
-    sym->typ   = *typ;
+        *typ, 0, 0);
     cnode->sym = sym;
 
     sym_scope_push();
@@ -290,8 +293,10 @@ static void visit_CONS_SPEC(ast_t *node, type_t *typ) {
                     }
 
                     type_t field_typ;
+                    nested_struct++;
                     // ast_check(spec var) -> typeof(spec)
                     ast_check(it, &field_typ);
+                    nested_struct--;
                     if (typ->fields == NULL) {
                         typ->fields = field_alloc(field_typ, cit->str);
                         tail        = typ->fields;
@@ -300,11 +305,10 @@ static void visit_CONS_SPEC(ast_t *node, type_t *typ) {
                         tail       = tail->next;
                     }
                 }
-                syment_t *sym = sym_insert(
+                sym_insert(
                     typ->str,
                     SYM_TYP,
-                    0, 0);
-                sym->typ = *typ;
+                    *typ, 0, 0);
             }
             break;
         case TYPE_ARRAY:

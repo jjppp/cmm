@@ -28,7 +28,7 @@ void symtab_init();
 
 void symtab_fini();
 
-void *sym_insert(const char *str, sym_kind_t kind, u32 fst_l, u32 fst_c);
+void *sym_insert(const char *str, sym_kind_t kind, type_t typ, u32 fst_l, u32 fst_c);
 
 void sym_scope_push();
 
