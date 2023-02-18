@@ -1,6 +1,7 @@
 #include "ast.h"
 #include "common.h"
 #include "symtab.h"
+#include "type.h"
 #include <stdbool.h>
 
 VISITOR_DEF(sem, type_t *);
@@ -12,14 +13,6 @@ static syment_t *cur_fun;
 
 void ast_check(ast_t *node, type_t *typ) {
     visitor_dispatch(visitor_sem, node, typ);
-}
-
-static bool type_eq(type_t typ1, type_t typ2) {
-    if (typ1.kind != typ2.kind) {
-        return false;
-    }
-    // TODO: struct equality
-    return true;
 }
 
 static void visit_CONS_PROG(ast_t *node, type_t *typ) {
@@ -115,8 +108,15 @@ static void visit_EXPR_ARR(ast_t *node, type_t *typ) {
     TODO("EXPR ARR");
 }
 
+// TODO: lvalue check
 static void visit_EXPR_ASS(ast_t *node, type_t *typ) {
-    TODO("EXPR ASS");
+    INSTANCE_OF(node, EXPR_ASS);
+    type_t ltyp;
+    ast_check(cnode->lhs, &ltyp);
+    ast_check(cnode->rhs, typ);
+    if (!type_eq(ltyp, *typ)) {
+        TODO("err ASS typ match");
+    }
 }
 
 static void visit_EXPR_DOT(ast_t *node, type_t *typ) {

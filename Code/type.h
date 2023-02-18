@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include <stdarg.h>
+#include <stdbool.h>
 
 typedef struct type_t type_t;
 
@@ -41,3 +42,5 @@ void field_free(field_t *field);
 type_t *typ_alloc(enum type_kind kind, ...);
 
 void typ_free(type_t typ);
+
+bool type_eq(type_t typ1, type_t typ2);
