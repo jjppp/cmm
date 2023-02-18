@@ -36,12 +36,14 @@ static void visit_STMT_EXPR(ast_t *node, type_t *typ) {
 
 static void visit_STMT_SCOP(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, STMT_SCOP);
+    sym_scope_push();
     ast_foreach(cnode->decls, it) {
         ast_check(it, typ);
     }
     ast_foreach(cnode->stmts, it) {
         ast_check(it, typ);
     }
+    sym_scope_pop();
 }
 
 static void visit_STMT_IFTE(ast_t *node, type_t *typ) {
