@@ -14,10 +14,10 @@ typedef int8_t   i8;
 
 #define STRINGIFY(S) STRINGIFY_(S)
 #define STRINGIFY_(S) #S
-#define TODO                                                               \
-    do {                                                                   \
-        fprintf(stderr, "TODO in " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
-        abort();                                                           \
+#define TODO(FEATURE)                                                                   \
+    do {                                                                                \
+        fprintf(stderr, "TODO: " FEATURE " in " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
+        abort();                                                                        \
     } while (0)
 #define ASSERT(COND, ...)             \
     if (!(COND)) {                    \
@@ -53,16 +53,17 @@ typedef int8_t   i8;
         LOG(STRINGIFY(PTR) " -> %p, #%u", (PTR), __tmp->nref); \
     } while (0)
 
-#define POINTS_FREE(PTR)                \
-    do {                                \
-        shared *__tmp = (void *) (PTR); \
-        (PTR)         = NULL;           \
-        if (__tmp == NULL) break;       \
-        __tmp->nref--;                  \
-        if (__tmp->nref == 0) {         \
-            zfree(__tmp);               \
-        }                               \
-    } while (0);
+#define POINTS_FREE(PTR, DESTRUCTOR)                            \
+    do {                                                        \
+        shared *__tmp = (void *) (PTR);                         \
+        (PTR)         = NULL;                                   \
+        if (__tmp == NULL) break;                               \
+        __tmp->nref--;                                          \
+        LOG(STRINGIFY(PTR) " x-> %p, #%u", __tmp, __tmp->nref); \
+        if (__tmp->nref == 0) {                                 \
+            DESTRUCTOR((void *) __tmp);                         \
+        }                                                       \
+    } while (0)
 
 typedef struct shared shared;
 
@@ -72,6 +73,7 @@ struct shared {
 
 #define AST_NODES(F) \
     F(CONS_PROG)     \
+    F(CONS_SPEC)     \
     /* Stmts */      \
     F(STMT_EXPR)     \
     F(STMT_SCOP)     \
@@ -95,6 +97,7 @@ struct shared {
 
 #define AST_NODES_WITH_ARG(F, ARG) \
     F(CONS_PROG, ARG)              \
+    F(CONS_SPEC, ARG)              \
     /* Stmts */                    \
     F(STMT_EXPR, ARG)              \
     F(STMT_SCOP, ARG)              \

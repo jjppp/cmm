@@ -1,5 +1,7 @@
 #include "ast.h"
+#include "common.h"
 #include "symtab.h"
+#include "type.h"
 #include <stdarg.h>
 
 VISITOR_DEF(new, va_list);
@@ -129,5 +131,23 @@ static void visit_EXPR_CALL(ast_t *node, va_list ap) {
 
 static void visit_DECL_TYP(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_TYP);
-    cnode->typ = va_arg(ap, type_t);
+    POINTS_TO(cnode->spec, va_arg(ap, ast_t *));
+    // cnode->spec = va_arg(ap, ast_t *);
+}
+
+static void visit_CONS_SPEC(ast_t *node, va_list ap) {
+    INSTANCE_OF(node, CONS_SPEC);
+    cnode->kind = va_arg(ap, enum type_kind);
+    switch (cnode->kind) {
+        case TYPE_PRIM_INT:
+        case TYPE_PRIM_FLT:
+            break;
+        case TYPE_STRUCT:
+            symmov(cnode->str, va_arg(ap, char *));
+            cnode->fields = va_arg(ap, ast_t *);
+            break;
+        case TYPE_ARRAY:
+            TODO("TYPE_ARRAY");
+        default: UNREACHABLE;
+    }
 }

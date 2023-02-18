@@ -38,7 +38,7 @@ void yyerror(char* s) {
         cst_t *cst;
     } type_int;
     struct {
-        type_t typ;
+        ast_t *ast;
         cst_t *cst;
     } type_type;
 }
@@ -109,6 +109,7 @@ void yyerror(char* s) {
 
 %destructor {
     if (root == NULL) {
+        ast_free($$.ast);
         cst_free($$.cst);
     }
 } <type_type>
@@ -148,27 +149,26 @@ ExtDef
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         ast_foreach($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
-            cnode->typ = $1.typ;
+            POINTS_TO(cnode->spec, $1.ast);
+            // cnode->spec = $1.ast;
         }
-        $$.ast = ast_alloc(DECL_TYP, @1.first_line, $1.typ);
-        $$.ast->next = $2.ast;
+        // $$.ast = ast_alloc(DECL_TYP, @1.first_line, $1.ast);
+        // $$.ast->next = $2.ast;
+        $$.ast = $2.ast;
     }
 	| Specifier SEMI { 
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 2, $1.cst, $2.cst);
-        if ($1.typ.spec_typ == TYPE_STRUCT) {
-            $$.ast = ast_alloc(DECL_TYP, @1.first_line, $1.typ);
-        } else {
-            $$.ast = NULL;
-        }
+        $$.ast = ast_alloc(DECL_TYP, @1.first_line, $1.ast);
     }
 	| Specifier FunDec CompSt { 
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $2.ast;
         INSTANCE_OF($$.ast, DECL_FUN);
-        cnode->typ = $1.typ;
+        POINTS_TO(cnode->spec, $1.ast);
+        // cnode->spec = $1.ast;
         cnode->body = $3.ast; 
     }
-	| error SEMI { TODO; $$.ast = NULL; }
+	| error SEMI { TODO("err ExtDef"); $$.ast = NULL; }
 ;
 
 /* variable declarations */
@@ -187,33 +187,27 @@ ExtDecList
 Specifier 
     : TYPE { 
         $$.cst = cst_alloc("Specifier", "", @1.first_line, 1, $1.cst);
-        $$.typ = $1.typ; 
+        $$.ast = $1.ast; 
     }
 	| StructSpecifier { 
         $$.cst = cst_alloc("Specifier", "", @1.first_line, 1, $1.cst);
-        $$.typ = $1.typ; 
+        $$.ast = $1.ast; 
     }
 ;
 
 StructSpecifier 
     : STRUCT OptTag LC DefList RC { 
         $$.cst = cst_alloc("StructSpecifier", "", @1.first_line, 5, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst);
-        $$.typ = (type_t) {
-            .spec_typ = TYPE_STRUCT,
-            .decls = $4.ast
-        };
         if ($2.str != NULL) {
-            symmov($$.typ.str, $2.str);
+            $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, $4.ast);
+        } else {
+            TODO("unnamed STRUCT"); // unnamed STRUCT
         }
     }
-	| STRUCT error ID LC DefList RC { TODO; yyerrok; }
+	| STRUCT error ID LC DefList RC { TODO("err STRUCT"); yyerrok; }
 	| STRUCT Tag {
         $$.cst = cst_alloc("StructSpecifier", "", @1.first_line, 2, $1.cst, $2.cst);
-        $$.typ = (type_t) {
-            .spec_typ = TYPE_STRUCT,
-            .decls = NULL,
-        };
-        symmov($$.typ.str, $2.str);
+        $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, NULL);
     }
 ;
 
@@ -260,7 +254,7 @@ FunDec
         $$.cst = cst_alloc("FunDec", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = ast_alloc(DECL_FUN, @1.first_line, $1.str, NULL); 
     }
-	| ID LP error RP { TODO; $$.ast = NULL; }
+	| ID LP error RP { TODO("err FunDec"); $$.ast = NULL; }
 ;
 
 VarList 
@@ -272,7 +266,7 @@ VarList
         $$.cst = cst_alloc("VarList", "", @1.first_line, 1, $1.cst);
         $$.ast = $1.ast; 
     }
-	| ParamDec COMMA error { TODO; }
+	| ParamDec COMMA error { TODO("err VarList"); }
 ;
 
 ParamDec 
@@ -280,7 +274,8 @@ ParamDec
         $$.cst = cst_alloc("ParamDec", "", @1.first_line, 2, $1.cst, $2.cst);
         ast_foreach($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
-            cnode->typ = $1.typ;
+            POINTS_TO(cnode->spec, $1.ast);
+            // cnode->spec = $1.ast;
         }
         $$.ast = $2.ast;
     }
@@ -329,28 +324,28 @@ Stmt: Exp SEMI {
         $$.ast = ast_alloc(STMT_RET, @1.first_line, $2.ast);  
     }
 	| RETURN error SEMI {
-        TODO; 
+        TODO("err RETURN"); 
     }
 	| IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {
         $$.cst = cst_alloc("Stmt", "", @1.first_line, 5, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst);
         $$.ast = ast_alloc(STMT_IFTE, @1.first_line, $3.ast, $5.ast, NULL);  
     }
 	| IF LP error RP Stmt %prec LOWER_THAN_ELSE {
-        TODO; 
+        TODO("err IF"); 
     }
 	| IF LP Exp RP Stmt ELSE Stmt {
         $$.cst = cst_alloc("Stmt", "", @1.first_line, 7, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst, $6.cst, $7.cst);
         $$.ast = ast_alloc(STMT_IFTE, @1.first_line, $3.ast, $5.ast, $7.ast); 
     }
 	| IF LP error RP Stmt ELSE Stmt {
-        TODO; 
+        TODO("err IFTE"); 
     }
 	| WHILE LP Exp RP Stmt {
         $$.cst = cst_alloc("Stmt", "", @1.first_line, 5, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst);
         $$.ast = ast_alloc(STMT_WHLE, @1.first_line, $3.ast, $5.ast); 
     }
 	| WHILE LP error RP Stmt {
-        TODO; 
+        TODO("err WHLE"); 
     }
 ;
 
@@ -381,12 +376,13 @@ Def : Specifier DecList SEMI {
         $$.ast = $2.ast;
         ast_foreach($$.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
-            cnode->typ = $1.typ;
+            POINTS_TO(cnode->spec, $1.ast);
+            // cnode->spec = $1.ast;
         }
     }
 	| Specifier error SEMI {
         $$.cst = cst_alloc("Def", "", @1.first_line, 2, $1.cst, $3.cst);
-        $$.ast = NULL;
+        $$.ast = ast_alloc(DECL_TYP, @1.first_line, $1.ast);
         yyerrok;
     }
 ;
@@ -400,7 +396,7 @@ DecList
         $$.cst = cst_alloc("DecList", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $1.ast; $$.ast->next = $3.ast; 
     }
-	| error COMMA Dec { TODO; }
+	| error COMMA Dec { TODO("err DecList"); }
 ;
 
 Dec : VarDec { 

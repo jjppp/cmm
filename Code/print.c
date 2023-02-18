@@ -1,5 +1,6 @@
 #include "ast.h"
 #include "common.h"
+#include "type.h"
 #include <stdarg.h>
 
 VISITOR_DEF(print, va_list);
@@ -111,18 +112,8 @@ static void visit_DECL_FUN(ast_t *node, va_list ap) {
 
 static void visit_DECL_VAR(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_VAR);
-    switch (cnode->typ.spec_typ) {
-        case TYPE_PRIM_INT: display("INT\n"); break;
-        case TYPE_PRIM_FLT: display("FLT\n"); break;
-        case TYPE_STRUCT: display("STRUCT\n"); break;
-        default: TODO;
-    }
+    print_(cnode->spec);
     display("%s\n", cnode->str);
-    if (cnode->typ.spec_typ == TYPE_STRUCT) {
-        ast_foreach(cnode->typ.decls, it) {
-            print_(it);
-        }
-    }
     if (cnode->expr) {
         print_(cnode->expr);
     }
@@ -152,15 +143,21 @@ static void visit_EXPR_CALL(ast_t *node, va_list ap) {
 
 static void visit_DECL_TYP(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_TYP);
-    switch (cnode->typ.spec_typ) {
+    print_(cnode->spec);
+}
+
+static void visit_CONS_SPEC(ast_t *node, va_list ap) {
+    INSTANCE_OF(node, CONS_SPEC);
+    switch (cnode->kind) {
         case TYPE_PRIM_INT: display("INT\n"); break;
         case TYPE_PRIM_FLT: display("FLT\n"); break;
         case TYPE_STRUCT: display("STRUCT\n"); break;
-        default: TODO;
+        case TYPE_ARRAY: TODO("TYPE_ARRAY");
+        default: UNREACHABLE;
     }
-    display("%s\n", cnode->typ.str);
-    if (cnode->typ.spec_typ == TYPE_STRUCT) {
-        ast_foreach(cnode->typ.decls, it) {
+    display("%s\n", cnode->str);
+    if (cnode->kind == TYPE_STRUCT) {
+        ast_foreach(cnode->fields, it) {
             print_(it);
         }
     }

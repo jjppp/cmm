@@ -1,4 +1,6 @@
 #include "symtab.h"
+#include "ast.h"
+#include "type.h"
 #include <string.h>
 #include <stdbool.h>
 
@@ -85,4 +87,13 @@ void symmov(char *dst, char *src) {
 
 int symcmp(const char *x, const char *y) {
     return strncmp(x, y, MAX_SYM_LEN);
+}
+
+void sym_free(syment_t *sym) {
+    SYM_TYP_entry *sent = (void *) sym;
+    typ_free(sent->typ);
+    if (sym->next) {
+        POINTS_FREE(sym->next, sym_free);
+    }
+    zfree(sym);
 }

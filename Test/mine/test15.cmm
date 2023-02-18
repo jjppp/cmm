@@ -1,0 +1,3 @@
+int fun(int x, int y, int z) {
+    return x * fun(y, z, 1);
+}

@@ -3,6 +3,7 @@
 #include "common.h"
 #include "symtab.h"
 #include "cst.h"
+#include "type.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -42,6 +43,7 @@ extern const char *AST_NODE_NAMES[];
 SYMS(SYMS_EXTEND)
 
 struct ast_t {
+    EXTENDS(shared);
     ast_t     *next;
     u32        fst_l;
     ast_kind_t ast_kind;
@@ -57,27 +59,13 @@ struct CONS_PROG_node_t {
     ast_t *decls;
 };
 
-/* Types */
-typedef struct type_t {
-    enum kind_t {
-        TYPE_PRIM_INT,
-        TYPE_PRIM_FLT,
-        TYPE_PRIM_BOT,
-        TYPE_STRUCT
-    } spec_typ;
-    char   str[MAX_SYM_LEN];
-    ast_t *decls;
-    u32    dim;
-} type_t;
-
-#define IS_SCALAR(TYPE)                       \
-    ((TYPE).dim == 0)                         \
-        && (((TYPE).spec_typ == TYPE_PRIM_INT \
-             || (TYPE).spec_typ == TYPE_PRIM_FLT))
-
-#define IS_LOGIC(TYPE)                  \
-    (((TYPE).spec_typ == TYPE_PRIM_INT) \
-     && IS_SCALAR(TYPE))
+/* Specifier */
+struct CONS_SPEC_node_t {
+    EXTENDS(ast_t);
+    enum type_kind kind;
+    char           str[MAX_SYM_LEN];
+    ast_t         *fields;
+};
 
 /* Stmts */
 struct STMT_SCOP_node_t {
@@ -161,7 +149,7 @@ struct EXPR_UNR_node_t {
 struct DECL_VAR_node_t {
     EXTENDS(ast_t);
     SYM_VAR_entry *sym;
-    type_t         typ;
+    ast_t         *spec;
     ast_t         *expr; // init val
     char           str[MAX_SYM_LEN];
     u32            dim;
@@ -169,15 +157,16 @@ struct DECL_VAR_node_t {
 
 struct DECL_FUN_node_t {
     EXTENDS(ast_t);
-    char   str[MAX_SYM_LEN];
-    ast_t *params;
-    type_t typ;
-    ast_t *body;
+    char           str[MAX_SYM_LEN];
+    SYM_FUN_entry *sym;
+    ast_t         *params;
+    ast_t         *spec;
+    ast_t         *body;
 };
 
 struct DECL_TYP_node_t {
     EXTENDS(ast_t);
-    type_t typ;
+    ast_t *spec;
 };
 
 struct SYM_TYP_entry {
