@@ -23,14 +23,12 @@ VISIT(EXPR_FLT) {
 }
 
 VISIT(EXPR_BIN) {
-    INSTANCE_OF(node, EXPR_BIN);
-    ast_free(cnode->lhs);
-    ast_free(cnode->rhs);
+    ast_free(node->lhs);
+    ast_free(node->rhs);
 }
 
 VISIT(EXPR_UNR) {
-    INSTANCE_OF(node, EXPR_UNR);
-    ast_free(cnode->sub);
+    ast_free(node->sub);
 }
 
 /* sym does not own the syment_t object
@@ -39,80 +37,66 @@ VISIT(EXPR_IDEN) {
 }
 
 VISIT(STMT_RET) {
-    INSTANCE_OF(node, STMT_RET);
-    ast_free(cnode->expr);
+    ast_free(node->expr);
 }
 
 VISIT(STMT_WHLE) {
-    INSTANCE_OF(node, STMT_WHLE);
-    ast_free(cnode->cond);
-    ast_free(cnode->body);
+    ast_free(node->cond);
+    ast_free(node->body);
 }
 
 VISIT(STMT_IFTE) {
-    INSTANCE_OF(node, STMT_IFTE);
-    ast_free(cnode->cond);
-    ast_free(cnode->tru_stmt);
-    ast_free(cnode->fls_stmt);
+    ast_free(node->cond);
+    ast_free(node->tru_stmt);
+    ast_free(node->fls_stmt);
 }
 
 VISIT(STMT_SCOP) {
-    INSTANCE_OF(node, STMT_SCOP);
-    ast_free(cnode->decls);
-    ast_free(cnode->stmts);
+    ast_free(node->decls);
+    ast_free(node->stmts);
 }
 
 VISIT(EXPR_DOT) {
-    INSTANCE_OF(node, EXPR_DOT);
-    ast_free(cnode->base);
+    ast_free(node->base);
 }
 
 VISIT(EXPR_ASS) {
-    INSTANCE_OF(node, EXPR_ASS);
-    ast_free(cnode->lhs);
-    ast_free(cnode->rhs);
+    ast_free(node->lhs);
+    ast_free(node->rhs);
 }
 
 VISIT(CONS_PROG) {
-    INSTANCE_OF(node, CONS_PROG);
-    ast_free(cnode->decls);
+    ast_free(node->decls);
 }
 
 VISIT(DECL_FUN) {
-    INSTANCE_OF(node, DECL_FUN);
-    ast_free(cnode->params);
-    ast_free(cnode->body);
-    POINTS_FREE(cnode->spec, ast_free);
+    ast_free(node->params);
+    ast_free(node->body);
+    POINTS_FREE(node->spec, ast_free);
 }
 
 VISIT(DECL_VAR) {
-    INSTANCE_OF(node, DECL_VAR);
-    ast_free(cnode->expr);
-    POINTS_FREE(cnode->spec, ast_free);
+    ast_free(node->expr);
+    POINTS_FREE(node->spec, ast_free);
 }
 
 VISIT(EXPR_ARR) {
-    INSTANCE_OF(node, EXPR_ARR);
-    ast_free(cnode->arr);
-    ast_free(cnode->ind);
+    ast_free(node->arr);
+    ast_free(node->ind);
 }
 
 VISIT(STMT_EXPR) {
-    INSTANCE_OF(node, STMT_EXPR);
-    ast_free(cnode->expr);
+    ast_free(node->expr);
 }
 
 VISIT(EXPR_CALL) {
-    INSTANCE_OF(node, EXPR_CALL);
-    ast_free(cnode->expr);
+    ast_free(node->expr);
 }
 
 VISIT(DECL_TYP) {
-    INSTANCE_OF(node, DECL_TYP);
-    POINTS_FREE(cnode->spec, ast_free);
+    POINTS_FREE(node->spec, ast_free);
 }
 
 VISIT(CONS_SPEC) {
-    INSTANCE_OF(node, CONS_SPEC);
-    ast_free(cnode->fields);
+    ast_free(node->fields);
 }

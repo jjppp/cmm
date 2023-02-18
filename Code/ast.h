@@ -10,7 +10,7 @@
 #define VISITOR_METHOD_ASSIGN(NAME) \
     .visit_##NAME = (void *) visit_##NAME,
 #define VISITOR_METHOD_DECLARE(NAME, ARG_TYPE) \
-    static void visit_##NAME(ast_t *node, ARG_TYPE);
+    static void visit_##NAME(NAME##_node_t *node, ARG_TYPE);
 #define VISITOR_DEF(NAME, ARG_TYPE)                                  \
     AST_NODES_WITH_ARG(VISITOR_METHOD_DECLARE, ARG_TYPE)             \
     const struct ast_visitor visitor_##NAME = (struct ast_visitor) { \
@@ -175,7 +175,7 @@ struct ast_visitor {
 };
 
 #define VISIT(NODE) \
-    static void visit_##NODE(ast_t *node, RET_TYPE ARG)
+    static void visit_##NODE(NODE##_node_t *node, RET_TYPE ARG)
 
 #define INSTANCE_OF(NODE, KIND)                    \
     ASSERT(NODE->ast_kind == KIND,                 \

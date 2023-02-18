@@ -34,123 +34,104 @@ void print(FILE *file, ast_t *node, ...) {
 }
 
 VISIT(EXPR_INT) {
-    INSTANCE_OF(node, EXPR_INT);
-    display("value: %d\n", cnode->value);
+    display("value: %d\n", node->value);
 }
 
 VISIT(EXPR_FLT) {
-    INSTANCE_OF(node, EXPR_FLT);
-    display("value: %lf\n", cnode->value);
+    display("value: %lf\n", node->value);
 }
 
 VISIT(EXPR_BIN) {
     extern const char *OP_NAMES[];
-    INSTANCE_OF(node, EXPR_BIN);
-    print_(cnode->lhs);
-    display("%s\n", OP_NAMES[cnode->op]);
-    print_(cnode->rhs);
+    print_(node->lhs);
+    display("%s\n", OP_NAMES[node->op]);
+    print_(node->rhs);
 }
 
 VISIT(EXPR_UNR) {
     extern const char *OP_NAMES[];
-    INSTANCE_OF(node, EXPR_UNR);
-    display("%d\n", OP_NAMES[cnode->op]);
-    print_(cnode->sub);
+    display("%d\n", OP_NAMES[node->op]);
+    print_(node->sub);
 }
 
 VISIT(EXPR_IDEN) {
-    INSTANCE_OF(node, EXPR_IDEN);
-    display("%s\n", cnode->str);
+    display("%s\n", node->str);
 }
 
 VISIT(STMT_EXPR) {
-    INSTANCE_OF(node, STMT_EXPR);
-    print_(cnode->expr);
+    print_(node->expr);
 }
 
 VISIT(STMT_RET) {
-    INSTANCE_OF(node, STMT_RET);
-    print_(cnode->expr);
+    print_(node->expr);
 }
 
 VISIT(STMT_WHLE) {
-    INSTANCE_OF(node, STMT_WHLE);
-    print_(cnode->cond);
-    print_(cnode->body);
+    print_(node->cond);
+    print_(node->body);
 }
 
 VISIT(STMT_IFTE) {
-    INSTANCE_OF(node, STMT_IFTE);
-    print_(cnode->cond);
-    print_(cnode->tru_stmt);
-    print_(cnode->fls_stmt);
+    print_(node->cond);
+    print_(node->tru_stmt);
+    print_(node->fls_stmt);
 }
 
 VISIT(EXPR_DOT) {
-    INSTANCE_OF(node, EXPR_DOT);
-    print_(cnode->base);
-    display("%s\n", cnode->str);
+    print_(node->base);
+    display("%s\n", node->str);
 }
 
 VISIT(EXPR_ASS) {
-    INSTANCE_OF(node, EXPR_ASS);
-    print_(cnode->lhs);
-    print_(cnode->rhs);
+    print_(node->lhs);
+    print_(node->rhs);
 }
 
 VISIT(CONS_PROG) {
-    INSTANCE_OF(node, CONS_PROG);
-    ast_foreach(cnode->decls, print_);
+    ast_foreach(node->decls, print_);
 }
 
 VISIT(DECL_FUN) {
-    INSTANCE_OF(node, DECL_FUN);
-    ast_foreach(cnode->body, print_);
+    ast_foreach(node->body, print_);
 }
 
 VISIT(DECL_VAR) {
-    INSTANCE_OF(node, DECL_VAR);
-    print_(cnode->spec);
-    display("%s\n", cnode->str);
-    if (cnode->expr) {
-        print_(cnode->expr);
+    print_(node->spec);
+    display("%s\n", node->str);
+    if (node->expr) {
+        print_(node->expr);
     }
 }
 
 VISIT(EXPR_ARR) {
-    INSTANCE_OF(node, EXPR_ARR);
-    print_(cnode->arr);
-    print_(cnode->ind);
+    print_(node->arr);
+    print_(node->ind);
 }
 
 VISIT(STMT_SCOP) {
-    INSTANCE_OF(node, STMT_SCOP);
-    ast_foreach(cnode->decls, print_);
-    ast_foreach(cnode->stmts, print_);
+    ast_foreach(node->decls, print_);
+    ast_foreach(node->stmts, print_);
 }
 
 VISIT(EXPR_CALL) {
-    INSTANCE_OF(node, EXPR_CALL);
-    display("CALL %s\n", cnode->str);
-    print_(cnode->expr);
+    display("CALL %s\n", node->str);
+    print_(node->expr);
 }
 
 VISIT(DECL_TYP) {
-    INSTANCE_OF(node, DECL_TYP);
-    print_(cnode->spec);
+    print_(node->spec);
 }
 
 VISIT(CONS_SPEC) {
-    INSTANCE_OF(node, CONS_SPEC);
-    switch (cnode->kind) {
+    switch (node->kind) {
         case TYPE_PRIM_INT: display("INT\n"); break;
         case TYPE_PRIM_FLT: display("FLT\n"); break;
         case TYPE_STRUCT: display("STRUCT\n"); break;
         case TYPE_ARRAY: TODO("TYPE_ARRAY");
         default: UNREACHABLE;
     }
-    display("%s\n", cnode->str);
-    if (cnode->kind == TYPE_STRUCT) {
-        ast_foreach(cnode->fields, print_);
+    display("%s\n", node->str);
+    if (node->kind == TYPE_STRUCT) {
+        ast_foreach(node->fields, print_);
     }
 }

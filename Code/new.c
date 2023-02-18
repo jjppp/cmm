@@ -31,121 +31,102 @@ ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...) {
 }
 
 VISIT(EXPR_INT) {
-    INSTANCE_OF(node, EXPR_INT);
-    cnode->value = va_arg(ap, i32);
-    LOG("%d", cnode->value);
+    node->value = va_arg(ap, i32);
+    LOG("%d", node->value);
 }
 
 VISIT(EXPR_FLT) {
-    INSTANCE_OF(node, EXPR_FLT);
-    cnode->value = va_arg(ap, f32);
+    node->value = va_arg(ap, f32);
 }
 
 VISIT(EXPR_BIN) {
-    INSTANCE_OF(node, EXPR_BIN);
-    cnode->lhs = va_arg(ap, ast_t *);
-    cnode->op  = va_arg(ap, op_kind_t);
-    cnode->rhs = va_arg(ap, ast_t *);
+    node->lhs = va_arg(ap, ast_t *);
+    node->op  = va_arg(ap, op_kind_t);
+    node->rhs = va_arg(ap, ast_t *);
 }
 
 VISIT(EXPR_UNR) {
-    INSTANCE_OF(node, EXPR_UNR);
-    cnode->op  = va_arg(ap, op_kind_t);
-    cnode->sub = va_arg(ap, ast_t *);
+    node->op  = va_arg(ap, op_kind_t);
+    node->sub = va_arg(ap, ast_t *);
 }
 
 VISIT(EXPR_IDEN) {
-    INSTANCE_OF(node, EXPR_IDEN);
-    symmov(cnode->str, va_arg(ap, char *));
+    symmov(node->str, va_arg(ap, char *));
 }
 
 VISIT(STMT_RET) {
-    INSTANCE_OF(node, STMT_RET);
-    cnode->expr = va_arg(ap, ast_t *);
+    node->expr = va_arg(ap, ast_t *);
 }
 
 VISIT(STMT_WHLE) {
-    INSTANCE_OF(node, STMT_WHLE);
-    cnode->cond = va_arg(ap, ast_t *);
-    cnode->body = va_arg(ap, ast_t *);
+    node->cond = va_arg(ap, ast_t *);
+    node->body = va_arg(ap, ast_t *);
 }
 
 VISIT(STMT_IFTE) {
-    INSTANCE_OF(node, STMT_IFTE);
-    cnode->cond     = va_arg(ap, ast_t *);
-    cnode->tru_stmt = va_arg(ap, ast_t *);
-    cnode->fls_stmt = va_arg(ap, ast_t *);
+    node->cond     = va_arg(ap, ast_t *);
+    node->tru_stmt = va_arg(ap, ast_t *);
+    node->fls_stmt = va_arg(ap, ast_t *);
 }
 
 VISIT(STMT_SCOP) {
-    INSTANCE_OF(node, STMT_SCOP);
-    cnode->decls = va_arg(ap, ast_t *);
-    cnode->stmts = va_arg(ap, ast_t *);
+    node->decls = va_arg(ap, ast_t *);
+    node->stmts = va_arg(ap, ast_t *);
 }
 
 VISIT(EXPR_DOT) {
-    INSTANCE_OF(node, EXPR_DOT);
-    cnode->base = va_arg(ap, ast_t *);
-    symmov(cnode->str, va_arg(ap, char *));
+    node->base = va_arg(ap, ast_t *);
+    symmov(node->str, va_arg(ap, char *));
 }
 
 VISIT(EXPR_ASS) {
-    INSTANCE_OF(node, EXPR_ASS);
-    cnode->lhs = va_arg(ap, ast_t *);
-    cnode->rhs = va_arg(ap, ast_t *);
+    node->lhs = va_arg(ap, ast_t *);
+    node->rhs = va_arg(ap, ast_t *);
 }
 
 VISIT(CONS_PROG) {
-    INSTANCE_OF(node, CONS_PROG);
-    cnode->decls = va_arg(ap, ast_t *);
+    node->decls = va_arg(ap, ast_t *);
 }
 
 VISIT(DECL_FUN) {
-    INSTANCE_OF(node, DECL_FUN);
-    symmov(cnode->str, va_arg(ap, char *));
-    cnode->params = va_arg(ap, ast_t *);
+    symmov(node->str, va_arg(ap, char *));
+    node->params = va_arg(ap, ast_t *);
 }
 
 VISIT(DECL_VAR) {
-    INSTANCE_OF(node, DECL_VAR);
-    symmov(cnode->str, va_arg(ap, char *));
-    cnode->dim = 0;
-    LOG("   %s", cnode->str);
+    symmov(node->str, va_arg(ap, char *));
+    node->dim = 0;
+    LOG("   %s", node->str);
 }
 
 VISIT(EXPR_ARR) {
-    INSTANCE_OF(node, EXPR_ARR);
-    cnode->arr = va_arg(ap, ast_t *);
-    cnode->ind = va_arg(ap, ast_t *);
+    node->arr = va_arg(ap, ast_t *);
+    node->ind = va_arg(ap, ast_t *);
 }
 
 VISIT(STMT_EXPR) {
-    INSTANCE_OF(node, STMT_EXPR);
-    cnode->expr = va_arg(ap, ast_t *);
+    node->expr = va_arg(ap, ast_t *);
 }
 
 VISIT(EXPR_CALL) {
-    INSTANCE_OF(node, EXPR_CALL);
-    symmov(cnode->str, va_arg(ap, char *));
-    cnode->expr = va_arg(ap, ast_t *);
+    symmov(node->str, va_arg(ap, char *));
+    node->expr = va_arg(ap, ast_t *);
 }
 
 VISIT(DECL_TYP) {
-    INSTANCE_OF(node, DECL_TYP);
-    POINTS_TO(cnode->spec, va_arg(ap, ast_t *));
+    POINTS_TO(node->spec, va_arg(ap, ast_t *));
 }
 
 VISIT(CONS_SPEC) {
-    INSTANCE_OF(node, CONS_SPEC);
-    cnode->kind = va_arg(ap, enum type_kind);
-    switch (cnode->kind) {
+    node->kind = va_arg(ap, enum type_kind);
+    switch (node->kind) {
         case TYPE_PRIM_INT:
         case TYPE_PRIM_FLT:
             break;
         case TYPE_STRUCT:
-            symmov(cnode->str, va_arg(ap, char *));
-            cnode->fields = va_arg(ap, ast_t *);
-            cnode->is_ref = va_arg(ap, int);
+            symmov(node->str, va_arg(ap, char *));
+            node->fields = va_arg(ap, ast_t *);
+            node->is_ref = va_arg(ap, int);
             break;
         case TYPE_ARRAY:
             TODO("TYPE_ARRAY");
