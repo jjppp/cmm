@@ -61,8 +61,7 @@ void *sym_insert(const char *str, sym_kind_t kind, type_t typ, u32 fst_l, u32 fs
     ASSERT(strlen(str) < MAX_SYM_LEN, "sym_insert exceeds MAX_SYM_LEN")
     syment_t **sym = lookup(top, str);
     if (*sym != NULL) {
-        LOG("%s", str);
-        TODO("redef sym");
+        return NULL;
     }
 
     *sym  = salloc(sizeof(syment_t));

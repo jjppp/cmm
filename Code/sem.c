@@ -2,7 +2,9 @@
 #include "common.h"
 #include "symtab.h"
 #include "type.h"
+#include "semerr.h"
 #include <stdbool.h>
+#include <stdio.h>
 
 VISITOR_DEF(sem, type_t *);
 
@@ -15,6 +17,9 @@ static syment_t *cur_fun;
 static u32 nested_struct = 0;
 
 void ast_check(ast_t *node, type_t *typ) {
+    if (node == NULL) {
+        return;
+    }
     visitor_dispatch(visitor_sem, node, typ);
 }
 
@@ -68,31 +73,31 @@ static void visit_STMT_RET(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, STMT_RET);
     ast_check(cnode->expr, typ);
     if (!type_eq(*typ, cur_fun->typ)) {
-        TODO("RET typ");
+        SEM_ERR(ERR_RET_MISMATCH, node->fst_l);
     }
 }
 
 static void visit_EXPR_CALL(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, EXPR_CALL);
     cnode->fun = sym_lookup(cnode->str);
-
     if (cnode->fun == NULL) {
-        TODO("CALL undef fun");
+        SEM_ERR(ERR_FUN_UNDEF, node->fst_l, cnode->str);
+        return;
     }
 
     syment_t *sit = cnode->fun->params;
     ast_foreach(cnode->expr, nit) {
         if (sit == NULL) {
-            TODO("CALL arg cnt");
+            SEM_ERR(ERR_FUN_ARG_MISMATCH, node->fst_l);
         }
         ast_check(nit, typ);
         if (!type_eq(*typ, sit->typ)) {
-            TODO("CALL arg typ");
+            SEM_ERR(ERR_FUN_ARG_MISMATCH, node->fst_l);
         }
         sit = sit->next;
     }
     if (sit != NULL) {
-        TODO("CALL arg cnt");
+        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->fst_l);
     }
     *typ = cnode->fun->typ;
 }
@@ -100,9 +105,9 @@ static void visit_EXPR_CALL(ast_t *node, type_t *typ) {
 static void visit_EXPR_IDEN(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, EXPR_IDEN);
     cnode->sym = sym_lookup(cnode->str);
-
     if (cnode->sym == NULL) {
-        TODO("EXPR undef IDEN");
+        SEM_ERR(ERR_VAR_UNDEF, node->fst_l, cnode->str);
+        return;
     }
     *typ = cnode->sym->typ;
 }
@@ -118,7 +123,7 @@ static void visit_EXPR_ASS(ast_t *node, type_t *typ) {
     ast_check(cnode->lhs, &ltyp);
     ast_check(cnode->rhs, typ);
     if (!type_eq(ltyp, *typ)) {
-        TODO("err ASS typ match");
+        SEM_ERR(ERR_ASS_MISMATCH, node->fst_l);
     }
 }
 
@@ -150,10 +155,10 @@ static void visit_EXPR_BIN(ast_t *node, type_t *typ) {
     ast_check(cnode->rhs, &rtyp);
 
     if (ltyp.kind != rtyp.kind) {
-        TODO("EXPR BIN typ match");
+        SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->fst_l);
     }
     if (!IS_SCALAR(ltyp)) {
-        TODO("EXPR BIN typ must be scalar");
+        SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->fst_l);
     }
     switch (cnode->op) {
         LOGIC_OPS(CASE) {
@@ -173,7 +178,7 @@ static void visit_EXPR_UNR(ast_t *node, type_t *typ) {
     ast_check(cnode->sub, &styp);
 
     if (!IS_SCALAR(styp)) {
-        TODO("EXPR UNR typ must be scalar");
+        SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->fst_l);
     }
 
     switch (cnode->op) {
@@ -209,7 +214,7 @@ static void visit_DECL_VAR(ast_t *node, type_t *typ) {
     }
     if (cnode->expr != NULL) {
         if (!type_eq(*typ, expr_typ)) {
-            TODO("DECL_VAR init typ");
+            SEM_ERR(ERR_ASS_MISMATCH, node->fst_l);
         }
     }
 
@@ -218,6 +223,9 @@ static void visit_DECL_VAR(ast_t *node, type_t *typ) {
             cnode->str,
             SYM_VAR,
             *typ, 0, 0);
+        if (!cnode->sym) {
+            SEM_ERR(ERR_VAR_REDEF, node->fst_l, cnode->str);
+        }
     }
 }
 
@@ -236,6 +244,10 @@ static void visit_DECL_FUN(ast_t *node, type_t *typ) {
         SYM_FUN,
         *typ, 0, 0);
     cnode->sym = sym;
+    if (!cnode->sym) {
+        SEM_ERR(ERR_FUN_REDEF, node->fst_l, cnode->str);
+        return;
+    }
 
     sym_scope_push();
     ast_foreach(cnode->params, it) {
@@ -256,8 +268,7 @@ static void visit_DECL_FUN(ast_t *node, type_t *typ) {
 
     cur_fun = sym;
     ast_check(cnode->body, typ);
-
-    POINTS_FREE(cur_fun, zfree);
+    cur_fun = NULL;
     sym_scope_pop();
 }
 
@@ -280,16 +291,15 @@ static void visit_CONS_SPEC(ast_t *node, type_t *typ) {
             if (cnode->is_ref) {
                 syment_t *sym = sym_lookup(typ->str);
                 if (sym == NULL) {
-                    LOG("%s", typ->str);
-                    TODO("err undef STRUCT");
+                    SEM_ERR(ERR_STRUCT_UNDEF, node->fst_l, cnode->str);
+                    return;
                 }
                 *typ = sym->typ;
             } else {
-                field_t *tail = NULL;
                 ast_foreach(cnode->fields, it) {
                     INSTANCE_OF_VAR(it, DECL_VAR, cit);
                     if (cit->expr != NULL) {
-                        TODO("err STRUCT field init");
+                        SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
                     }
 
                     type_t field_typ;
@@ -299,16 +309,21 @@ static void visit_CONS_SPEC(ast_t *node, type_t *typ) {
                     nested_struct--;
                     if (typ->fields == NULL) {
                         typ->fields = field_alloc(field_typ, cit->str);
-                        tail        = typ->fields;
                     } else {
-                        tail->next = field_alloc(field_typ, cit->str);
-                        tail       = tail->next;
+                        field_foreach(typ->fields, jt) {
+                            if (!symcmp(cit->str, jt->str)) {
+                                SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
+                            }
+                            if (jt->next == NULL) {
+                                jt->next = field_alloc(field_typ, cit->str);
+                                break;
+                            }
+                        }
                     }
                 }
-                sym_insert(
-                    typ->str,
-                    SYM_TYP,
-                    *typ, 0, 0);
+                if (NULL == sym_insert(typ->str, SYM_TYP, *typ, 0, 0)) {
+                    SEM_ERR(ERR_STRUCT_REDEF, node->fst_l, cnode->str);
+                }
             }
             break;
         case TYPE_ARRAY:

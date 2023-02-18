@@ -1,0 +1,21 @@
+struct A {
+    int a[20];
+    struct R {
+        struct JJ {
+            int k;
+        } f[11][20];
+    } q;
+    struct A ppp;
+} x;
+
+struct B {
+    int b[20];
+    struct D {
+        struct JJ f[11][20];
+    } p;
+} y;
+
+int main() {
+    int b;
+    x = y;
+}

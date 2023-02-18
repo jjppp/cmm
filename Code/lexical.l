@@ -88,7 +88,6 @@ ID {LETTER}({LETTER}|{DIGIT})*
 %%
 "\n" {
     yycolumn = 1;
-    yylineno ++;
 }
 {WS} {
 	// do nothing ..

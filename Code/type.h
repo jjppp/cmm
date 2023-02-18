@@ -36,6 +36,9 @@ struct field_t {
     (((TYPE).kind == TYPE_PRIM_INT) \
      && IS_SCALAR(TYPE))
 
+#define field_foreach(FIELD, IT) \
+    for (field_t *IT = (FIELD); (IT) != NULL; (IT) = (IT)->next)
+
 field_t *field_alloc(type_t typ, const char str[]);
 
 void field_free(field_t *field);
