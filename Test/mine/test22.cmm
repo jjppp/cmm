@@ -1,0 +1,6 @@
+int main() {
+    struct A {
+        int x;
+    } a;
+    return a.y;
+}

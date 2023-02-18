@@ -253,26 +253,39 @@ static void visit_CONS_SPEC(ast_t *node, type_t *typ) {
             break;
         case TYPE_STRUCT:
             symcpy(typ->str, cnode->str);
-            typ->fields   = NULL;
-            field_t *tail = NULL;
-            ast_foreach(cnode->fields, it) {
-                INSTANCE_OF_VAR(it, DECL_VAR, cit);
-                type_t field_typ;
-                // ast_check(spec var) -> typeof(spec)
-                ast_check(it, &field_typ);
-                if (typ->fields == NULL) {
-                    typ->fields = field_alloc(field_typ, cit->str);
-                    tail        = typ->fields;
-                } else {
-                    tail->next = field_alloc(field_typ, cit->str);
-                    tail       = tail->next;
+            typ->fields = NULL;
+
+            if (cnode->is_ref) {
+                syment_t *sym = sym_lookup(typ->str);
+                if (sym == NULL) {
+                    TODO("err undef STRUCT");
                 }
+                *typ = sym->typ;
+            } else {
+                field_t *tail = NULL;
+                ast_foreach(cnode->fields, it) {
+                    INSTANCE_OF_VAR(it, DECL_VAR, cit);
+                    if (cit->expr != NULL) {
+                        TODO("err STRUCT field init");
+                    }
+
+                    type_t field_typ;
+                    // ast_check(spec var) -> typeof(spec)
+                    ast_check(it, &field_typ);
+                    if (typ->fields == NULL) {
+                        typ->fields = field_alloc(field_typ, cit->str);
+                        tail        = typ->fields;
+                    } else {
+                        tail->next = field_alloc(field_typ, cit->str);
+                        tail       = tail->next;
+                    }
+                }
+                syment_t *sym = sym_insert(
+                    typ->str,
+                    SYM_TYP,
+                    0, 0);
+                sym->typ = *typ;
             }
-            syment_t *sym = sym_insert(
-                typ->str,
-                SYM_TYP,
-                0, 0);
-            sym->typ = *typ;
             break;
         case TYPE_ARRAY:
             TODO("TYPE_ARRAY");

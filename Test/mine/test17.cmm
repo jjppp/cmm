@@ -1,0 +1,7 @@
+int fun(int x) {
+    return x;
+}
+
+float fun(float x) {
+    return 0.0;
+}

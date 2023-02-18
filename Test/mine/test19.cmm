@@ -1,0 +1,10 @@
+int main() {
+    struct A {
+        int x, y;
+    } a;
+    struct B {
+        int p, q;
+    } b;
+
+    a = a - b;
+}

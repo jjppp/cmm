@@ -9,10 +9,16 @@ struct B {
 struct C {
     int   p;
     float q;
+    struct D {
+        int wjp;
+    } dddd;
 } c;
 
 int main() {
     struct A a;
     struct B b;
     struct C d;
+    struct D {
+        int k;
+    } p;
 }

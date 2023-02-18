@@ -188,7 +188,7 @@ StructSpecifier
     : STRUCT OptTag LC DefList RC { 
         $$.cst = cst_alloc("StructSpecifier", "", @1.first_line, 5, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst);
         if ($2.str != NULL) {
-            $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, $4.ast);
+            $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, $4.ast, 0);
         } else {
             TODO("unnamed STRUCT"); // unnamed STRUCT
         }
@@ -196,7 +196,7 @@ StructSpecifier
 	| STRUCT error ID LC DefList RC { TODO("err STRUCT"); yyerrok; }
 	| STRUCT Tag {
         $$.cst = cst_alloc("StructSpecifier", "", @1.first_line, 2, $1.cst, $2.cst);
-        $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, NULL);
+        $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, NULL, 1);
     }
 ;
 

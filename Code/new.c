@@ -144,6 +144,7 @@ static void visit_CONS_SPEC(ast_t *node, va_list ap) {
         case TYPE_STRUCT:
             symmov(cnode->str, va_arg(ap, char *));
             cnode->fields = va_arg(ap, ast_t *);
+            cnode->is_ref = va_arg(ap, int);
             break;
         case TYPE_ARRAY:
             TODO("TYPE_ARRAY");

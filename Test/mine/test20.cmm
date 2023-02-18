@@ -1,0 +1,5 @@
+int st;
+
+struct st {
+    int j;
+} a;
