@@ -139,10 +139,7 @@ ExtDef
         ast_foreach($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
             POINTS_TO(cnode->spec, $1.ast);
-            // cnode->spec = $1.ast;
         }
-        // $$.ast = ast_alloc(DECL_TYP, @1.first_line, $1.ast);
-        // $$.ast->next = $2.ast;
         $$.ast = $2.ast;
     }
 	| Specifier SEMI { 
@@ -154,7 +151,6 @@ ExtDef
         $$.ast = $2.ast;
         INSTANCE_OF($$.ast, DECL_FUN);
         POINTS_TO(cnode->spec, $1.ast);
-        // cnode->spec = $1.ast;
         cnode->body = $3.ast; 
     }
 	| error SEMI { TODO("err ExtDef"); $$.ast = NULL; }
@@ -219,13 +215,13 @@ Tag : ID {
 VarDec 
     : ID {
         $$.cst = cst_alloc("VarDec", "", @1.first_line, 1, $1.cst);
-        $$.ast = ast_alloc(DECL_VAR, @1.first_line, $1.str, 0);
+        $$.ast = ast_alloc(DECL_VAR, @1.first_line, $1.str);
     }
 	| VarDec LB INT RB { 
         $$.cst = cst_alloc("VarDec", "", @1.first_line, 4, $1.cst, $2.cst, $3.cst, $4.cst);
         $$.ast = $1.ast; 
         INSTANCE_OF($$.ast, DECL_VAR);
-        cnode->dim = $3.val;
+        cnode->len[cnode->dim++] = $3.val;
     }
 	| VarDec LB error RB {
         $$.cst = cst_alloc("VarDec", "", @1.first_line, 3, $1.cst, $2.cst, $4.cst);
@@ -264,7 +260,6 @@ ParamDec
         ast_foreach($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
             POINTS_TO(cnode->spec, $1.ast);
-            // cnode->spec = $1.ast;
         }
         $$.ast = $2.ast;
     }
@@ -366,7 +361,6 @@ Def : Specifier DecList SEMI {
         ast_foreach($$.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
             POINTS_TO(cnode->spec, $1.ast);
-            // cnode->spec = $1.ast;
         }
     }
 	| Specifier error SEMI {

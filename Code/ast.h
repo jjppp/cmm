@@ -147,7 +147,7 @@ struct DECL_VAR_node_t {
     ast_t    *spec;
     ast_t    *expr; // init val
     char      str[MAX_SYM_LEN];
-    u32       dim;
+    u32       len[MAX_DIM], dim;
 };
 
 struct DECL_FUN_node_t {

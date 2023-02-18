@@ -18,7 +18,8 @@ struct type_t {
     } kind;
     char     str[MAX_SYM_LEN];
     field_t *fields;
-    u32      dim;
+    type_t  *elem_typ;
+    u32      len[MAX_DIM], dim;
 };
 
 struct field_t {

@@ -107,7 +107,7 @@ static void visit_DECL_FUN(ast_t *node, va_list ap) {
 static void visit_DECL_VAR(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_VAR);
     symmov(cnode->str, va_arg(ap, char *));
-    cnode->dim = va_arg(ap, i32);
+    cnode->dim = 0;
     LOG("   %s", cnode->str);
 }
 
@@ -131,7 +131,6 @@ static void visit_EXPR_CALL(ast_t *node, va_list ap) {
 static void visit_DECL_TYP(ast_t *node, va_list ap) {
     INSTANCE_OF(node, DECL_TYP);
     POINTS_TO(cnode->spec, va_arg(ap, ast_t *));
-    // cnode->spec = va_arg(ap, ast_t *);
 }
 
 static void visit_CONS_SPEC(ast_t *node, va_list ap) {

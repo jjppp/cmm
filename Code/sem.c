@@ -194,8 +194,13 @@ static void visit_DECL_VAR(ast_t *node, type_t *typ) {
     ast_check(cnode->spec, &spec_typ);
     if (cnode->dim != 0) {
         *typ = (type_t){
-            .dim  = cnode->dim,
-            .kind = TYPE_ARRAY};
+            .dim      = cnode->dim,
+            .kind     = TYPE_ARRAY,
+            .elem_typ = zalloc(sizeof(type_t))};
+        *typ->elem_typ = spec_typ;
+        for (u32 i = 0; i < cnode->dim; i++) {
+            typ->len[i] = cnode->len[i];
+        }
     } else {
         *typ = spec_typ;
     }
@@ -272,6 +277,7 @@ static void visit_CONS_SPEC(ast_t *node, type_t *typ) {
             if (cnode->is_ref) {
                 syment_t *sym = sym_lookup(typ->str);
                 if (sym == NULL) {
+                    LOG("%s", typ->str);
                     TODO("err undef STRUCT");
                 }
                 *typ = sym->typ;

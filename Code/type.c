@@ -71,7 +71,15 @@ bool type_eq(type_t typ1, type_t typ2) {
         case TYPE_STRUCT:
             return field_eq(typ1.fields, typ2.fields);
         case TYPE_ARRAY:
-            TODO("TYPE_ARRAY");
+            if (typ1.dim != typ2.dim) {
+                return false;
+            }
+            for (u32 i = 0; i < typ1.dim; i++) {
+                if (typ1.len[i] != typ2.len[i]) {
+                    return false;
+                }
+            }
+            return type_eq(*typ1.elem_typ, *typ2.elem_typ);
         default: UNREACHABLE;
     }
     UNREACHABLE;
