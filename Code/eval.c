@@ -1,19 +1,21 @@
 #include "ast.h"
 #include "common.h"
 
+#define RET_TYPE f32 *
+#define ARG p_res
 VISITOR_DEF(eval, f32 *);
 
-static void visit_EXPR_INT(ast_t *node, f32 *p_res) {
+VISIT(EXPR_INT) {
     INSTANCE_OF(node, EXPR_INT);
     *p_res = cnode->value;
 }
 
-static void visit_EXPR_FLT(ast_t *node, f32 *p_res) {
+VISIT(EXPR_FLT) {
     INSTANCE_OF(node, EXPR_FLT);
     *p_res = cnode->value;
 }
 
-static void visit_EXPR_BIN(ast_t *node, f32 *p_res) {
+VISIT(EXPR_BIN) {
     INSTANCE_OF(node, EXPR_BIN);
     f32 lhs, rhs;
     visitor_dispatch(visitor_eval, cnode->lhs, &lhs);
@@ -27,7 +29,7 @@ static void visit_EXPR_BIN(ast_t *node, f32 *p_res) {
     }
 }
 
-static void visit_EXPR_UNR(ast_t *node, f32 *p_res) {
+VISIT(EXPR_UNR) {
     INSTANCE_OF(node, EXPR_UNR);
     f32 sub;
     visitor_dispatch(visitor_eval, cnode->sub, &sub);
@@ -37,47 +39,47 @@ static void visit_EXPR_UNR(ast_t *node, f32 *p_res) {
     }
 }
 
-static void visit_EXPR_IDEN(ast_t *node, f32 *p_res) {
+VISIT(EXPR_IDEN) {
 }
 
-static void visit_STMT_RET(ast_t *node, f32 *p_res) {
+VISIT(STMT_RET) {
 }
 
-static void visit_STMT_WHLE(ast_t *node, f32 *p_res) {
+VISIT(STMT_WHLE) {
 }
 
-static void visit_STMT_IFTE(ast_t *node, f32 *p_res) {
+VISIT(STMT_IFTE) {
 }
 
-static void visit_STMT_SCOP(ast_t *node, f32 *p_res) {
+VISIT(STMT_SCOP) {
 }
 
-static void visit_EXPR_DOT(ast_t *node, f32 *p_res) {
+VISIT(EXPR_DOT) {
 }
 
-static void visit_EXPR_ASS(ast_t *node, f32 *p_res) {
+VISIT(EXPR_ASS) {
 }
 
-static void visit_CONS_PROG(ast_t *node, f32 *p_res) {
+VISIT(CONS_PROG) {
 }
 
-static void visit_DECL_FUN(ast_t *node, f32 *p_res) {
+VISIT(DECL_FUN) {
 }
 
-static void visit_DECL_VAR(ast_t *node, f32 *p_res) {
+VISIT(DECL_VAR) {
 }
 
-static void visit_EXPR_ARR(ast_t *node, f32 *p_res) {
+VISIT(EXPR_ARR) {
 }
 
-static void visit_STMT_EXPR(ast_t *node, f32 *p_res) {
+VISIT(STMT_EXPR) {
 }
 
-static void visit_EXPR_CALL(ast_t *node, f32 *p_res) {
+VISIT(EXPR_CALL) {
 }
 
-static void visit_DECL_TYP(ast_t *node, f32 *p_res) {
+VISIT(DECL_TYP) {
 }
 
-static void visit_CONS_SPEC(ast_t *node, f32 *p_res) {
+VISIT(CONS_SPEC) {
 }

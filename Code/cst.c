@@ -8,7 +8,7 @@ static void ins_chld(cst_t *node, cst_t *chld) {
         node->chld = chld;
         return;
     }
-    cst_foreach(node, it) {
+    cst_iter(node, it) {
         if (it->next == NULL) {
             it->next = chld;
             break;
@@ -40,7 +40,7 @@ void cst_free(cst_t *node) {
         return;
     }
     cst_t *p = NULL;
-    cst_foreach(node, it) {
+    cst_iter(node, it) {
         cst_free(p);
         p = it;
     }
@@ -69,7 +69,7 @@ void cst_print(cst_t *node, i32 dep) {
     } else {
         printf("%s (%d)\n", node->typ, node->fst_l);
     }
-    cst_foreach(node, it) {
+    cst_iter(node, it) {
         cst_print(it, dep + 1);
     }
 }

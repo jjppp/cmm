@@ -18,11 +18,11 @@
         AST_NODES(VISITOR_METHOD_ASSIGN)                             \
     }
 
-#define ast_foreach(NODE, IT) \
-    for (ast_t * (IT) = (NODE); (NODE) != NULL && (IT) != NULL; (IT) = (IT)->next)
+#define ast_iter(NODE, IT) for (ast_t * (IT) = (void *) (NODE); (NODE) != NULL && (IT) != NULL; (IT) = (IT)->next)
+#define ast_foreach(NODE, FUN) ast_iter(NODE, __it) FUN(__it);
 
-#define sym_foreach(SYM, IT) \
-    for (syment_t * (IT) = (void *) (SYM); (SYM) != NULL && (IT) != NULL; (IT) = (IT)->next)
+#define sym_iter(SYM, IT) for (syment_t * (IT) = (void *) (SYM); (SYM) != NULL && (IT) != NULL; (IT) = (IT)->next)
+#define sym_foreach(SYM, FUN) sym_iter(SYM, __it) FUN(__it);
 
 typedef struct ast_t ast_t;
 
@@ -173,6 +173,9 @@ struct ast_visitor {
     char name[MAX_SYM_LEN];
     AST_NODES(AST_NODE_VISIT)
 };
+
+#define VISIT(NODE) \
+    static void visit_##NODE(ast_t *node, RET_TYPE ARG)
 
 #define INSTANCE_OF(NODE, KIND)                    \
     ASSERT(NODE->ast_kind == KIND,                 \

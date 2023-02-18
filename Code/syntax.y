@@ -118,7 +118,7 @@ ExtDefList
             $$.ast = $2.ast;
         } else {
             $$.ast = $1.ast; 
-            ast_foreach($$.ast, it) {
+            ast_iter($$.ast, it) {
                 if (it->next == NULL) {
                     it->next = $2.ast;
                     break;
@@ -136,7 +136,7 @@ ExtDefList
 ExtDef 
     : Specifier ExtDecList SEMI { 
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
-        ast_foreach($2.ast, it) {
+        ast_iter($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
             POINTS_TO(cnode->spec, $1.ast);
         }
@@ -257,7 +257,7 @@ VarList
 ParamDec 
     : Specifier VarDec { 
         $$.cst = cst_alloc("ParamDec", "", @1.first_line, 2, $1.cst, $2.cst);
-        ast_foreach($2.ast, it) {
+        ast_iter($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
             POINTS_TO(cnode->spec, $1.ast);
         }
@@ -341,7 +341,7 @@ DefList
             $$.ast = $2.ast;
         } else {
             $$.ast = $1.ast;
-            ast_foreach($1.ast, it) {
+            ast_iter($1.ast, it) {
                 if (it->next == NULL) {
                     it->next = $2.ast;
                     break;
@@ -358,7 +358,7 @@ DefList
 Def : Specifier DecList SEMI {
         $$.cst = cst_alloc("Def", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $2.ast;
-        ast_foreach($$.ast, it) {
+        ast_iter($$.ast, it) {
             INSTANCE_OF(it, DECL_VAR);
             POINTS_TO(cnode->spec, $1.ast);
         }

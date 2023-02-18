@@ -1,6 +1,7 @@
 #include "common.h"
 #include "symtab.h"
 #include "type.h"
+#include <string.h>
 
 field_t *field_alloc(type_t typ, const char str[]) {
     field_t *ptr = zalloc(sizeof(field_t));
@@ -74,10 +75,8 @@ bool type_eq(type_t typ1, type_t typ2) {
             if (typ1.dim != typ2.dim) {
                 return false;
             }
-            for (u32 i = 0; i < typ1.dim; i++) {
-                if (typ1.len[i] != typ2.len[i]) {
-                    return false;
-                }
+            if (memcmp(typ1.len, typ2.len, typ1.dim * sizeof(typ1.len[0]))) {
+                return false;
             }
             return type_eq(*typ1.elem_typ, *typ2.elem_typ);
         default: UNREACHABLE;

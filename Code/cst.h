@@ -6,7 +6,7 @@
 
 typedef struct cst_t cst_t;
 
-#define cst_foreach(NODE, IT) \
+#define cst_iter(NODE, IT) \
     for (cst_t *IT = (NODE)->chld; IT != NULL; IT = IT->next)
 
 struct cst_t {

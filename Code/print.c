@@ -3,6 +3,8 @@
 #include "type.h"
 #include <stdarg.h>
 
+#define RET_TYPE va_list
+#define ARG ap
 VISITOR_DEF(print, va_list);
 
 static FILE *fout;
@@ -31,17 +33,17 @@ void print(FILE *file, ast_t *node, ...) {
     print_(node);
 }
 
-static void visit_EXPR_INT(ast_t *node, va_list ap) {
+VISIT(EXPR_INT) {
     INSTANCE_OF(node, EXPR_INT);
     display("value: %d\n", cnode->value);
 }
 
-static void visit_EXPR_FLT(ast_t *node, va_list ap) {
+VISIT(EXPR_FLT) {
     INSTANCE_OF(node, EXPR_FLT);
     display("value: %lf\n", cnode->value);
 }
 
-static void visit_EXPR_BIN(ast_t *node, va_list ap) {
+VISIT(EXPR_BIN) {
     extern const char *OP_NAMES[];
     INSTANCE_OF(node, EXPR_BIN);
     print_(cnode->lhs);
@@ -49,68 +51,64 @@ static void visit_EXPR_BIN(ast_t *node, va_list ap) {
     print_(cnode->rhs);
 }
 
-static void visit_EXPR_UNR(ast_t *node, va_list ap) {
+VISIT(EXPR_UNR) {
     extern const char *OP_NAMES[];
     INSTANCE_OF(node, EXPR_UNR);
     display("%d\n", OP_NAMES[cnode->op]);
     print_(cnode->sub);
 }
 
-static void visit_EXPR_IDEN(ast_t *node, va_list ap) {
+VISIT(EXPR_IDEN) {
     INSTANCE_OF(node, EXPR_IDEN);
     display("%s\n", cnode->str);
 }
 
-static void visit_STMT_EXPR(ast_t *node, va_list ap) {
+VISIT(STMT_EXPR) {
     INSTANCE_OF(node, STMT_EXPR);
     print_(cnode->expr);
 }
 
-static void visit_STMT_RET(ast_t *node, va_list ap) {
+VISIT(STMT_RET) {
     INSTANCE_OF(node, STMT_RET);
     print_(cnode->expr);
 }
 
-static void visit_STMT_WHLE(ast_t *node, va_list ap) {
+VISIT(STMT_WHLE) {
     INSTANCE_OF(node, STMT_WHLE);
     print_(cnode->cond);
     print_(cnode->body);
 }
 
-static void visit_STMT_IFTE(ast_t *node, va_list ap) {
+VISIT(STMT_IFTE) {
     INSTANCE_OF(node, STMT_IFTE);
     print_(cnode->cond);
     print_(cnode->tru_stmt);
     print_(cnode->fls_stmt);
 }
 
-static void visit_EXPR_DOT(ast_t *node, va_list ap) {
+VISIT(EXPR_DOT) {
     INSTANCE_OF(node, EXPR_DOT);
     print_(cnode->base);
     display("%s\n", cnode->str);
 }
 
-static void visit_EXPR_ASS(ast_t *node, va_list ap) {
+VISIT(EXPR_ASS) {
     INSTANCE_OF(node, EXPR_ASS);
     print_(cnode->lhs);
     print_(cnode->rhs);
 }
 
-static void visit_CONS_PROG(ast_t *node, va_list ap) {
+VISIT(CONS_PROG) {
     INSTANCE_OF(node, CONS_PROG);
-    ast_foreach(cnode->decls, it) {
-        print_(it);
-    }
+    ast_foreach(cnode->decls, print_);
 }
 
-static void visit_DECL_FUN(ast_t *node, va_list ap) {
+VISIT(DECL_FUN) {
     INSTANCE_OF(node, DECL_FUN);
-    ast_foreach(cnode->body, it) {
-        print_(it);
-    }
+    ast_foreach(cnode->body, print_);
 }
 
-static void visit_DECL_VAR(ast_t *node, va_list ap) {
+VISIT(DECL_VAR) {
     INSTANCE_OF(node, DECL_VAR);
     print_(cnode->spec);
     display("%s\n", cnode->str);
@@ -119,34 +117,30 @@ static void visit_DECL_VAR(ast_t *node, va_list ap) {
     }
 }
 
-static void visit_EXPR_ARR(ast_t *node, va_list ap) {
+VISIT(EXPR_ARR) {
     INSTANCE_OF(node, EXPR_ARR);
     print_(cnode->arr);
     print_(cnode->ind);
 }
 
-static void visit_STMT_SCOP(ast_t *node, va_list ap) {
+VISIT(STMT_SCOP) {
     INSTANCE_OF(node, STMT_SCOP);
-    ast_foreach(cnode->decls, it) {
-        print_(it);
-    }
-    ast_foreach(cnode->stmts, it) {
-        print_(it);
-    }
+    ast_foreach(cnode->decls, print_);
+    ast_foreach(cnode->stmts, print_);
 }
 
-static void visit_EXPR_CALL(ast_t *node, va_list ap) {
+VISIT(EXPR_CALL) {
     INSTANCE_OF(node, EXPR_CALL);
     display("CALL %s\n", cnode->str);
     print_(cnode->expr);
 }
 
-static void visit_DECL_TYP(ast_t *node, va_list ap) {
+VISIT(DECL_TYP) {
     INSTANCE_OF(node, DECL_TYP);
     print_(cnode->spec);
 }
 
-static void visit_CONS_SPEC(ast_t *node, va_list ap) {
+VISIT(CONS_SPEC) {
     INSTANCE_OF(node, CONS_SPEC);
     switch (cnode->kind) {
         case TYPE_PRIM_INT: display("INT\n"); break;
@@ -157,8 +151,6 @@ static void visit_CONS_SPEC(ast_t *node, va_list ap) {
     }
     display("%s\n", cnode->str);
     if (cnode->kind == TYPE_STRUCT) {
-        ast_foreach(cnode->fields, it) {
-            print_(it);
-        }
+        ast_foreach(cnode->fields, print_);
     }
 }
