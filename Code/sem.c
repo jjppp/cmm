@@ -186,12 +186,19 @@ static void visit_EXPR_UNR(ast_t *node, type_t *typ) {
 
 static void visit_DECL_VAR(ast_t *node, type_t *typ) {
     INSTANCE_OF(node, DECL_VAR);
-    type_t expr_typ;
+    type_t expr_typ, spec_typ;
 
     if (cnode->expr != NULL) {
         ast_check(cnode->expr, &expr_typ);
     }
-    ast_check(cnode->spec, typ);
+    ast_check(cnode->spec, &spec_typ);
+    if (cnode->dim != 0) {
+        *typ = (type_t){
+            .dim  = cnode->dim,
+            .kind = TYPE_ARRAY};
+    } else {
+        *typ = spec_typ;
+    }
     if (cnode->expr != NULL) {
         if (!type_eq(*typ, expr_typ)) {
             TODO("DECL_VAR init typ");
@@ -254,6 +261,11 @@ static void visit_CONS_SPEC(ast_t *node, type_t *typ) {
         case TYPE_PRIM_FLT:
             break;
         case TYPE_STRUCT:
+            if (cnode->done) {
+                *typ = sym_lookup(cnode->str)->typ;
+                return;
+            }
+            cnode->done = true;
             symcpy(typ->str, cnode->str);
             typ->fields = NULL;
 

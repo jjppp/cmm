@@ -1,0 +1,11 @@
+int main() {
+    struct A {
+        int x[100];
+    } a;
+
+    struct B {
+        int y[200];
+    } b;
+
+    a = b;
+}

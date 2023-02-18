@@ -34,7 +34,7 @@ void sym_scope_push();
 
 void sym_scope_pop();
 
-void *sym_lookup(const char *str);
+syment_t *sym_lookup(const char *str);
 
 void symcpy(char *dst, const char *src);
 

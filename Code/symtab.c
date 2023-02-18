@@ -25,7 +25,7 @@ static syment_t **lookup(hashtab_t *hashtab, const char *str) {
     return &bucket[hash];
 }
 
-void *sym_lookup(const char *str) {
+syment_t *sym_lookup(const char *str) {
     ASSERT(init, "symtab used before initialized");
     for (hashtab_t *cur = top; cur; cur = cur->prev) {
         syment_t *sym = *lookup(cur, str);

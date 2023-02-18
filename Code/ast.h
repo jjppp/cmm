@@ -59,7 +59,7 @@ struct CONS_SPEC_node_t {
     enum type_kind kind;
     char           str[MAX_SYM_LEN];
     ast_t         *fields;
-    bool           is_ref;
+    bool           is_ref, done;
 };
 
 /* Stmts */

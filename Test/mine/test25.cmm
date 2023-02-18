@@ -1,0 +1,13 @@
+int main() {
+    struct A {
+        int   x, y, u;
+        float z;
+    } a, b;
+
+    struct C {
+        int   p, q, l;
+        float r;
+    } c;
+    a = b;
+    a = c;
+}
