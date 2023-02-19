@@ -46,8 +46,9 @@ void yyerror(char* s) {
 %token <type_node>      TYPE
 
 %type  <type_node>      Specifier StructSpecifier
-%type  <type_node>      FunDec Stmt CompSt Program Def Dec DecList Exp ParamDec ExtDef ExtDefList ExtDecList DefList VarList StmtList Args VarDec
+%type  <type_node>      FunDec Stmt CompSt Def Dec DecList Exp ParamDec ExtDef ExtDefList ExtDecList DefList VarList StmtList Args VarDec
 %type  <type_str>       OptTag Tag
+%nterm                  Program
 
 %nonassoc LOWER_THAN_ELSE
 %nonassoc ELSE
@@ -153,7 +154,11 @@ ExtDef
         POINTS_TO(cnode->spec, $1.ast);
         cnode->body = $3.ast; 
     }
-	| error SEMI { TODO("err ExtDef"); $$.ast = NULL; }
+	| error SEMI {
+        TODO("err ExtDef");
+        $$.cst = cst_alloc("ExtDef", "", @1.first_line, 1, $2.cst);
+        $$.ast = NULL; 
+    }
 ;
 
 /* variable declarations */
@@ -189,7 +194,11 @@ StructSpecifier
             TODO("unnamed STRUCT"); // unnamed STRUCT
         }
     }
-	| STRUCT error ID LC DefList RC { TODO("err STRUCT"); yyerrok; }
+	| STRUCT error LC DefList RC { 
+        TODO("err STRUCT"); 
+        $$.cst = cst_alloc("StructSpecifier", "", @1.first_line, 4, $1.cst, $3.cst, $4.cst, $5.cst);
+        yyerrok; 
+    }
 	| STRUCT Tag {
         $$.cst = cst_alloc("StructSpecifier", "", @1.first_line, 2, $1.cst, $2.cst);
         $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, NULL, 1);
@@ -239,7 +248,11 @@ FunDec
         $$.cst = cst_alloc("FunDec", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = ast_alloc(DECL_FUN, @1.first_line, $1.str, NULL); 
     }
-	| ID LP error RP { TODO("err FunDec"); $$.ast = NULL; }
+	| ID LP error RP {
+        TODO("err FunDec");
+        $$.cst = cst_alloc("FunDec", "", @1.first_line, 3, $1.cst, $2.cst, $4.cst);
+        $$.ast = NULL; 
+    }
 ;
 
 VarList 
@@ -251,7 +264,10 @@ VarList
         $$.cst = cst_alloc("VarList", "", @1.first_line, 1, $1.cst);
         $$.ast = $1.ast; 
     }
-	| ParamDec COMMA error { TODO("err VarList"); }
+	| ParamDec COMMA error {
+        $$.cst = cst_alloc("VarList", "", @1.first_line, 2, $1.cst, $2.cst);
+        TODO("err VarList"); 
+    }
 ;
 
 ParamDec 
@@ -309,6 +325,7 @@ Stmt: Exp SEMI {
     }
 	| RETURN error SEMI {
         TODO("err RETURN"); 
+        $$.cst = cst_alloc("Stmt", "", @1.first_line, 2, $1.cst, $3.cst);
     }
 	| IF LP Exp RP Stmt %prec LOWER_THAN_ELSE {
         $$.cst = cst_alloc("Stmt", "", @1.first_line, 5, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst);
@@ -316,6 +333,7 @@ Stmt: Exp SEMI {
     }
 	| IF LP error RP Stmt %prec LOWER_THAN_ELSE {
         TODO("err IF"); 
+        $$.cst = cst_alloc("Stmt", "", @1.first_line, 4, $1.cst, $2.cst, $4.cst, $5.cst);
     }
 	| IF LP Exp RP Stmt ELSE Stmt {
         $$.cst = cst_alloc("Stmt", "", @1.first_line, 7, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst, $6.cst, $7.cst);
@@ -323,12 +341,14 @@ Stmt: Exp SEMI {
     }
 	| IF LP error RP Stmt ELSE Stmt {
         TODO("err IFTE"); 
+        $$.cst = cst_alloc("Stmt", "", @1.first_line, 6, $1.cst, $2.cst, $4.cst, $5.cst, $6.cst, $7.cst);
     }
 	| WHILE LP Exp RP Stmt {
         $$.cst = cst_alloc("Stmt", "", @1.first_line, 5, $1.cst, $2.cst, $3.cst, $4.cst, $5.cst);
         $$.ast = ast_alloc(STMT_WHLE, @1.first_line, $3.ast, $5.ast); 
     }
 	| WHILE LP error RP Stmt {
+        $$.cst = cst_alloc("Stmt", "", @1.first_line, 4, $1.cst, $2.cst, $4.cst, $5.cst);
         TODO("err WHLE"); 
     }
 ;
@@ -379,7 +399,10 @@ DecList
         $$.cst = cst_alloc("DecList", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $1.ast; $$.ast->next = $3.ast; 
     }
-	| error COMMA Dec { TODO("err DecList"); }
+	| error COMMA Dec { 
+        $$.cst = cst_alloc("DecList", "", @1.first_line, 2, $2.cst, $3.cst);
+        TODO("err DecList"); 
+    }
 ;
 
 Dec : VarDec { 
