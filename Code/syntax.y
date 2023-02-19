@@ -7,15 +7,11 @@ extern cst_t *croot;
 
 int yylex(void);
 
-void yyerror(char* s) {
-	extern char* yytext;
-	extern int yylineno;
-	extern bool syn_err;
-	syn_err = true;
-	printf("Error type B At Line %d: syntax error, Content: %s\n", yylineno, yytext);
+void yyerror(const char *s) {
+    printf("%s\n", s);
 }
-
 %}
+%define parse.error custom
 
 %union {
 	struct {
@@ -560,3 +556,23 @@ Args: Exp COMMA Args {
 
 %%
 #include "lex.yy.c"
+
+// See https://www.gnu.org/software/bison/manual/html_node/Syntax-Error-Reporting-Function.html
+static int yyreport_syntax_error(const yypcontext_t *yyctx) {
+	extern bool syn_err;
+	syn_err = true;
+
+    YYLTYPE *loc = yypcontext_location(yyctx);
+    printf("Error type B at %2d,%2d", loc->first_line, loc->first_column);
+
+#define TOKENMAX 255
+    yysymbol_kind_t expected[TOKENMAX];
+    int n = yypcontext_expected_tokens(yyctx, expected, TOKENMAX);
+    for (int i = 0; i < n; ++i)
+        printf("%s %s",
+                i == 0 ? "\texpected" : " or", yysymbol_name(expected[i]));
+
+    yysymbol_kind_t lookahead = yypcontext_token(yyctx);
+    if (lookahead != YYSYMBOL_YYEMPTY)
+    printf(" before %s\n", yysymbol_name(lookahead));
+}

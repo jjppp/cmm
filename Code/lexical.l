@@ -115,7 +115,9 @@ ID {LETTER}({LETTER}|{DIGIT})*
             }
 		}
 		if (ch == 0) {
-			yyerror("0");
+            extern bool lex_err;
+            lex_err = true;
+            printf("Error type A at %2d,%2d\topen comments\n", yylineno, yycolumn);
 			break;
 		}
 	}
