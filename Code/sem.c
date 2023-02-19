@@ -229,15 +229,16 @@ VISIT(DECL_FUN) {
 
     sym_scope_push();
     ast_iter(node->params, it) {
-        INSTANCE_OF_VAR(it, DECL_VAR, vnode);
-        visit_DECL_VAR(vnode, typ);
-        if (sym->params == NULL) {
-            sym->params = vnode->sym;
-        } else {
-            sym_iter(sym->params, jt) {
-                if (jt->next == NULL) {
-                    jt->next = vnode->sym;
-                    break;
+        INSTANCE_OF_VAR(it, DECL_VAR, vnode) {
+            visit_DECL_VAR(vnode, typ);
+            if (sym->params == NULL) {
+                sym->params = vnode->sym;
+            } else {
+                sym_iter(sym->params, jt) {
+                    if (jt->next == NULL) {
+                        jt->next = vnode->sym;
+                        break;
+                    }
                 }
             }
         }
@@ -278,26 +279,27 @@ VISIT(CONS_SPEC) {
     symcpy(typ->str, node->str);
     typ->fields = NULL;
     ast_iter(node->fields, it) {
-        INSTANCE_OF_VAR(it, DECL_VAR, cit);
-        if (cit->expr != NULL) {
-            SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
-        }
+        INSTANCE_OF_VAR(it, DECL_VAR, cit) {
+            if (cit->expr != NULL) {
+                SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
+            }
 
-        type_t field_typ;
-        nested_struct++;
-        // ast_check(spec var) -> typeof(spec)
-        ast_check(it, &field_typ);
-        nested_struct--;
-        if (typ->fields == NULL) {
-            typ->fields = field_alloc(field_typ, cit->str);
-        } else {
-            field_iter(typ->fields, jt) {
-                if (!symcmp(cit->str, jt->str)) {
-                    SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
-                }
-                if (jt->next == NULL) {
-                    jt->next = field_alloc(field_typ, cit->str);
-                    break;
+            type_t field_typ;
+            nested_struct++;
+            // ast_check(spec var) -> typeof(spec)
+            ast_check(it, &field_typ);
+            nested_struct--;
+            if (typ->fields == NULL) {
+                typ->fields = field_alloc(field_typ, cit->str);
+            } else {
+                field_iter(typ->fields, jt) {
+                    if (!symcmp(cit->str, jt->str)) {
+                        SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
+                    }
+                    if (jt->next == NULL) {
+                        jt->next = field_alloc(field_typ, cit->str);
+                        break;
+                    }
                 }
             }
         }

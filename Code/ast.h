@@ -164,6 +164,10 @@ struct DECL_TYP_node_t {
     ast_t *spec;
 };
 
+struct CONS_ERR_node_t {
+    EXTENDS(ast_t);
+};
+
 typedef void (*ast_visitor_fun_t)(ast_t *, void *);
 
 #define AST_NODE_VISIT(NODE) \
@@ -177,15 +181,14 @@ struct ast_visitor {
 #define VISIT(NODE) \
     static void visit_##NODE(NODE##_node_t *node, RET_TYPE ARG)
 
-#define INSTANCE_OF(NODE, KIND)                    \
-    ASSERT(NODE->ast_kind == KIND,                 \
-           "instanceof %s", AST_NODE_NAMES[KIND]); \
-    KIND##_node_t *cnode = (KIND##_node_t *) NODE;
+#define INSTANCE_OF(NODE, KIND) INSTANCE_OF_VAR(NODE, KIND, cnode)
 
-#define INSTANCE_OF_VAR(NODE, KIND, CNODE)         \
-    ASSERT(NODE->ast_kind == KIND,                 \
-           "instanceof %s", AST_NODE_NAMES[KIND]); \
-    KIND##_node_t *CNODE = (KIND##_node_t *) NODE;
+#define INSTANCE_OF_VAR(NODE, KIND, CNODE)                                        \
+    for (KIND##_node_t *CNODE = (KIND##_node_t *) NODE,                           \
+                       __once = (KIND##_node_t){.super = {.super = {.nref = 0}}}; \
+         ASSERT((NODE)->ast_kind == KIND, "instanceof %s", AST_NODE_NAMES[KIND])  \
+         && !__once.super.super.nref;                                             \
+         __once.super.super.nref++)
 
 ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...);
 

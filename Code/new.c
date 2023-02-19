@@ -114,7 +114,6 @@ VISIT(EXPR_CALL) {
 }
 
 VISIT(DECL_TYP) {
-    POINTS_TO(node->spec, va_arg(ap, ast_t *));
 }
 
 VISIT(CONS_SPEC) {

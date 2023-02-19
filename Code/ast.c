@@ -13,11 +13,11 @@ void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p) {
         return;
     }
     LOG("%s at %s", visitor.name, AST_NODE_NAMES[node->ast_kind]);
-#define AST_NODE_DISPATCH(NODE)                                      \
-    case NODE:                                                       \
-        ASSERT(visitor.visit_##NODE != NULL,                         \
-               "%s has no method %s", visitor.name, STRINGIFY(NODE)) \
-        visitor.visit_##NODE(node, p);                               \
+#define AST_NODE_DISPATCH(NODE)                                       \
+    case NODE:                                                        \
+        ASSERT(visitor.visit_##NODE != NULL,                          \
+               "%s has no method %s", visitor.name, STRINGIFY(NODE)); \
+        visitor.visit_##NODE(node, p);                                \
         break;
 
     switch (node->ast_kind) {

@@ -25,12 +25,16 @@ typedef int8_t   i8;
         fprintf(stderr, "TODO: " FEATURE " in " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
         abort();                                                                        \
     } while (0)
-#define ASSERT(COND, ...)             \
-    if (!(COND)) {                    \
-        fprintf(stderr, __VA_ARGS__); \
-        fprintf(stderr, "\n");        \
-        assert(COND);                 \
-    }
+#define ASSERT(COND, ...)                 \
+    ({                                    \
+        __auto_type __cond = (COND);      \
+        if (!__cond) {                    \
+            fprintf(stderr, __VA_ARGS__); \
+            fprintf(stderr, "\n");        \
+            assert(__cond);               \
+        }                                 \
+        1;                                \
+    })
 #define UNREACHABLE                                                                 \
     do {                                                                            \
         fprintf(stderr, "should not reach " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
