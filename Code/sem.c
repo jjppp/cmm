@@ -9,7 +9,7 @@
 
 #define RET_TYPE type_t *
 #define ARG typ
-VISITOR_DEF(sem, type_t *);
+VISITOR_DEF(sem, RET_TYPE);
 
 extern bool sem_err;
 
@@ -19,57 +19,57 @@ static syment_t *cur_fun;
 // do not insert fields into symtab
 static u32 nested_struct = 0;
 
-void ast_check(ast_t *node, type_t *typ) {
+type_t ast_check(ast_t *node) {
     if (node == NULL) {
-        return;
+        return (type_t){.kind = TYPE_ERR};
     }
-    visitor_dispatch(visitor_sem, node, typ);
+    type_t ARG;
+    visitor_dispatch(visitor_sem, node, &ARG);
+    return ARG;
 }
 
 VISIT(CONS_PROG) {
     ast_iter(node->decls, it) {
-        ast_check(it, typ);
+        ast_check(it);
     }
 }
 
 VISIT(STMT_EXPR) {
-    ast_check(node->expr, typ);
+    ast_check(node->expr);
 }
 
 VISIT(STMT_SCOP) {
     sym_scope_push();
     ast_iter(node->decls, it) {
-        ast_check(it, typ);
+        ast_check(it);
     }
     ast_iter(node->stmts, it) {
-        ast_check(it, typ);
+        ast_check(it);
     }
     sym_scope_pop();
 }
 
 VISIT(STMT_IFTE) {
-    type_t cond_typ;
-    ast_check(node->cond, &cond_typ);
+    type_t cond_typ = ast_check(node->cond);
     if (!IS_LOGIC(cond_typ)) {
         TODO("IFTE cond_typ");
     }
 
-    ast_check(node->tru_stmt, typ);
-    ast_check(node->fls_stmt, typ);
+    ast_check(node->tru_stmt);
+    ast_check(node->fls_stmt);
 }
 
 VISIT(STMT_WHLE) {
-    type_t cond_typ;
-    ast_check(node->cond, &cond_typ);
+    type_t cond_typ = ast_check(node->cond);
     if (!IS_LOGIC(cond_typ)) {
         TODO("WHLE cond_typ");
     }
-    ast_check(node->body, typ);
+    ast_check(node->body);
 }
 
 VISIT(STMT_RET) {
-    ast_check(node->expr, typ);
-    if (!type_eq(*typ, cur_fun->typ)) {
+    type_t expr_typ = ast_check(node->expr);
+    if (!type_eq(expr_typ, cur_fun->typ)) {
         SEM_ERR(ERR_RET_MISMATCH, node->super.fst_l);
     }
 }
@@ -92,8 +92,8 @@ VISIT(EXPR_CALL) {
             SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
             break;
         }
-        ast_check(nit, typ);
-        if (!type_eq(*typ, sit->typ)) {
+        type_t arg_typ = ast_check(nit);
+        if (!type_eq(arg_typ, sit->typ)) {
             SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
         }
         sit = sit->next;
@@ -114,12 +114,12 @@ VISIT(EXPR_IDEN) {
 }
 
 VISIT(EXPR_ARR) {
-    ast_check(node->ind, typ);
-    if (!IS_LOGIC(*typ)) {
+    type_t ind_typ = ast_check(node->ind);
+    if (!IS_LOGIC(ind_typ)) {
         TODO("ARR index LOGIC");
     }
-    ast_check(node->arr, typ);
-    if (typ->kind != TYPE_ARRAY) {
+    type_t arr_typ = ast_check(node->arr);
+    if (arr_typ.kind != TYPE_ARRAY) {
         // TODO: print array
         SEM_ERR(ERR_ACC_NON_ARRAY, node->super.fst_l);
         RETURN((type_t){.kind = TYPE_ERR});
@@ -128,10 +128,9 @@ VISIT(EXPR_ARR) {
 }
 
 VISIT(EXPR_ASS) {
-    type_t ltyp;
-    ast_check(node->lhs, &ltyp);
-    ast_check(node->rhs, typ);
-    if (!type_eq(ltyp, *typ)) {
+    type_t ltyp = ast_check(node->lhs);
+    type_t rtyp = ast_check(node->rhs);
+    if (!type_eq(ltyp, rtyp)) {
         SEM_ERR(ERR_ASS_MISMATCH, node->super.fst_l);
     }
     if (!ast_lval(node->lhs)) {
@@ -140,13 +139,13 @@ VISIT(EXPR_ASS) {
 }
 
 VISIT(EXPR_DOT) {
-    ast_check(node->base, typ);
-    if (typ->kind != TYPE_STRUCT) {
+    type_t base_typ = ast_check(node->base);
+    if (base_typ.kind != TYPE_STRUCT) {
         // TODO: print base
         SEM_ERR(ERR_ACC_NON_STRUCT, node->super.fst_l);
         RETURN((type_t){.kind = TYPE_ERR});
     }
-    field_iter(typ->fields, it) {
+    field_iter(base_typ.fields, it) {
         if (!symcmp(it->str, node->str)) {
             RETURN(it->typ);
         }
@@ -183,9 +182,8 @@ static void logic_check(op_kind_t op, type_t typ) {
 }
 
 VISIT(EXPR_BIN) {
-    type_t ltyp, rtyp;
-    ast_check(node->lhs, &ltyp);
-    ast_check(node->rhs, &rtyp);
+    type_t ltyp = ast_check(node->lhs);
+    type_t rtyp = ast_check(node->rhs);
 
     if (ltyp.kind != rtyp.kind) {
         SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
@@ -198,9 +196,7 @@ VISIT(EXPR_BIN) {
 }
 
 VISIT(EXPR_UNR) {
-    type_t styp;
-    ast_check(node->sub, &styp);
-
+    type_t styp = ast_check(node->sub);
     if (!IS_SCALAR(styp)) {
         SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
     }
@@ -209,9 +205,7 @@ VISIT(EXPR_UNR) {
 }
 
 VISIT(DECL_VAR) {
-    type_t expr_typ, spec_typ;
-
-    ast_check(node->spec, &spec_typ);
+    type_t spec_typ = ast_check(node->spec);
     if (node->dim != 0) {
         *typ = (type_t){
             .dim      = node->dim,
@@ -223,7 +217,7 @@ VISIT(DECL_VAR) {
         *typ = spec_typ;
     }
     if (node->expr != NULL) {
-        ast_check(node->expr, &expr_typ);
+        type_t expr_typ = ast_check(node->expr);
         if (!type_eq(*typ, expr_typ)) {
             SEM_ERR(ERR_ASS_MISMATCH, node->super.fst_l);
         }
@@ -240,17 +234,17 @@ VISIT(DECL_VAR) {
 }
 
 VISIT(DECL_TYP) {
-    ast_check(node->spec, typ);
+    RETURN(ast_check(node->spec));
 }
 
 VISIT(DECL_FUN) {
-    ast_check(node->spec, typ);
+    type_t ret_typ = ast_check(node->spec);
 
     // TODO: sym position
     syment_t *sym = sym_insert(
         node->str,
         SYM_FUN,
-        *typ, 0, 0);
+        ret_typ, 0, 0);
     node->sym = sym;
     if (!node->sym) {
         SEM_ERR(ERR_FUN_REDEF, node->super.fst_l, node->str);
@@ -260,7 +254,7 @@ VISIT(DECL_FUN) {
     sym_scope_push();
     ast_iter(node->params, it) {
         INSTANCE_OF_VAR(it, DECL_VAR, vnode) {
-            visit_DECL_VAR(vnode, typ);
+            ast_check(it);
             if (sym->params == NULL) {
                 sym->params = vnode->sym;
             } else {
@@ -275,13 +269,12 @@ VISIT(DECL_FUN) {
     }
 
     cur_fun = sym;
-    ast_check(node->body, typ);
+    ast_check(node->body);
     cur_fun = NULL;
     sym_scope_pop();
 }
 
 VISIT(CONS_SPEC) {
-    typ->kind = node->kind;
     if (node->kind == TYPE_PRIM_INT
         || node->kind == TYPE_PRIM_FLT) {
         RETURN((type_t){.kind = node->kind});
@@ -310,10 +303,9 @@ VISIT(CONS_SPEC) {
                 SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
             }
 
-            type_t field_typ;
             nested_struct++;
             // ast_check(spec var) -> typeof(spec)
-            ast_check(it, &field_typ);
+            type_t field_typ = ast_check(it);
             nested_struct--;
             if (typ->fields == NULL) {
                 typ->fields = field_alloc(field_typ, cit->str);

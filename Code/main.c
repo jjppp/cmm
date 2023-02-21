@@ -27,8 +27,7 @@ i32 main(i32 argc, char **argv) {
         goto done;
     }
     symtab_init();
-    type_t typ;
-    ast_check(root, &typ);
+    ast_check(root);
     if (sem_err) {
         goto done;
     }

@@ -3,7 +3,13 @@
 
 #define RET_TYPE f32 *
 #define ARG p_res
-VISITOR_DEF(eval, f32 *);
+VISITOR_DEF(eval, RET_TYPE);
+
+f32 ast_eval(ast_t *node) {
+    f32 ARG;
+    visitor_dispatch(visitor_eval, node, &ARG);
+    return ARG;
+}
 
 VISIT(EXPR_INT) {
     RETURN(node->value);
@@ -14,9 +20,8 @@ VISIT(EXPR_FLT) {
 }
 
 VISIT(EXPR_BIN) {
-    f32 lhs, rhs;
-    visitor_dispatch(visitor_eval, node->lhs, &lhs);
-    visitor_dispatch(visitor_eval, node->rhs, &rhs);
+    f32 lhs = ast_eval(node->lhs);
+    f32 rhs = ast_eval(node->rhs);
     switch (node->op) {
         case OP_ADD: RETURN(lhs + rhs); break;
         case OP_SUB: RETURN(lhs - rhs); break;
@@ -27,8 +32,7 @@ VISIT(EXPR_BIN) {
 }
 
 VISIT(EXPR_UNR) {
-    f32 sub;
-    visitor_dispatch(visitor_eval, node->sub, &sub);
+    f32 sub = ast_eval(node->sub);
     switch (node->op) {
         case OP_NEG: *p_res = -sub; break;
         default: UNREACHABLE;

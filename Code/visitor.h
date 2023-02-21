@@ -32,7 +32,7 @@ ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...);
 
 void ast_free(ast_t *node);
 
-void ast_check(ast_t *node, type_t *typ);
+type_t ast_check(ast_t *node);
 
 bool ast_lval(ast_t *node);
 
