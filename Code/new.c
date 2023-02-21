@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "visitor.h"
 #include "common.h"
 #include "symtab.h"
 #include <stdarg.h>
@@ -125,7 +125,7 @@ VISIT(CONS_SPEC) {
         case TYPE_STRUCT:
             symmov(node->str, va_arg(ap, char *));
             node->fields = va_arg(ap, ast_t *);
-            node->is_ref = va_arg(ap, int);
+            node->is_ref = va_arg(ap, i32);
             break;
         case TYPE_ARRAY:
             TODO("TYPE_ARRAY");

@@ -1,11 +1,13 @@
 %{
 #include "symtab.h"
+#include "visitor.h"
 #include "ast.h"
+#include "cst.h"
 
 extern ast_t *root;
 extern cst_t *croot;
 
-int yylex(void);
+i32 yylex(void);
 
 void yyerror(const char *s) {
     printf("%s\n", s);
@@ -30,7 +32,7 @@ void yyerror(const char *s) {
         cst_t *cst;
     } type_float;
     struct {
-        int    val;
+        i32    val;
         cst_t *cst;
     } type_int;
 }
@@ -558,7 +560,7 @@ Args: Exp COMMA Args {
 #include "lex.yy.c"
 
 // See https://www.gnu.org/software/bison/manual/html_node/Syntax-Error-Reporting-Function.html
-static int yyreport_syntax_error(const yypcontext_t *yyctx) {
+static i32 yyreport_syntax_error(const yypcontext_t *yyctx) {
 	extern bool syn_err;
 	syn_err = true;
 
@@ -567,8 +569,8 @@ static int yyreport_syntax_error(const yypcontext_t *yyctx) {
 
 #define TOKENMAX 255
     yysymbol_kind_t expected[TOKENMAX];
-    int n = yypcontext_expected_tokens(yyctx, expected, TOKENMAX);
-    for (int i = 0; i < n; ++i)
+    i32 n = yypcontext_expected_tokens(yyctx, expected, TOKENMAX);
+    for (i32 i = 0; i < n; ++i)
         printf("%s %s",
                 i == 0 ? "\texpected" : " or", yysymbol_name(expected[i]));
 

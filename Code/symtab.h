@@ -40,4 +40,4 @@ void symcpy(char *dst, const char *src);
 
 void symmov(char *dst, char *src);
 
-int symcmp(const char *x, const char *y);
+i32 symcmp(const char *x, const char *y);

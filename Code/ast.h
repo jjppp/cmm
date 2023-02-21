@@ -2,21 +2,6 @@
 
 #include "common.h"
 #include "symtab.h"
-#include "cst.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdarg.h>
-
-#define VISITOR_METHOD_ASSIGN(NAME) \
-    .visit_##NAME = (void *) visit_##NAME,
-#define VISITOR_METHOD_DECLARE(NAME, ARG_TYPE) \
-    static void visit_##NAME(NAME##_node_t *node, ARG_TYPE);
-#define VISITOR_DEF(NAME, ARG_TYPE)                                  \
-    AST_NODES_WITH_ARG(VISITOR_METHOD_DECLARE, ARG_TYPE)             \
-    const struct ast_visitor visitor_##NAME = (struct ast_visitor) { \
-        .name = STRINGIFY(NAME),                                     \
-        AST_NODES(VISITOR_METHOD_ASSIGN)                             \
-    }
 
 #define ast_iter(NODE, IT) for (ast_t * (IT) = (void *) (NODE); (NODE) != NULL && (IT) != NULL; (IT) = (IT)->next)
 #define ast_foreach(NODE, FUN) ast_iter(NODE, __it) FUN(__it);
@@ -168,19 +153,6 @@ struct CONS_ERR_node_t {
     EXTENDS(ast_t);
 };
 
-typedef void (*ast_visitor_fun_t)(ast_t *, void *);
-
-#define AST_NODE_VISIT(NODE) \
-    ast_visitor_fun_t visit_##NODE;
-
-struct ast_visitor {
-    char name[MAX_SYM_LEN];
-    AST_NODES(AST_NODE_VISIT)
-};
-
-#define VISIT(NODE) \
-    static void visit_##NODE(NODE##_node_t *node, RET_TYPE ARG)
-
 #define INSTANCE_OF(NODE, KIND) INSTANCE_OF_VAR(NODE, KIND, cnode)
 
 #define INSTANCE_OF_VAR(NODE, KIND, CNODE)                                        \
@@ -189,11 +161,3 @@ struct ast_visitor {
          ASSERT((NODE)->ast_kind == KIND, "instanceof %s", AST_NODE_NAMES[KIND])  \
          && !__once.super.super.nref;                                             \
          __once.super.super.nref++)
-
-ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...);
-
-void ast_free(ast_t *node);
-
-void ast_check(ast_t *node, type_t *typ);
-
-void visitor_dispatch(const struct ast_visitor visitor, ast_t *node, void *p);

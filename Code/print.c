@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "visitor.h"
 #include "common.h"
 #include "type.h"
 #include <stdarg.h>

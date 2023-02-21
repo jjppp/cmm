@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "visitor.h"
 #include "common.h"
 
 #define RET_TYPE f32 *
@@ -6,11 +6,11 @@
 VISITOR_DEF(eval, f32 *);
 
 VISIT(EXPR_INT) {
-    *p_res = node->value;
+    RETURN(node->value);
 }
 
 VISIT(EXPR_FLT) {
-    *p_res = node->value;
+    RETURN(node->value);
 }
 
 VISIT(EXPR_BIN) {
@@ -18,10 +18,10 @@ VISIT(EXPR_BIN) {
     visitor_dispatch(visitor_eval, node->lhs, &lhs);
     visitor_dispatch(visitor_eval, node->rhs, &rhs);
     switch (node->op) {
-        case OP_ADD: *p_res = lhs + rhs; break;
-        case OP_SUB: *p_res = lhs - rhs; break;
-        case OP_MUL: *p_res = lhs * rhs; break;
-        case OP_DIV: *p_res = lhs / rhs; break;
+        case OP_ADD: RETURN(lhs + rhs); break;
+        case OP_SUB: RETURN(lhs - rhs); break;
+        case OP_MUL: RETURN(lhs * rhs); break;
+        case OP_DIV: RETURN(lhs / rhs); break;
         default: UNREACHABLE;
     }
 }

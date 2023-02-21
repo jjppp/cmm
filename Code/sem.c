@@ -1,4 +1,4 @@
-#include "ast.h"
+#include "visitor.h"
 #include "common.h"
 #include "symtab.h"
 #include "type.h"
@@ -95,7 +95,7 @@ VISIT(EXPR_CALL) {
     if (sit != NULL) {
         SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
     }
-    *typ = node->fun->typ;
+    RETURN(node->fun->typ);
 }
 
 VISIT(EXPR_IDEN) {
@@ -104,7 +104,7 @@ VISIT(EXPR_IDEN) {
         SEM_ERR(ERR_VAR_UNDEF, node->super.fst_l, node->str);
         return;
     }
-    *typ = node->sym->typ;
+    RETURN(node->sym->typ);
 }
 
 VISIT(EXPR_ARR) {
@@ -118,6 +118,9 @@ VISIT(EXPR_ASS) {
     ast_check(node->rhs, typ);
     if (!type_eq(ltyp, *typ)) {
         SEM_ERR(ERR_ASS_MISMATCH, node->super.fst_l);
+    }
+    if (!ast_lval(node->lhs)) {
+        SEM_ERR(ERR_ASS_TO_RVALUE, node->super.fst_l);
     }
 }
 
@@ -165,7 +168,7 @@ VISIT(EXPR_BIN) {
         SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
     }
     logic_check(node->op, ltyp);
-    *typ = ltyp;
+    RETURN(ltyp);
 }
 
 VISIT(EXPR_UNR) {
@@ -176,7 +179,7 @@ VISIT(EXPR_UNR) {
         SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
     }
     logic_check(node->op, styp);
-    *typ = styp;
+    RETURN(styp);
 }
 
 VISIT(DECL_VAR) {
@@ -263,8 +266,7 @@ VISIT(CONS_SPEC) {
         TODO("TYPE_ARRAY");
     }
     if (node->done) {
-        *typ = sym_lookup(node->str)->typ;
-        return;
+        RETURN(sym_lookup(node->str)->typ);
     }
     node->done = true;
     if (node->is_ref) {
@@ -273,7 +275,7 @@ VISIT(CONS_SPEC) {
             SEM_ERR(ERR_STRUCT_UNDEF, node->super.fst_l, node->str);
             return;
         }
-        *typ = sym->typ;
+        RETURN(sym->typ);
         return;
     }
 

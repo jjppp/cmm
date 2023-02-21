@@ -1,17 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "ast.h"
+#include "visitor.h"
 #include "symtab.h"
+#include "cst.h"
 
 void yyrestart(FILE *input_file);
-int  yyparse(void);
+i32  yyparse(void);
 
 bool lex_err, syn_err, sem_err;
 
 cst_t *croot = NULL;
 ast_t *root  = NULL;
 
-int main(int argc, char **argv) {
+i32 main(i32 argc, char **argv) {
     if (argc <= 1) {
         return 1;
     }

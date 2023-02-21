@@ -95,6 +95,6 @@ void symmov(char *dst, char *src) {
     zfree(src);
 }
 
-int symcmp(const char *x, const char *y) {
+i32 symcmp(const char *x, const char *y) {
     return strncmp(x, y, MAX_SYM_LEN);
 }
