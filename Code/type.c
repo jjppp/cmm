@@ -43,8 +43,11 @@ type_t *typ_alloc(enum type_kind kind, ...) {
 }
 
 void typ_free(type_t typ) {
-    if (typ.kind == TYPE_STRUCT && typ.fields != NULL) {
+    if (typ.fields != NULL) {
         field_free(typ.fields);
+    }
+    if (typ.elem_typ != NULL) {
+        typ_free(*typ.elem_typ);
     }
 }
 
@@ -79,7 +82,10 @@ bool type_eq(type_t typ1, type_t typ2) {
                 return false;
             }
             return type_eq(*typ1.elem_typ, *typ2.elem_typ);
-        default: UNREACHABLE;
+        case TYPE_ERR:
+            return false;
+        default:
+            UNREACHABLE;
     }
     UNREACHABLE;
 }

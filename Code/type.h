@@ -10,7 +10,8 @@ typedef struct field_t field_t;
 
 struct type_t {
     enum type_kind {
-        TYPE_ERR = 0,
+        TYPE_NULL = 0,
+        TYPE_ERR,
         TYPE_PRIM_INT,
         TYPE_PRIM_FLT,
         TYPE_STRUCT,

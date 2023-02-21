@@ -23,7 +23,7 @@ type_t ast_check(ast_t *node) {
     if (node == NULL) {
         return (type_t){.kind = TYPE_ERR};
     }
-    type_t ARG;
+    type_t ARG = {0};
     visitor_dispatch(visitor_sem, node, &ARG);
     return ARG;
 }
@@ -296,6 +296,7 @@ VISIT(CONS_SPEC) {
     }
 
     symcpy(typ->str, node->str);
+    typ->kind   = node->kind;
     typ->fields = NULL;
     ast_iter(node->fields, it) {
         INSTANCE_OF_VAR(it, DECL_VAR, cit) {
@@ -324,5 +325,6 @@ VISIT(CONS_SPEC) {
     }
     if (NULL == sym_insert(typ->str, SYM_TYP, *typ, 0, 0)) {
         SEM_ERR(ERR_STRUCT_REDEF, node->super.fst_l, node->str);
+        typ_free(*typ);
     }
 }
