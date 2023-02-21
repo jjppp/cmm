@@ -111,7 +111,6 @@ VISIT(EXPR_ARR) {
     TODO("EXPR ARR");
 }
 
-// TODO: lvalue check
 VISIT(EXPR_ASS) {
     type_t ltyp;
     ast_check(node->lhs, &ltyp);
