@@ -1,3 +1,4 @@
+#include "ast.h"
 #include "visitor.h"
 #include "common.h"
 #include "symtab.h"
@@ -77,7 +78,12 @@ VISIT(EXPR_CALL) {
     node->fun = sym_lookup(node->str);
     if (node->fun == NULL) {
         SEM_ERR(ERR_FUN_UNDEF, node->super.fst_l, node->str);
-        return;
+        RETURN((type_t){.kind = TYPE_ERR});
+    }
+    if (node->fun->kind != SYM_FUN) {
+        // TODO: print fun
+        SEM_ERR(ERR_CALL_NON_FUN, node->super.fst_l);
+        RETURN((type_t){.kind = TYPE_ERR});
     }
 
     syment_t *sit = node->fun->params;
@@ -102,13 +108,23 @@ VISIT(EXPR_IDEN) {
     node->sym = sym_lookup(node->str);
     if (node->sym == NULL) {
         SEM_ERR(ERR_VAR_UNDEF, node->super.fst_l, node->str);
-        return;
+        RETURN((type_t){.kind = TYPE_ERR});
     }
     RETURN(node->sym->typ);
 }
 
 VISIT(EXPR_ARR) {
-    TODO("EXPR ARR");
+    ast_check(node->ind, typ);
+    if (!IS_LOGIC(*typ)) {
+        TODO("ARR index LOGIC");
+    }
+    ast_check(node->arr, typ);
+    if (typ->kind != TYPE_ARRAY) {
+        // TODO: print array
+        SEM_ERR(ERR_ACC_NON_ARRAY, node->super.fst_l);
+        RETURN((type_t){.kind = TYPE_ERR});
+    }
+    TODO("EXPR_ARR");
 }
 
 VISIT(EXPR_ASS) {
@@ -124,7 +140,18 @@ VISIT(EXPR_ASS) {
 }
 
 VISIT(EXPR_DOT) {
-    TODO("EXPR DOT");
+    ast_check(node->base, typ);
+    if (typ->kind != TYPE_STRUCT) {
+        // TODO: print base
+        SEM_ERR(ERR_ACC_NON_STRUCT, node->super.fst_l);
+        RETURN((type_t){.kind = TYPE_ERR});
+    }
+    field_iter(typ->fields, it) {
+        if (!symcmp(it->str, node->str)) {
+            RETURN(it->typ);
+        }
+    }
+    SEM_ERR(ERR_ACC_UNDEF_FIELD, node->super.fst_l, node->str);
 }
 
 VISIT(EXPR_INT) {
@@ -227,7 +254,7 @@ VISIT(DECL_FUN) {
     node->sym = sym;
     if (!node->sym) {
         SEM_ERR(ERR_FUN_REDEF, node->super.fst_l, node->str);
-        return;
+        RETURN((type_t){.kind = TYPE_ERR});
     }
 
     sym_scope_push();
@@ -255,11 +282,9 @@ VISIT(DECL_FUN) {
 
 VISIT(CONS_SPEC) {
     typ->kind = node->kind;
-    if (node->kind == TYPE_PRIM_INT) {
-        return;
-    }
-    if (node->kind == TYPE_PRIM_FLT) {
-        return;
+    if (node->kind == TYPE_PRIM_INT
+        || node->kind == TYPE_PRIM_FLT) {
+        RETURN((type_t){.kind = node->kind});
     }
     if (node->kind == TYPE_ARRAY) {
         TODO("TYPE_ARRAY");
@@ -272,10 +297,9 @@ VISIT(CONS_SPEC) {
         syment_t *sym = sym_lookup(node->str);
         if (sym == NULL) {
             SEM_ERR(ERR_STRUCT_UNDEF, node->super.fst_l, node->str);
-            return;
+            RETURN((type_t){.kind = TYPE_ERR});
         }
         RETURN(sym->typ);
-        return;
     }
 
     symcpy(typ->str, node->str);
