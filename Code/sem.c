@@ -83,16 +83,17 @@ VISIT(EXPR_CALL) {
     syment_t *sit = node->fun->params;
     ast_iter(node->expr, nit) {
         if (sit == NULL) {
-            SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l);
+            SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
+            break;
         }
         ast_check(nit, typ);
         if (!type_eq(*typ, sit->typ)) {
-            SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l);
+            SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
         }
         sit = sit->next;
     }
     if (sit != NULL) {
-        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l);
+        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
     }
     *typ = node->fun->typ;
 }
