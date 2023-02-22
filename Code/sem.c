@@ -293,18 +293,9 @@ VISIT(CONS_FUN) {
 
     sym_scope_push();
     ast_iter(node->params, it) {
-        INSTANCE_OF_VAR(it, DECL_VAR, vnode) {
+        INSTANCE_OF(it, DECL_VAR) {
             ast_check(it);
-            if (sym->params == NULL) {
-                sym->params = vnode->sym;
-            } else {
-                sym_iter(sym->params, jt) {
-                    if (jt->next == NULL) {
-                        jt->next = vnode->sym;
-                        break;
-                    }
-                }
-            }
+            LIST_APPEND(sym->params, cnode->sym);
         }
     }
 
@@ -353,19 +344,14 @@ VISIT(CONS_SPEC) {
             // ast_check(spec var) -> typeof(spec)
             type_t field_typ = ast_check(it);
             nested_struct--;
-            if (typ->fields == NULL) {
-                typ->fields = field_alloc(field_typ, cit->str);
-            } else {
-                field_iter(typ->fields, jt) {
-                    if (!symcmp(cit->str, jt->str)) {
-                        SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
-                    }
-                    if (jt->next == NULL) {
-                        jt->next = field_alloc(field_typ, cit->str);
-                        break;
-                    }
+
+            field_iter(typ->fields, jt) {
+                if (!symcmp(jt->str, cit->str)) {
+                    SEM_ERR(ERR_FIELD_REDEF, node->super.fst_l, cit->str);
+                    RETURN((type_t){.kind = TYPE_ERR});
                 }
             }
+            LIST_APPEND(typ->fields, field_alloc(field_typ, cit->str));
         }
     }
     if (NULL == sym_insert(typ->str, SYM_TYP, *typ, 0, 0)) {
@@ -417,16 +403,7 @@ VISIT(DECL_FUN) {
     ast_iter(node->params, it) {
         INSTANCE_OF(it, DECL_VAR) {
             ast_check(it);
-            if (sym->params == NULL) {
-                sym->params = cnode->sym;
-            } else {
-                sym_iter(sym->params, jt) {
-                    if (jt->next == NULL) {
-                        jt->next = cnode->sym;
-                        break;
-                    }
-                }
-            }
+            LIST_APPEND(sym->params, cnode->sym);
         }
     }
     sym_scope_pop();

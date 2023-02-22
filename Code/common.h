@@ -81,6 +81,23 @@ struct shared {
     u32 nref;
 };
 
+#define LIST_APPEND(LIST, NODE)           \
+    do {                                  \
+        __auto_type __node = (NODE);      \
+        if ((LIST) == NULL) {             \
+            (LIST) = __node;              \
+            break;                        \
+        }                                 \
+        for (__auto_type __list = (LIST); \
+             __list != (void *) NULL;     \
+             __list = __list->next) {     \
+            if (__list->next == NULL) {   \
+                __list->next = __node;    \
+                break;                    \
+            }                             \
+        }                                 \
+    } while (0)
+
 #define AST_NODES(F) \
     F(CONS_PROG)     \
     F(CONS_SPEC)     \

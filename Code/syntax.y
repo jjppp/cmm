@@ -112,18 +112,8 @@ Program : ExtDefList {
 ExtDefList
     : ExtDef ExtDefList {
         $$.cst = cst_alloc("ExtDefList", "", @1.first_line, 2, $1.cst, $2.cst);
-        // concat 2 lists
-        if ($1.ast == NULL) {
-            $$.ast = $2.ast;
-        } else {
-            $$.ast = $1.ast;
-            ast_iter($$.ast, it) {
-                if (it->next == NULL) {
-                    it->next = $2.ast;
-                    break;
-                }
-            }
-        }
+        $$.ast = $1.ast;
+        LIST_APPEND($$.ast, $2.ast);
     }
 	| %empty {
         $$.cst = NULL;
@@ -387,17 +377,8 @@ DefList
     // concat 2 lists
     : Def DefList {
         $$.cst = cst_alloc("DefList", "", @1.first_line, 2, $1.cst, $2.cst);
-        if ($1.ast == NULL) {
-            $$.ast = $2.ast;
-        } else {
-            $$.ast = $1.ast;
-            ast_iter($1.ast, it) {
-                if (it->next == NULL) {
-                    it->next = $2.ast;
-                    break;
-                }
-            }
-        }
+        $$.ast = $1.ast;
+        LIST_APPEND($$.ast, $2.ast);
     }
 	| %empty {
         $$.cst = NULL;
