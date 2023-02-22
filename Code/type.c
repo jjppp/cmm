@@ -75,12 +75,6 @@ bool type_eq(type_t typ1, type_t typ2) {
         case TYPE_STRUCT:
             return field_eq(typ1.fields, typ2.fields);
         case TYPE_ARRAY:
-            if (typ1.dim != typ2.dim) {
-                return false;
-            }
-            if (memcmp(typ1.len, typ2.len, typ1.dim * sizeof(typ1.len[0]))) {
-                return false;
-            }
             return type_eq(*typ1.elem_typ, *typ2.elem_typ);
         case TYPE_ERR:
             return false;
