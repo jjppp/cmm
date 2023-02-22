@@ -1,0 +1,11 @@
+struct var {
+    int j;
+} p;
+
+int main() {
+    float var;
+    struct var {
+        int k;
+    } ll;
+    struct var p; // float var shadows struct var
+}

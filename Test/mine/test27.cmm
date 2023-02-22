@@ -1,23 +1,23 @@
-struct A {
-    int   x;
-    float x;
-} b;
+// struct A {
+//     int   x;
+//     float x;
+// } b;
 
 struct B {
-    struct A x;
+    float x;
 };
 
 struct B {
     int k = 4;
 };
 
-int main() {
-    return 0;
-}
+// int main() {
+//     return 0;
+// }
 
-int main(float f) {
-    int x = 1.0;
-    int x, y = f / 2;
-    j = y + 1;
-    return inc(x);
-}
+// int main(float f) {
+//     int x = 1.0;
+//     int x, y = f / 2;
+//     j = y + 1;
+//     return inc(x);
+// }

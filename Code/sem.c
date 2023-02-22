@@ -90,16 +90,18 @@ VISIT(EXPR_CALL) {
     ast_iter(node->expr, nit) {
         if (sit == NULL) {
             SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
-            break;
+            RETURN((type_t){.kind = TYPE_ERR});
         }
         type_t arg_typ = ast_check(nit);
         if (!type_eq(arg_typ, sit->typ)) {
             SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
+            RETURN((type_t){.kind = TYPE_ERR});
         }
         sit = sit->next;
     }
     if (sit != NULL) {
         SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
+        RETURN((type_t){.kind = TYPE_ERR});
     }
     RETURN(node->fun->typ);
 }
@@ -116,7 +118,9 @@ VISIT(EXPR_IDEN) {
 VISIT(EXPR_ARR) {
     type_t ind_typ = ast_check(node->ind);
     if (!IS_LOGIC(ind_typ)) {
-        TODO("ARR index LOGIC");
+        // TODO: print index
+        SEM_ERR(ERR_ACC_INDEX, node->super.fst_l);
+        RETURN((type_t){.kind = TYPE_ERR});
     }
     type_t arr_typ = ast_check(node->arr);
     if (arr_typ.kind != TYPE_ARRAY) {
@@ -151,6 +155,7 @@ VISIT(EXPR_DOT) {
         }
     }
     SEM_ERR(ERR_ACC_UNDEF_FIELD, node->super.fst_l, node->str);
+    RETURN((type_t){.kind = TYPE_ERR});
 }
 
 VISIT(EXPR_INT) {
@@ -185,11 +190,13 @@ VISIT(EXPR_BIN) {
     type_t ltyp = ast_check(node->lhs);
     type_t rtyp = ast_check(node->rhs);
 
-    if (ltyp.kind != rtyp.kind) {
-        SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
-    }
     if (!IS_SCALAR(ltyp)) {
         SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
+        RETURN((type_t){.kind = TYPE_ERR});
+    }
+    if (!type_eq(ltyp, rtyp)) {
+        SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
+        RETURN((type_t){.kind = TYPE_ERR});
     }
     logic_check(node->op, ltyp);
     RETURN(ltyp);
@@ -206,31 +213,33 @@ VISIT(EXPR_UNR) {
 
 VISIT(DECL_VAR) {
     type_t spec_typ = ast_check(node->spec);
+    type_t var_typ  = spec_typ;
     if (node->dim != 0) {
-        *typ = (type_t){
+        var_typ = (type_t){
             .dim      = node->dim,
             .kind     = TYPE_ARRAY,
             .elem_typ = zalloc(sizeof(type_t))};
-        *typ->elem_typ = spec_typ;
-        memcpy(typ->len, node->len, node->dim * sizeof(typ->len[0]));
-    } else {
-        *typ = spec_typ;
+        *var_typ.elem_typ = spec_typ;
+        memcpy(var_typ.len, node->len, node->dim * sizeof(var_typ.len[0]));
     }
     if (node->expr != NULL) {
         type_t expr_typ = ast_check(node->expr);
-        if (!type_eq(*typ, expr_typ)) {
+        if (!type_eq(var_typ, expr_typ)) {
             SEM_ERR(ERR_ASS_MISMATCH, node->super.fst_l);
+            RETURN((type_t){.kind = TYPE_ERR});
         }
     }
     if (!nested_struct) {
         node->sym = sym_insert(
             node->str,
             SYM_VAR,
-            *typ, 0, 0);
+            var_typ, 0, 0);
         if (!node->sym) {
             SEM_ERR(ERR_VAR_REDEF, node->super.fst_l, node->str);
+            RETURN((type_t){.kind = TYPE_ERR});
         }
     }
+    RETURN(var_typ);
 }
 
 VISIT(DECL_TYP) {
@@ -289,6 +298,10 @@ VISIT(CONS_SPEC) {
     if (node->is_ref) {
         syment_t *sym = sym_lookup(node->str);
         if (sym == NULL) {
+            SEM_ERR(ERR_STRUCT_UNDEF, node->super.fst_l, node->str);
+            RETURN((type_t){.kind = TYPE_ERR});
+        }
+        if (sym->kind != SYM_TYP) {
             SEM_ERR(ERR_STRUCT_UNDEF, node->super.fst_l, node->str);
             RETURN((type_t){.kind = TYPE_ERR});
         }
