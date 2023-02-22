@@ -127,8 +127,6 @@ VISIT(CONS_SPEC) {
             node->fields = va_arg(ap, ast_t *);
             node->is_ref = va_arg(ap, i32);
             break;
-        case TYPE_ARRAY:
-            TODO("TYPE_ARRAY");
         default: UNREACHABLE;
     }
 }

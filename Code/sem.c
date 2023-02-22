@@ -70,7 +70,7 @@ VISIT(STMT_WHLE) {
 VISIT(STMT_RET) {
     type_t expr_typ = ast_check(node->expr);
     if (!type_eq(expr_typ, cur_fun->typ)) {
-        SEM_ERR(ERR_RET_MISMATCH, node->super.fst_l);
+        SEM_ERR(ERR_RET_MISMATCH, node->expr->fst_l);
     }
 }
 
@@ -81,22 +81,22 @@ VISIT(EXPR_CALL) {
     }
     if (node->fun->kind != SYM_FUN) {
         // TODO: print fun
-        SEM_ERR(ERR_CALL_NON_FUN, node->super.fst_l);
+        SEM_ERR(ERR_CALL_NON_FUN, node->super.fst_l, node->str);
     }
 
     syment_t *sit = node->fun->params;
     ast_iter(node->expr, nit) {
         if (sit == NULL) {
-            SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
+            SEM_ERR(ERR_FUN_ARG_MISMATCH, nit->fst_l, node->str);
         }
         type_t arg_typ = ast_check(nit);
         if (!type_eq(arg_typ, sit->typ)) {
-            SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
+            SEM_ERR(ERR_FUN_ARG_MISMATCH, nit->fst_l, node->str);
         }
         sit = sit->next;
     }
     if (sit != NULL) {
-        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
+        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->expr->fst_l, node->str);
     }
     RETURN(node->fun->typ);
 }
@@ -110,17 +110,25 @@ VISIT(EXPR_IDEN) {
 }
 
 VISIT(EXPR_ARR) {
-    type_t ind_typ = ast_check(node->ind);
-    if (!IS_LOGIC(ind_typ)) {
-        // TODO: print index
-        SEM_ERR(ERR_ACC_INDEX, node->super.fst_l);
+    u32 len = 0;
+    ast_iter(node->ind, it) {
+        len++;
+        type_t ind_typ = ast_check(it);
+        if (!IS_LOGIC(ind_typ)) {
+            // TODO: print index
+            SEM_ERR(ERR_ACC_INDEX, it->fst_l);
+        }
     }
     type_t arr_typ = ast_check(node->arr);
     if (arr_typ.kind != TYPE_ARRAY) {
         // TODO: print array
-        SEM_ERR(ERR_ACC_NON_ARRAY, node->super.fst_l);
+        SEM_ERR(ERR_ACC_NON_ARRAY, node->arr->fst_l);
     }
-    TODO("EXPR_ARR");
+    if (len != arr_typ.dim) {
+        // do not support partial array addressing
+        SEM_ERR(ERR_ACC_INDEX, node->ind->fst_l);
+    }
+    RETURN(*arr_typ.elem_typ);
 }
 
 VISIT(EXPR_ASS) {
@@ -130,7 +138,7 @@ VISIT(EXPR_ASS) {
         SEM_ERR(ERR_ASS_MISMATCH, node->super.fst_l);
     }
     if (!ast_lval(node->lhs)) {
-        SEM_ERR(ERR_ASS_TO_RVALUE, node->super.fst_l);
+        SEM_ERR(ERR_ASS_TO_RVALUE, node->lhs->fst_l);
     }
 }
 
@@ -138,7 +146,7 @@ VISIT(EXPR_DOT) {
     type_t base_typ = ast_check(node->base);
     if (base_typ.kind != TYPE_STRUCT) {
         // TODO: print base
-        SEM_ERR(ERR_ACC_NON_STRUCT, node->super.fst_l);
+        SEM_ERR(ERR_ACC_NON_STRUCT, node->base->fst_l);
     }
     field_iter(base_typ.fields, it) {
         if (!symcmp(it->str, node->str)) {
@@ -213,7 +221,7 @@ VISIT(DECL_VAR) {
     if (node->expr != NULL) {
         type_t expr_typ = ast_check(node->expr);
         if (!type_eq(var_typ, expr_typ)) {
-            SEM_ERR(ERR_ASS_MISMATCH, node->super.fst_l);
+            SEM_ERR(ERR_ASS_MISMATCH, node->expr->fst_l);
         }
     }
     if (!nested_struct) {
@@ -292,9 +300,6 @@ VISIT(CONS_SPEC) {
         || node->kind == TYPE_PRIM_FLT) {
         RETURN((type_t){.kind = node->kind});
     }
-    if (node->kind == TYPE_ARRAY) {
-        TODO("TYPE_ARRAY");
-    }
     if (node->done) {
         RETURN(sym_lookup(node->str)->typ);
     }
@@ -327,7 +332,7 @@ VISIT(CONS_SPEC) {
             field_iter(typ->fields, jt) {
                 if (!symcmp(jt->str, cit->str)) {
                     typ_free(*typ);
-                    SEM_ERR(ERR_FIELD_REDEF, node->super.fst_l, cit->str);
+                    SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
                 }
             }
             LIST_APPEND(typ->fields, field_alloc(field_typ, cit->str));

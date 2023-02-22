@@ -510,7 +510,14 @@ Exp : Exp ASSIGNOP Exp {
     }
 	| Exp LB Exp RB {
         $$.cst = cst_alloc("Exp", "", @1.first_line, 4, $1.cst, $2.cst, $3.cst, $4.cst);
-        $$.ast = ast_alloc(EXPR_ARR,  @1.first_line, $1.ast, $3.ast);
+        if ($1.ast->ast_kind == EXPR_ARR) {
+            $$.ast = $1.ast;
+            INSTANCE_OF($$.ast, EXPR_ARR) {
+                LIST_APPEND(cnode->ind, $3.ast);
+            }
+        } else {
+            $$.ast = ast_alloc(EXPR_ARR,  @1.first_line, $1.ast, $3.ast);
+        }
     }
 	| Exp LB error RB {
         $$.cst = cst_alloc("Exp", "", @1.first_line, 3, $1.cst, $2.cst, $4.cst);

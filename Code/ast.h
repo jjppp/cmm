@@ -94,7 +94,7 @@ struct EXPR_ASS_node_t {
 
 struct EXPR_ARR_node_t {
     EXTENDS(ast_t);
-    ast_t *arr, *ind;
+    ast_t *arr, *ind; // indices
 };
 
 struct EXPR_DOT_node_t {

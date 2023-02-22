@@ -44,8 +44,6 @@ field_t *field_alloc(type_t typ, const char str[]);
 
 void field_free(field_t *field);
 
-type_t *typ_alloc(enum type_kind kind, ...);
-
 void typ_free(type_t typ);
 
 bool type_eq(type_t typ1, type_t typ2);

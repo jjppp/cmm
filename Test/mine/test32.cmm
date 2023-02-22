@@ -1,0 +1,14 @@
+struct S {
+    int x, y;
+};
+
+struct S fun(int x, int y) {
+    struct S ret;
+    ret.x = x;
+    ret.y = y;
+    return ret;
+}
+
+int main() {
+    return fun(1.0, 2).x;
+}

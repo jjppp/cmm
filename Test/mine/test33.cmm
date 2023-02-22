@@ -1,0 +1,9 @@
+int a[100];
+int b[100][200];
+
+int main() {
+    int x = b[1][2];
+    int y = b[1];
+    a[0]  = b[1][2];
+    return a[0];
+}
