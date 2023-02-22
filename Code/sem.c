@@ -261,23 +261,33 @@ VISIT(CONS_FUN) {
             SEM_ERR(ERR_FUN_REDEF, node->super.fst_l, node->str);
             RETURN((type_t){.kind = TYPE_ERR});
         }
+        if (node->sym->body != NULL) {
+            SEM_ERR(ERR_FUN_REDEF, node->super.fst_l, node->str);
+            RETURN((type_t){.kind = TYPE_ERR});
+        }
         if (!type_eq(node->sym->typ, ret_typ)) {
             SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
             RETURN((type_t){.kind = TYPE_ERR});
         }
-        syment_t *jt = node->sym->params;
+        node->sym->body = node->body;
+        syment_t *jt    = node->sym->params;
+        sym_scope_push();
         ast_iter(node->params, it) {
             type_t param_typ = ast_check(it);
             if (jt == NULL) {
                 SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
+                sym_scope_pop();
                 RETURN((type_t){.kind = TYPE_ERR});
             }
             if (!type_eq(param_typ, jt->typ)) {
                 SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
+                sym_scope_pop();
                 RETURN((type_t){.kind = TYPE_ERR});
             }
             jt = jt->next;
         }
+        sym_scope_pop();
+        node->sym->body = node->body;
         RETURN(ret_typ);
     }
 
@@ -298,7 +308,8 @@ VISIT(CONS_FUN) {
         }
     }
 
-    cur_fun = sym;
+    cur_fun         = sym;
+    node->sym->body = node->body;
     ast_check(node->body);
     cur_fun = NULL;
     sym_scope_pop();
@@ -388,10 +399,12 @@ VISIT(DECL_FUN) {
             type_t param_typ = ast_check(it);
             if (jt == NULL) {
                 SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
+                sym_scope_pop();
                 RETURN((type_t){.kind = TYPE_ERR});
             }
             if (!type_eq(param_typ, jt->typ)) {
                 SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
+                sym_scope_pop();
                 RETURN((type_t){.kind = TYPE_ERR});
             }
             jt = jt->next;
