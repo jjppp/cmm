@@ -42,3 +42,5 @@ void symcpy(char *dst, const char *src);
 void symmov(char *dst, char *src);
 
 i32 symcmp(const char *x, const char *y);
+
+char *symuniq();

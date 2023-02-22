@@ -192,7 +192,7 @@ StructSpecifier
         if ($2.str != NULL) {
             $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, $4.ast, 0);
         } else {
-            TODO("unnamed STRUCT"); // unnamed STRUCT
+            $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, symuniq(), $4.ast, 0);
         }
     }
 	| STRUCT OptTag LC error RC {
@@ -200,7 +200,7 @@ StructSpecifier
         if ($2.str != NULL) {
             $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, $2.str, NULL, 0);
         } else {
-            TODO("unnamed STRUCT"); // unnamed STRUCT
+            $$.ast = ast_alloc(CONS_SPEC, @1.first_line, TYPE_STRUCT, symuniq(), NULL, 0);
         }
         yyerrok;
     }

@@ -78,30 +78,25 @@ VISIT(EXPR_CALL) {
     node->fun = sym_lookup(node->str);
     if (node->fun == NULL) {
         SEM_ERR(ERR_FUN_UNDEF, node->super.fst_l, node->str);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
     if (node->fun->kind != SYM_FUN) {
         // TODO: print fun
         SEM_ERR(ERR_CALL_NON_FUN, node->super.fst_l);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
 
     syment_t *sit = node->fun->params;
     ast_iter(node->expr, nit) {
         if (sit == NULL) {
             SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         type_t arg_typ = ast_check(nit);
         if (!type_eq(arg_typ, sit->typ)) {
             SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         sit = sit->next;
     }
     if (sit != NULL) {
         SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
     RETURN(node->fun->typ);
 }
@@ -110,7 +105,6 @@ VISIT(EXPR_IDEN) {
     node->sym = sym_lookup(node->str);
     if (node->sym == NULL) {
         SEM_ERR(ERR_VAR_UNDEF, node->super.fst_l, node->str);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
     RETURN(node->sym->typ);
 }
@@ -120,13 +114,11 @@ VISIT(EXPR_ARR) {
     if (!IS_LOGIC(ind_typ)) {
         // TODO: print index
         SEM_ERR(ERR_ACC_INDEX, node->super.fst_l);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
     type_t arr_typ = ast_check(node->arr);
     if (arr_typ.kind != TYPE_ARRAY) {
         // TODO: print array
         SEM_ERR(ERR_ACC_NON_ARRAY, node->super.fst_l);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
     TODO("EXPR_ARR");
 }
@@ -147,7 +139,6 @@ VISIT(EXPR_DOT) {
     if (base_typ.kind != TYPE_STRUCT) {
         // TODO: print base
         SEM_ERR(ERR_ACC_NON_STRUCT, node->super.fst_l);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
     field_iter(base_typ.fields, it) {
         if (!symcmp(it->str, node->str)) {
@@ -155,7 +146,6 @@ VISIT(EXPR_DOT) {
         }
     }
     SEM_ERR(ERR_ACC_UNDEF_FIELD, node->super.fst_l, node->str);
-    RETURN((type_t){.kind = TYPE_ERR});
 }
 
 VISIT(EXPR_INT) {
@@ -192,11 +182,9 @@ VISIT(EXPR_BIN) {
 
     if (!IS_SCALAR(ltyp)) {
         SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
     if (!type_eq(ltyp, rtyp)) {
         SEM_ERR(ERR_EXP_OPERAND_MISMATCH, node->super.fst_l);
-        RETURN((type_t){.kind = TYPE_ERR});
     }
     logic_check(node->op, ltyp);
     RETURN(ltyp);
@@ -226,7 +214,6 @@ VISIT(DECL_VAR) {
         type_t expr_typ = ast_check(node->expr);
         if (!type_eq(var_typ, expr_typ)) {
             SEM_ERR(ERR_ASS_MISMATCH, node->super.fst_l);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
     }
     if (!nested_struct) {
@@ -236,7 +223,6 @@ VISIT(DECL_VAR) {
             var_typ, 0, 0);
         if (!node->sym) {
             SEM_ERR(ERR_VAR_REDEF, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
     }
     RETURN(var_typ);
@@ -259,15 +245,12 @@ VISIT(CONS_FUN) {
         node->sym = sym_lookup(node->str);
         if (node->sym->kind != SYM_FUN) {
             SEM_ERR(ERR_FUN_REDEF, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         if (node->sym->body != NULL) {
             SEM_ERR(ERR_FUN_REDEF, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         if (!type_eq(node->sym->typ, ret_typ)) {
             SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         node->sym->body = node->body;
         syment_t *jt    = node->sym->params;
@@ -275,14 +258,12 @@ VISIT(CONS_FUN) {
         ast_iter(node->params, it) {
             type_t param_typ = ast_check(it);
             if (jt == NULL) {
-                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
                 sym_scope_pop();
-                RETURN((type_t){.kind = TYPE_ERR});
+                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
             }
             if (!type_eq(param_typ, jt->typ)) {
-                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
                 sym_scope_pop();
-                RETURN((type_t){.kind = TYPE_ERR});
+                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
             }
             jt = jt->next;
         }
@@ -322,11 +303,9 @@ VISIT(CONS_SPEC) {
         syment_t *sym = sym_lookup(node->str);
         if (sym == NULL) {
             SEM_ERR(ERR_STRUCT_UNDEF, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         if (sym->kind != SYM_TYP) {
             SEM_ERR(ERR_STRUCT_UNDEF, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         RETURN(sym->typ);
     }
@@ -347,16 +326,16 @@ VISIT(CONS_SPEC) {
 
             field_iter(typ->fields, jt) {
                 if (!symcmp(jt->str, cit->str)) {
+                    typ_free(*typ);
                     SEM_ERR(ERR_FIELD_REDEF, node->super.fst_l, cit->str);
-                    RETURN((type_t){.kind = TYPE_ERR});
                 }
             }
             LIST_APPEND(typ->fields, field_alloc(field_typ, cit->str));
         }
     }
     if (NULL == sym_insert(typ->str, SYM_TYP, *typ, 0, 0)) {
-        SEM_ERR(ERR_STRUCT_REDEF, node->super.fst_l, node->str);
         typ_free(*typ);
+        SEM_ERR(ERR_STRUCT_REDEF, node->super.fst_l, node->str);
     }
 }
 
@@ -373,25 +352,21 @@ VISIT(DECL_FUN) {
         node->sym = sym_lookup(node->str);
         if (node->sym->kind != SYM_FUN) {
             SEM_ERR(ERR_FUN_REDEF, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         if (!type_eq(node->sym->typ, ret_typ)) {
             SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
-            RETURN((type_t){.kind = TYPE_ERR});
         }
         sym_scope_push();
         syment_t *jt = node->sym->params;
         ast_iter(node->params, it) {
             type_t param_typ = ast_check(it);
             if (jt == NULL) {
-                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
                 sym_scope_pop();
-                RETURN((type_t){.kind = TYPE_ERR});
+                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
             }
             if (!type_eq(param_typ, jt->typ)) {
-                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
                 sym_scope_pop();
-                RETURN((type_t){.kind = TYPE_ERR});
+                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
             }
             jt = jt->next;
         }
