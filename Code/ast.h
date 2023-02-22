@@ -135,7 +135,7 @@ struct DECL_VAR_node_t {
     u32       len[MAX_DIM], dim;
 };
 
-struct DECL_FUN_node_t {
+struct CONS_FUN_node_t {
     EXTENDS(ast_t);
     char      str[MAX_SYM_LEN];
     syment_t *sym;
@@ -149,8 +149,12 @@ struct DECL_TYP_node_t {
     ast_t *spec;
 };
 
-struct CONS_ERR_node_t {
+struct DECL_FUN_node_t {
     EXTENDS(ast_t);
+    char      str[MAX_SYM_LEN];
+    syment_t *sym;
+    ast_t    *params;
+    ast_t    *spec;
 };
 
 #define INSTANCE_OF(NODE, KIND) INSTANCE_OF_VAR(NODE, KIND, cnode)

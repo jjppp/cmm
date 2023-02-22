@@ -91,7 +91,7 @@ VISIT(CONS_PROG) {
     ast_foreach(node->decls, print_);
 }
 
-VISIT(DECL_FUN) {
+VISIT(CONS_FUN) {
     ast_foreach(node->body, print_);
 }
 
@@ -134,4 +134,7 @@ VISIT(CONS_SPEC) {
     if (node->kind == TYPE_STRUCT) {
         ast_foreach(node->fields, print_);
     }
+}
+
+VISIT(DECL_FUN) {
 }

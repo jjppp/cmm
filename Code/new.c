@@ -88,7 +88,7 @@ VISIT(CONS_PROG) {
     node->decls = va_arg(ap, ast_t *);
 }
 
-VISIT(DECL_FUN) {
+VISIT(CONS_FUN) {
     symmov(node->str, va_arg(ap, char *));
     node->params = va_arg(ap, ast_t *);
 }
@@ -131,4 +131,7 @@ VISIT(CONS_SPEC) {
             TODO("TYPE_ARRAY");
         default: UNREACHABLE;
     }
+}
+
+VISIT(DECL_FUN) {
 }

@@ -60,7 +60,7 @@ VISIT(CONS_PROG) {
     RETURN(false);
 }
 
-VISIT(DECL_FUN) {
+VISIT(CONS_FUN) {
     RETURN(false);
 }
 
@@ -86,4 +86,7 @@ VISIT(DECL_TYP) {
 
 VISIT(CONS_SPEC) {
     RETURN(false);
+}
+
+VISIT(DECL_FUN) {
 }

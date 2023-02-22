@@ -69,7 +69,7 @@ VISIT(CONS_PROG) {
     ast_free(node->decls);
 }
 
-VISIT(DECL_FUN) {
+VISIT(CONS_FUN) {
     ast_free(node->params);
     ast_free(node->body);
     POINTS_FREE(node->spec, ast_free);
@@ -99,4 +99,9 @@ VISIT(DECL_TYP) {
 
 VISIT(CONS_SPEC) {
     ast_free(node->fields);
+}
+
+VISIT(DECL_FUN) {
+    ast_free(node->params);
+    POINTS_FREE(node->spec, ast_free);
 }

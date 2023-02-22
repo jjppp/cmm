@@ -84,6 +84,7 @@ struct shared {
 #define AST_NODES(F) \
     F(CONS_PROG)     \
     F(CONS_SPEC)     \
+    F(CONS_FUN)      \
     /* Stmts */      \
     F(STMT_EXPR)     \
     F(STMT_SCOP)     \
@@ -108,6 +109,7 @@ struct shared {
 #define AST_NODES_WITH_ARG(F, ARG) \
     F(CONS_PROG, ARG)              \
     F(CONS_SPEC, ARG)              \
+    F(CONS_FUN, ARG)               \
     /* Stmts */                    \
     F(STMT_EXPR, ARG)              \
     F(STMT_SCOP, ARG)              \
@@ -126,8 +128,8 @@ struct shared {
     F(EXPR_UNR, ARG)               \
     /* Constructs */               \
     F(DECL_VAR, ARG)               \
-    F(DECL_TYP, ARG)               \
-    F(DECL_FUN, ARG)
+    F(DECL_FUN, ARG)               \
+    F(DECL_TYP, ARG)
 
 #define OPS(F) \
     F(OP_ADD)  \

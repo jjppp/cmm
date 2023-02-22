@@ -152,9 +152,17 @@ ExtDef
 	| Specifier FunDec CompSt {
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $2.ast;
-        INSTANCE_OF($$.ast, DECL_FUN) {
+        INSTANCE_OF($$.ast, CONS_FUN) {
             POINTS_TO(cnode->spec, $1.ast);
             cnode->body = $3.ast;
+        }
+    }
+    | Specifier FunDec SEMI {
+        $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
+        $$.ast = $2.ast;
+        $$.ast->ast_kind = DECL_FUN;
+        INSTANCE_OF($$.ast, DECL_FUN) {
+            POINTS_TO(cnode->spec, $1.ast);
         }
     }
 	| error SEMI {
@@ -256,15 +264,15 @@ VarDec
 FunDec
     : ID LP VarList RP {
         $$.cst = cst_alloc("FunDec", "", @1.first_line, 4, $1.cst, $2.cst, $3.cst, $4.cst);
-        $$.ast = ast_alloc(DECL_FUN, @1.first_line, $1.str, $3.ast);
+        $$.ast = ast_alloc(CONS_FUN, @1.first_line, $1.str, $3.ast);
     }
 	| ID LP RP {
         $$.cst = cst_alloc("FunDec", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
-        $$.ast = ast_alloc(DECL_FUN, @1.first_line, $1.str, NULL);
+        $$.ast = ast_alloc(CONS_FUN, @1.first_line, $1.str, NULL);
     }
 	| ID LP error RP {
         $$.cst = cst_alloc("FunDec", "", @1.first_line, 3, $1.cst, $2.cst, $4.cst);
-        $$.ast = ast_alloc(DECL_FUN, @1.first_line, $1.str, NULL);
+        $$.ast = ast_alloc(CONS_FUN, @1.first_line, $1.str, NULL);
         yyerrok;
     }
 ;
