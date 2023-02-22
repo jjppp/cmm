@@ -104,5 +104,6 @@ char *symuniq() {
     static u32 cnt = 0;
     char      *str = zalloc(MAX_SYM_LEN * sizeof(char));
     snprintf(str, MAX_SYM_LEN - 1, "%u_struct", cnt);
+    cnt++;
     return str;
 }
