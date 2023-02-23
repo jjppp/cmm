@@ -41,6 +41,9 @@ static bool field_eq(field_t *f1, field_t *f2) {
 }
 
 bool type_eq(type_t typ1, type_t typ2) {
+    if (typ1.kind == TYPE_ERR || typ2.kind == TYPE_ERR) {
+        return true;
+    }
     if (typ1.kind != typ2.kind) {
         return false;
     }
@@ -52,8 +55,6 @@ bool type_eq(type_t typ1, type_t typ2) {
             return field_eq(typ1.fields, typ2.fields);
         case TYPE_ARRAY:
             return type_eq(*typ1.elem_typ, *typ2.elem_typ);
-        case TYPE_ERR:
-            return false;
         default:
             UNREACHABLE;
     }

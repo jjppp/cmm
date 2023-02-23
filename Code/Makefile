@@ -2,8 +2,8 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-GCFLAGS = -std=c99 -ggdb3 -fsanitize=address -I. -DNDEBUG
-CFLAGS = -std=c99 -ggdb3 -Wall -Werror -fsanitize=address -I. -DNDEBUG
+GCFLAGS = -std=c99 -ggdb3 -I. -DNDEBUG
+CFLAGS = -std=c99 -ggdb3 -Wall -Werror -I. -DNDEBUG
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
@@ -48,3 +48,5 @@ clean:
 	rm -f *.o
 	rm -f test-symtab test-visitor
 	rm -f *~
+submit: clean
+	zip -r ../201250101.zip ../Code ../README.md ../report.zip

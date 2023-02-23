@@ -10,10 +10,12 @@ extern cst_t *croot;
 i32 yylex(void);
 
 void yyerror(const char *s) {
-    printf("%s\n", s);
+	extern bool syn_err;
+    extern int yylineno;
+	syn_err = true;
+    printf("Error type B at Line %d: %s\n", yylineno, s);
 }
 %}
-%define parse.error custom
 
 %union {
 	struct {
@@ -217,7 +219,7 @@ StructSpecifier
 ;
 
 OptTag
-	: Tag {
+	: ID {
         $$.cst = cst_alloc("OptTag", "", @1.first_line, 1, $1.cst);
         $$.str = $1.str;
     }
@@ -556,6 +558,7 @@ Args: Exp COMMA Args {
 #include "lex.yy.c"
 
 // See https://www.gnu.org/software/bison/manual/html_node/Syntax-Error-Reporting-Function.html
+/* Unfortunately, this is a bison3.6 feature ;-(
 static i32 yyreport_syntax_error(const yypcontext_t *yyctx) {
 	extern bool syn_err;
 	syn_err = true;
@@ -574,3 +577,4 @@ static i32 yyreport_syntax_error(const yypcontext_t *yyctx) {
     if (lookahead != YYSYMBOL_YYEMPTY)
     printf(" before %s\n", yysymbol_name(lookahead));
 }
+*/

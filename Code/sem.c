@@ -96,7 +96,7 @@ VISIT(EXPR_CALL) {
         sit = sit->next;
     }
     if (sit != NULL) {
-        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->expr->fst_l, node->str);
+        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
     }
     RETURN(node->fun->typ);
 }
@@ -140,6 +140,7 @@ VISIT(EXPR_ASS) {
     if (!ast_lval(node->lhs)) {
         SEM_ERR(ERR_ASS_TO_RVALUE, node->lhs->fst_l);
     }
+    RETURN(ltyp);
 }
 
 VISIT(EXPR_DOT) {

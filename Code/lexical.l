@@ -117,7 +117,7 @@ ID {LETTER}({LETTER}|{DIGIT})*
 		if (ch == 0) {
             extern bool lex_err;
             lex_err = true;
-            printf("Error type A at %2d,%2d\topen comments\n", yylineno, yycolumn);
+            printf("Error type A at Line %d: open comments\n", yylineno);
 			break;
 		}
 	}
@@ -281,6 +281,6 @@ ID {LETTER}({LETTER}|{DIGIT})*
 . {
     extern bool lex_err;
     lex_err = true;
-    printf("Error type A :%d:%d character \"%s\"\n", yylineno, yycolumn, yytext);
+    printf("Error type A at Line %d: character \"%s\"\n", yylineno, yytext);
 }
 %%
