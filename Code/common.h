@@ -7,8 +7,8 @@
 #include <assert.h>
 
 #define MAX_SYM_LEN 64
-#define MAX_SYM 128
-#define MAX_DIM 16
+#define MAX_SYM 8192
+#define MAX_DIM 64
 #define MAX_CHAR 63
 #define SYM_STR_SIZE (sizeof(char) * MAX_SYM_LEN)
 

@@ -25,21 +25,20 @@ struct ast_t {
     EXTENDS(shared);
     ast_t     *next;
     u32        fst_l;
-    ast_kind_t ast_kind;
+    ast_kind_t kind;
 };
 
-#define AST_NODE_EXTEND(NODE) \
-    typedef struct NODE##_node_t NODE##_node_t;
+#define AST_NODE_EXTEND(NODE) typedef struct NODE##_t NODE##_t;
 
 AST_NODES(AST_NODE_EXTEND);
 
-struct CONS_PROG_node_t {
+struct CONS_PROG_t {
     EXTENDS(ast_t);
     ast_t *decls;
 };
 
 /* Specifier */
-struct CONS_SPEC_node_t {
+struct CONS_SPEC_t {
     EXTENDS(ast_t);
     enum type_kind kind;
     char           str[MAX_SYM_LEN];
@@ -48,85 +47,85 @@ struct CONS_SPEC_node_t {
 };
 
 /* Stmts */
-struct STMT_SCOP_node_t {
+struct STMT_SCOP_t {
     EXTENDS(ast_t);
     ast_t *decls, *stmts;
 };
 
-struct STMT_IFTE_node_t {
+struct STMT_IFTE_t {
     EXTENDS(ast_t);
     ast_t *cond, *tru_stmt, *fls_stmt;
 };
 
-struct STMT_WHLE_node_t {
+struct STMT_WHLE_t {
     EXTENDS(ast_t);
     ast_t *cond, *body;
 };
 
-struct STMT_EXPR_node_t {
+struct STMT_EXPR_t {
     EXTENDS(ast_t);
     ast_t *expr;
 };
 
-struct STMT_RET_node_t {
+struct STMT_RET_t {
     EXTENDS(ast_t);
     ast_t *expr;
 };
 
 /* Exprs */
-struct EXPR_IDEN_node_t {
+struct EXPR_IDEN_t {
     EXTENDS(ast_t);
     syment_t *sym;
     char      str[MAX_SYM_LEN];
 };
 
-struct EXPR_CALL_node_t {
+struct EXPR_CALL_t {
     EXTENDS(ast_t);
     syment_t *fun;
     ast_t    *expr; // nullable
     char      str[MAX_SYM_LEN];
 };
 
-struct EXPR_ASS_node_t {
+struct EXPR_ASS_t {
     EXTENDS(ast_t);
     ast_t *lhs, *rhs;
 };
 
-struct EXPR_ARR_node_t {
+struct EXPR_ARR_t {
     EXTENDS(ast_t);
     ast_t *arr, *ind; // indices
 };
 
-struct EXPR_DOT_node_t {
+struct EXPR_DOT_t {
     EXTENDS(ast_t);
     char   str[MAX_SYM_LEN];
     ast_t *base;
 };
 
-struct EXPR_INT_node_t {
+struct EXPR_INT_t {
     EXTENDS(ast_t);
     i32 value;
 };
 
-struct EXPR_FLT_node_t {
+struct EXPR_FLT_t {
     EXTENDS(ast_t);
     f32 value;
 };
 
-struct EXPR_BIN_node_t {
+struct EXPR_BIN_t {
     EXTENDS(ast_t);
     ast_t    *lhs;
     ast_t    *rhs;
     op_kind_t op;
 };
 
-struct EXPR_UNR_node_t {
+struct EXPR_UNR_t {
     EXTENDS(ast_t);
     ast_t    *sub;
     op_kind_t op;
 };
 
-struct DECL_VAR_node_t {
+struct DECL_VAR_t {
     EXTENDS(ast_t);
     syment_t *sym;
     ast_t    *spec;
@@ -135,7 +134,7 @@ struct DECL_VAR_node_t {
     u32       len[MAX_DIM], dim;
 };
 
-struct CONS_FUN_node_t {
+struct CONS_FUN_t {
     EXTENDS(ast_t);
     char      str[MAX_SYM_LEN];
     syment_t *sym;
@@ -144,12 +143,12 @@ struct CONS_FUN_node_t {
     ast_t    *body;
 };
 
-struct DECL_TYP_node_t {
+struct DECL_TYP_t {
     EXTENDS(ast_t);
     ast_t *spec;
 };
 
-struct DECL_FUN_node_t {
+struct DECL_FUN_t {
     EXTENDS(ast_t);
     char      str[MAX_SYM_LEN];
     syment_t *sym;
@@ -159,9 +158,25 @@ struct DECL_FUN_node_t {
 
 #define INSTANCE_OF(NODE, KIND) INSTANCE_OF_VAR(NODE, KIND, cnode)
 
-#define INSTANCE_OF_VAR(NODE, KIND, CNODE)                                        \
-    for (KIND##_node_t *CNODE = (KIND##_node_t *) NODE,                           \
-                       __once = (KIND##_node_t){.super = {.super = {.nref = 0}}}; \
-         ASSERT((NODE)->ast_kind == KIND, "instanceof %s", AST_NODE_NAMES[KIND])  \
-         && !__once.super.super.nref;                                             \
+#define INSTANCE_OF_VAR(NODE, KIND, CNODE)                                   \
+    for (KIND##_t *CNODE = (KIND##_t *) NODE,                                \
+                  __once = (KIND##_t){.super = {.super = {.nref = 0}}};      \
+         ASSERT((NODE)->kind == KIND, "instanceof %s", AST_NODE_NAMES[KIND]) \
+         && !__once.super.super.nref;                                        \
          __once.super.super.nref++)
+
+#define AST_NODE_VISIT(NODE) ast_visitor_fun_t visit_##NODE;
+typedef void (*ast_visitor_fun_t)(ast_t *, void *);
+
+struct AST_NODES_visitor {
+    char name[MAX_SYM_LEN];
+    AST_NODES(AST_NODE_VISIT)
+};
+
+ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...);
+
+void ast_free(ast_t *node);
+
+type_t ast_check(ast_t *node);
+
+bool ast_lval(ast_t *node);

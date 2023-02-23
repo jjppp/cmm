@@ -5,25 +5,25 @@
 
 #define RET_TYPE va_list
 #define ARG ap
-VISITOR_DEF(new, va_list);
+VISITOR_DEF(AST_NODES, new, va_list);
 
 ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...) {
-#define AST_NODE_ALLOC(NODE)                 \
-    case NODE:                               \
-        ptr = zalloc(sizeof(NODE##_node_t)); \
+#define AST_NODE_ALLOC(NODE)            \
+    case NODE:                          \
+        ptr = zalloc(sizeof(NODE##_t)); \
         break;
 
     va_list ap;
-    ast_t  *ptr;
+    ast_t  *ptr = NULL;
     va_start(ap, fst_l);
 
     switch (kind) {
         AST_NODES(AST_NODE_ALLOC)
-        default: assert(0);
+        default: UNREACHABLE;
     }
-    ptr->ast_kind = kind;
-    ptr->fst_l    = fst_l;
-    ptr->next     = NULL;
+    ptr->kind  = kind;
+    ptr->fst_l = fst_l;
+    ptr->next  = NULL;
     visitor_dispatch(visitor_new, ptr, ap);
 
     va_end(ap);

@@ -19,11 +19,16 @@ void field_free(field_t *field) {
 }
 
 void typ_free(type_t typ) {
+    if (typ.is_ref) {
+        return;
+    }
     if (typ.fields != NULL) {
         field_free(typ.fields);
     }
     if (typ.elem_typ != NULL) {
         typ_free(*typ.elem_typ);
+        zfree(typ.elem_typ);
+        typ.elem_typ = NULL;
     }
 }
 

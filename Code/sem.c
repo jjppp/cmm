@@ -9,7 +9,7 @@
 
 #define RET_TYPE type_t *
 #define ARG typ
-VISITOR_DEF(sem, RET_TYPE);
+VISITOR_DEF(AST_NODES, sem, RET_TYPE);
 
 extern bool sem_err;
 
@@ -125,8 +125,8 @@ VISIT(EXPR_ARR) {
         SEM_ERR(ERR_ACC_NON_ARRAY, node->arr->fst_l);
     }
     if (len != arr_typ.dim) {
-        // do not support partial array addressing
-        SEM_ERR(ERR_ACC_INDEX, node->ind->fst_l);
+        arr_typ.dim -= len;
+        RETURN(arr_typ);
     }
     RETURN(*arr_typ.elem_typ);
 }
@@ -149,6 +149,7 @@ VISIT(EXPR_DOT) {
         // TODO: print base
         SEM_ERR(ERR_ACC_NON_STRUCT, node->base->fst_l);
     }
+    printf("%d %s\n", node->super.fst_l, node->str);
     field_iter(base_typ.fields, it) {
         if (!symcmp(it->str, node->str)) {
             RETURN(it->typ);
@@ -215,7 +216,8 @@ VISIT(DECL_VAR) {
         var_typ = (type_t){
             .dim      = node->dim,
             .kind     = TYPE_ARRAY,
-            .elem_typ = zalloc(sizeof(type_t))};
+            .elem_typ = zalloc(sizeof(type_t)),
+            .is_ref   = false};
         *var_typ.elem_typ = spec_typ;
         memcpy(var_typ.len, node->len, node->dim * sizeof(var_typ.len[0]));
     }
@@ -231,6 +233,7 @@ VISIT(DECL_VAR) {
             SYM_VAR,
             var_typ, 0, 0);
         if (!node->sym) {
+            typ_free(var_typ);
             SEM_ERR(ERR_VAR_REDEF, node->super.fst_l, node->str);
         }
     }
@@ -313,17 +316,19 @@ VISIT(CONS_SPEC) {
         if (sym->kind != SYM_TYP) {
             SEM_ERR(ERR_STRUCT_UNDEF, node->super.fst_l, node->str);
         }
-        RETURN(sym->typ);
+        *typ        = sym->typ;
+        typ->is_ref = true;
+        RETURN(*typ);
     }
 
     symcpy(typ->str, node->str);
     typ->kind   = node->kind;
     typ->fields = NULL;
     ast_iter(node->fields, it) {
-        INSTANCE_OF_VAR(it, DECL_VAR, cit) {
-            if (cit->expr != NULL) {
-                SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
-            }
+        INSTANCE_OF(it, DECL_VAR) {
+            // if (cnode->expr != NULL) {
+            //     SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cnode->str);
+            // }
 
             nested_struct++;
             // ast_check(spec var) -> typeof(spec)
@@ -331,12 +336,12 @@ VISIT(CONS_SPEC) {
             nested_struct--;
 
             field_iter(typ->fields, jt) {
-                if (!symcmp(jt->str, cit->str)) {
+                if (!symcmp(jt->str, cnode->str)) {
                     typ_free(*typ);
-                    SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cit->str);
+                    SEM_ERR(ERR_FIELD_REDEF, it->fst_l, cnode->str);
                 }
             }
-            LIST_APPEND(typ->fields, field_alloc(field_typ, cit->str));
+            LIST_APPEND(typ->fields, field_alloc(field_typ, cnode->str));
         }
     }
     if (NULL == sym_insert(typ->str, SYM_TYP, *typ, 0, 0)) {

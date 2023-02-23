@@ -3,7 +3,7 @@
 
 #define RET_TYPE f32 *
 #define ARG p_res
-VISITOR_DEF(eval, RET_TYPE);
+VISITOR_DEF(AST_NODES, eval, RET_TYPE);
 
 f32 ast_eval(ast_t *node) {
     f32 ARG;

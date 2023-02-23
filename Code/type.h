@@ -21,6 +21,7 @@ struct type_t {
     field_t *fields;
     type_t  *elem_typ;
     u32      len[MAX_DIM], dim;
+    bool     is_ref; // e.g. struct STRUCT_NAME field;
 };
 
 struct field_t {
@@ -29,13 +30,15 @@ struct field_t {
     type_t   typ;
 };
 
-#define IS_SCALAR(TYPE)           \
-    ((TYPE).kind == TYPE_PRIM_INT \
-     || (TYPE).kind == TYPE_PRIM_FLT)
+#define IS_SCALAR(TYPE)                \
+    (((TYPE).kind == TYPE_PRIM_INT)    \
+     || ((TYPE).kind == TYPE_PRIM_FLT) \
+     || ((TYPE).kind == TYPE_ERR))
 
-#define IS_LOGIC(TYPE)              \
-    (((TYPE).kind == TYPE_PRIM_INT) \
-     && IS_SCALAR(TYPE))
+#define IS_LOGIC(TYPE)               \
+    ((((TYPE).kind == TYPE_PRIM_INT) \
+      && IS_SCALAR(TYPE))            \
+     || ((TYPE).kind == TYPE_ERR))
 
 #define field_iter(FIELD, IT) \
     for (field_t *IT = (FIELD); (IT) != NULL; (IT) = (IT)->next)

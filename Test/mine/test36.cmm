@@ -1,0 +1,15 @@
+struct A {
+    struct {
+        int d;
+    } j;
+};
+
+struct B {
+    struct A arr[205];
+    int      arr;
+};
+
+int main() {
+    struct A wjp;
+    return wjp.j.d;
+}

@@ -152,7 +152,7 @@ ExtDef
     | Specifier FunDec SEMI {
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $2.ast;
-        $$.ast->ast_kind = DECL_FUN;
+        $$.ast->kind = DECL_FUN;
         INSTANCE_OF($$.ast, DECL_FUN) {
             POINTS_TO(cnode->spec, $1.ast);
         }
@@ -512,7 +512,7 @@ Exp : Exp ASSIGNOP Exp {
     }
 	| Exp LB Exp RB {
         $$.cst = cst_alloc("Exp", "", @1.first_line, 4, $1.cst, $2.cst, $3.cst, $4.cst);
-        if ($1.ast->ast_kind == EXPR_ARR) {
+        if ($1.ast->kind == EXPR_ARR) {
             $$.ast = $1.ast;
             INSTANCE_OF($$.ast, EXPR_ARR) {
                 LIST_APPEND(cnode->ind, $3.ast);

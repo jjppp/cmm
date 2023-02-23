@@ -4,7 +4,7 @@
 
 #define RET_TYPE bool *
 #define ARG res
-VISITOR_DEF(lval, bool *);
+VISITOR_DEF(AST_NODES, lval, bool *);
 
 bool ast_lval(ast_t *node) {
     bool ARG;

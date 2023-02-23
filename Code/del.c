@@ -5,7 +5,7 @@
 
 #define RET_TYPE va_list
 #define ARG ap
-VISITOR_DEF(del, va_list);
+VISITOR_DEF(AST_NODES, del, va_list);
 
 void ast_free(ast_t *node) {
     if (node == NULL) {
