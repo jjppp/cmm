@@ -50,3 +50,5 @@ void field_free(field_t *field);
 void typ_free(type_t typ);
 
 bool type_eq(type_t typ1, type_t typ2);
+
+bool field_exist(field_t *field, const char *str);

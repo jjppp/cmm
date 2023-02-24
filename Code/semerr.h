@@ -55,13 +55,13 @@ static const char *SEM_ERR_MSG[] = {
     "Inconsistent declaration of function \"%s\"",
     "\0"};
 
-#define SEM_ERR(...)                        \
+#define SEM_ERR_RETURN(...)                 \
     do {                                    \
-        _SEM_ERR(__VA_ARGS__);              \
+        SEM_ERR(__VA_ARGS__);               \
         RETURN((type_t){.kind = TYPE_ERR}); \
     } while (0)
 
-static inline void _SEM_ERR(enum err_id id, u32 line, ...) {
+static inline void SEM_ERR(enum err_id id, u32 line, ...) {
     va_list ap;
     va_start(ap, line);
 

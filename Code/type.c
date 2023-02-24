@@ -65,3 +65,12 @@ bool type_eq(type_t typ1, type_t typ2) {
     }
     UNREACHABLE;
 }
+
+bool field_exist(field_t *field, const char *str) {
+    field_iter(field, it) {
+        if (!symcmp(it->str, str)) {
+            return true;
+        }
+    }
+    return false;
+}
