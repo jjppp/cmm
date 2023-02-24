@@ -1,0 +1,6 @@
+struct A {};
+
+struct B {
+    struct A x = 0.0;
+    struct A x[1];
+};

@@ -17,7 +17,7 @@ struct syment_t {
     struct type_t typ;
     syment_t     *next, *params;
     u32           nparam;
-    struct ast_t *body;
+    struct AST_t *body;
 };
 
 struct hashtab_t {
@@ -29,7 +29,7 @@ void symtab_init();
 
 void symtab_fini();
 
-void *sym_insert(const char *str, sym_kind_t kind, type_t typ);
+void *sym_insert(const char *str, sym_kind_t kind);
 
 void sym_scope_push();
 

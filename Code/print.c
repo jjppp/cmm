@@ -5,7 +5,7 @@
 
 #define RET_TYPE va_list
 #define ARG ap
-VISITOR_DEF(AST_NODES, print, va_list);
+VISITOR_DEF(AST, print, va_list);
 
 static FILE *fout;
 static u32   tabs = 0;
@@ -20,15 +20,15 @@ static void display(const char *fmt, ...) {
     va_end(ap);
 }
 
-static void print_(ast_t *node) {
+static void print_(AST_t *node) {
     ASSERT(node != NULL, "print NULL");
     tabs++;
-    display("%s\n", AST_NODE_NAMES[node->kind]);
-    visitor_dispatch(visitor_print, node, NULL);
+    display("%s\n", AST_NAMES[node->kind]);
+    VISITOR_DISPATCH(AST, print, node, NULL);
     tabs--;
 }
 
-void print(FILE *file, ast_t *node, ...) {
+void print(FILE *file, AST_t *node, ...) {
     fout = file;
     print_(node);
 }

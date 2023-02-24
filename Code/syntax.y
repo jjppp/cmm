@@ -4,7 +4,7 @@
 #include "ast.h"
 #include "cst.h"
 
-extern ast_t *root;
+extern AST_t *root;
 extern cst_t *croot;
 
 i32 yylex(void);
@@ -19,7 +19,7 @@ void yyerror(const char *s) {
 
 %union {
 	struct {
-        ast_t *ast;
+        AST_t *ast;
         cst_t *cst;
     } type_node;
     struct {

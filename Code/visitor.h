@@ -1,11 +1,10 @@
 #pragma once
 
 #include "ast.h"
+#include "ir.h"
 
-#define VISITOR_METHOD_ASSIGN(NAME) \
-    .visit_##NAME = (void *) visit_##NAME,
-#define VISITOR_METHOD_DECLARE(NAME, ARG_TYPE) \
-    static void visit_##NAME(NAME##_t *node, ARG_TYPE);
+#define VISITOR_METHOD_ASSIGN(NAME) .visit_##NAME = (void *) visit_##NAME,
+#define VISITOR_METHOD_DECLARE(NAME, ARG_TYPE) static void visit_##NAME(NAME##_t *node, ARG_TYPE);
 #define VISITOR_DEF(ACCEPTOR, NAME, ARG_TYPE)                                          \
     ACCEPTOR##_WITH_ARG(VISITOR_METHOD_DECLARE, ARG_TYPE)                              \
         const struct ACCEPTOR##_visitor visitor_##NAME = (struct ACCEPTOR##_visitor) { \
@@ -20,4 +19,15 @@
         return;                 \
     } while (0)
 
-void visitor_dispatch(const struct AST_NODES_visitor visitor, ast_t *node, void *p);
+// register visitors
+#define VISITORS(F) \
+    F(AST)          \
+    F(IR)
+
+#define VISITOR_DISPATCH_DEF(ACCEPTOR) \
+    void ACCEPTOR##_visitor_dispatch(const struct ACCEPTOR##_visitor visitor, ACCEPTOR##_t *node, void *p);
+
+#define VISITOR_DISPATCH(ACCEPTOR, NAME, NODE, ARG) \
+    ACCEPTOR##_visitor_dispatch(visitor_##NAME, (NODE), (ARG))
+
+VISITORS(VISITOR_DISPATCH_DEF);

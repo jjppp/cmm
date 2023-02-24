@@ -10,7 +10,7 @@ i32  yyparse(void);
 bool lex_err, syn_err, sem_err;
 
 cst_t *croot = NULL;
-ast_t *root  = NULL;
+AST_t *root  = NULL;
 
 i32 main(i32 argc, char **argv) {
     if (argc <= 1) {

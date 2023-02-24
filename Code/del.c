@@ -5,14 +5,14 @@
 
 #define RET_TYPE va_list
 #define ARG ap
-VISITOR_DEF(AST_NODES, del, va_list);
+VISITOR_DEF(AST, del, va_list);
 
-void ast_free(ast_t *node) {
+void ast_free(AST_t *node) {
     if (node == NULL) {
         return;
     }
     ast_free(node->next);
-    visitor_dispatch(visitor_del, node, NULL);
+    VISITOR_DISPATCH(AST, del, node, NULL);
     zfree(node);
 }
 

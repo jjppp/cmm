@@ -109,7 +109,7 @@ struct shared {
         __length;                         \
     })
 
-#define AST_NODES(F) \
+#define AST(F)       \
     F(CONS_PROG)     \
     F(CONS_SPEC)     \
     F(CONS_FUN)      \
@@ -134,29 +134,29 @@ struct shared {
     F(DECL_TYP)      \
     F(DECL_FUN)
 
-#define AST_NODES_WITH_ARG(F, ARG) \
-    F(CONS_PROG, ARG)              \
-    F(CONS_SPEC, ARG)              \
-    F(CONS_FUN, ARG)               \
-    /* Stmts */                    \
-    F(STMT_EXPR, ARG)              \
-    F(STMT_SCOP, ARG)              \
-    F(STMT_IFTE, ARG)              \
-    F(STMT_WHLE, ARG)              \
-    F(STMT_RET, ARG)               \
-    /* Exprs */                    \
-    F(EXPR_CALL, ARG)              \
-    F(EXPR_IDEN, ARG)              \
-    F(EXPR_ARR, ARG)               \
-    F(EXPR_ASS, ARG)               \
-    F(EXPR_DOT, ARG)               \
-    F(EXPR_INT, ARG)               \
-    F(EXPR_FLT, ARG)               \
-    F(EXPR_BIN, ARG)               \
-    F(EXPR_UNR, ARG)               \
-    /* Constructs */               \
-    F(DECL_VAR, ARG)               \
-    F(DECL_FUN, ARG)               \
+#define AST_WITH_ARG(F, ARG) \
+    F(CONS_PROG, ARG)        \
+    F(CONS_SPEC, ARG)        \
+    F(CONS_FUN, ARG)         \
+    /* Stmts */              \
+    F(STMT_EXPR, ARG)        \
+    F(STMT_SCOP, ARG)        \
+    F(STMT_IFTE, ARG)        \
+    F(STMT_WHLE, ARG)        \
+    F(STMT_RET, ARG)         \
+    /* Exprs */              \
+    F(EXPR_CALL, ARG)        \
+    F(EXPR_IDEN, ARG)        \
+    F(EXPR_ARR, ARG)         \
+    F(EXPR_ASS, ARG)         \
+    F(EXPR_DOT, ARG)         \
+    F(EXPR_INT, ARG)         \
+    F(EXPR_FLT, ARG)         \
+    F(EXPR_BIN, ARG)         \
+    F(EXPR_UNR, ARG)         \
+    /* Constructs */         \
+    F(DECL_VAR, ARG)         \
+    F(DECL_FUN, ARG)         \
     F(DECL_TYP, ARG)
 
 #define OPS(F) \

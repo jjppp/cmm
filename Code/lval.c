@@ -4,11 +4,11 @@
 
 #define RET_TYPE bool *
 #define ARG res
-VISITOR_DEF(AST_NODES, lval, bool *);
+VISITOR_DEF(AST, lval, bool *);
 
-bool ast_lval(ast_t *node) {
+bool ast_lval(AST_t *node) {
     bool ARG;
-    visitor_dispatch(visitor_lval, node, &ARG);
+    VISITOR_DISPATCH(AST, lval, node, &ARG);
     return ARG;
 }
 

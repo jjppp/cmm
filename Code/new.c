@@ -5,26 +5,26 @@
 
 #define RET_TYPE va_list
 #define ARG ap
-VISITOR_DEF(AST_NODES, new, va_list);
+VISITOR_DEF(AST, new, va_list);
 
-ast_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...) {
-#define AST_NODE_ALLOC(NODE)            \
+AST_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...) {
+#define AST_ALLOC(NODE)                 \
     case NODE:                          \
         ptr = zalloc(sizeof(NODE##_t)); \
         break;
 
     va_list ap;
-    ast_t  *ptr = NULL;
+    AST_t  *ptr = NULL;
     va_start(ap, fst_l);
 
     switch (kind) {
-        AST_NODES(AST_NODE_ALLOC)
+        AST(AST_ALLOC)
         default: UNREACHABLE;
     }
     ptr->kind  = kind;
     ptr->fst_l = fst_l;
     ptr->next  = NULL;
-    visitor_dispatch(visitor_new, ptr, ap);
+    VISITOR_DISPATCH(AST, new, ptr, ap);
 
     va_end(ap);
     return ptr;
@@ -40,14 +40,14 @@ VISIT(EXPR_FLT) {
 }
 
 VISIT(EXPR_BIN) {
-    node->lhs = va_arg(ap, ast_t *);
+    node->lhs = va_arg(ap, AST_t *);
     node->op  = va_arg(ap, op_kind_t);
-    node->rhs = va_arg(ap, ast_t *);
+    node->rhs = va_arg(ap, AST_t *);
 }
 
 VISIT(EXPR_UNR) {
     node->op  = va_arg(ap, op_kind_t);
-    node->sub = va_arg(ap, ast_t *);
+    node->sub = va_arg(ap, AST_t *);
 }
 
 VISIT(EXPR_IDEN) {
@@ -55,42 +55,42 @@ VISIT(EXPR_IDEN) {
 }
 
 VISIT(STMT_RET) {
-    node->expr = va_arg(ap, ast_t *);
+    node->expr = va_arg(ap, AST_t *);
 }
 
 VISIT(STMT_WHLE) {
-    node->cond = va_arg(ap, ast_t *);
-    node->body = va_arg(ap, ast_t *);
+    node->cond = va_arg(ap, AST_t *);
+    node->body = va_arg(ap, AST_t *);
 }
 
 VISIT(STMT_IFTE) {
-    node->cond     = va_arg(ap, ast_t *);
-    node->tru_stmt = va_arg(ap, ast_t *);
-    node->fls_stmt = va_arg(ap, ast_t *);
+    node->cond     = va_arg(ap, AST_t *);
+    node->tru_stmt = va_arg(ap, AST_t *);
+    node->fls_stmt = va_arg(ap, AST_t *);
 }
 
 VISIT(STMT_SCOP) {
-    node->decls = va_arg(ap, ast_t *);
-    node->stmts = va_arg(ap, ast_t *);
+    node->decls = va_arg(ap, AST_t *);
+    node->stmts = va_arg(ap, AST_t *);
 }
 
 VISIT(EXPR_DOT) {
-    node->base = va_arg(ap, ast_t *);
+    node->base = va_arg(ap, AST_t *);
     symmov(node->str, va_arg(ap, char *));
 }
 
 VISIT(EXPR_ASS) {
-    node->lhs = va_arg(ap, ast_t *);
-    node->rhs = va_arg(ap, ast_t *);
+    node->lhs = va_arg(ap, AST_t *);
+    node->rhs = va_arg(ap, AST_t *);
 }
 
 VISIT(CONS_PROG) {
-    node->decls = va_arg(ap, ast_t *);
+    node->decls = va_arg(ap, AST_t *);
 }
 
 VISIT(CONS_FUN) {
     symmov(node->str, va_arg(ap, char *));
-    node->params = va_arg(ap, ast_t *);
+    node->params = va_arg(ap, AST_t *);
     node->nparam = LIST_LENGTH(node->params);
 }
 
@@ -101,18 +101,18 @@ VISIT(DECL_VAR) {
 }
 
 VISIT(EXPR_ARR) {
-    node->arr  = va_arg(ap, ast_t *);
-    node->ind  = va_arg(ap, ast_t *);
+    node->arr  = va_arg(ap, AST_t *);
+    node->ind  = va_arg(ap, AST_t *);
     node->nind = LIST_LENGTH(node->ind);
 }
 
 VISIT(STMT_EXPR) {
-    node->expr = va_arg(ap, ast_t *);
+    node->expr = va_arg(ap, AST_t *);
 }
 
 VISIT(EXPR_CALL) {
     symmov(node->str, va_arg(ap, char *));
-    node->expr  = va_arg(ap, ast_t *);
+    node->expr  = va_arg(ap, AST_t *);
     node->nexpr = LIST_LENGTH(node->expr);
 }
 
@@ -127,7 +127,7 @@ VISIT(CONS_SPEC) {
             break;
         case TYPE_STRUCT:
             symmov(node->str, va_arg(ap, char *));
-            node->fields = va_arg(ap, ast_t *);
+            node->fields = va_arg(ap, AST_t *);
             node->is_ref = va_arg(ap, i32);
             node->nfield = LIST_LENGTH(node->fields);
             break;

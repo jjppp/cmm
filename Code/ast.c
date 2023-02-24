@@ -6,15 +6,15 @@
 
 #define STRING_LIST(NODE) STRINGIFY(NODE),
 
-const char *AST_NODE_NAMES[] = {AST_NODES(STRING_LIST) "\0"};
-const char *OP_NAMES[]       = {OPS(STRING_LIST) "\0"};
+const char *AST_NAMES[] = {AST(STRING_LIST) "\0"};
+const char *OP_NAMES[]  = {OPS(STRING_LIST) "\0"};
 
-void visitor_dispatch(const struct AST_NODES_visitor visitor, ast_t *node, void *p) {
+void AST_visitor_dispatch(const struct AST_visitor visitor, AST_t *node, void *p) {
     if (node == NULL) {
         return;
     }
-    LOG("%s at %s", visitor.name, AST_NODE_NAMES[node->kind]);
-#define AST_NODE_DISPATCH(NODE)                                       \
+    LOG("%s at %s", visitor.name, AST_NAMES[node->kind]);
+#define AST_DISPATCH(NODE)                                            \
     case NODE:                                                        \
         ASSERT(visitor.visit_##NODE != NULL,                          \
                "%s has no method %s", visitor.name, STRINGIFY(NODE)); \
@@ -22,7 +22,7 @@ void visitor_dispatch(const struct AST_NODES_visitor visitor, ast_t *node, void 
         break;
 
     switch (node->kind) {
-        AST_NODES(AST_NODE_DISPATCH)
+        AST(AST_DISPATCH)
         default: UNREACHABLE;
     }
 }

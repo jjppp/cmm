@@ -9,7 +9,7 @@
 
 #define RET_TYPE type_t *
 #define ARG typ
-VISITOR_DEF(AST_NODES, sem, RET_TYPE);
+VISITOR_DEF(AST, sem, RET_TYPE);
 
 extern bool sem_err;
 
@@ -19,12 +19,12 @@ static syment_t *cur_fun;
 // do not insert fields into symtab
 static u32 nested_struct = 0;
 
-type_t ast_check(ast_t *node) {
+type_t ast_check(AST_t *node) {
     if (node == NULL) {
         return (type_t){.kind = TYPE_ERR};
     }
     type_t ARG = {0};
-    visitor_dispatch(visitor_sem, node, &ARG);
+    VISITOR_DISPATCH(AST, sem, node, &ARG);
     return ARG;
 }
 
@@ -231,12 +231,12 @@ VISIT(DECL_VAR) {
     if (!nested_struct) {
         syment_t *sym = sym_insert(
             node->str,
-            SYM_VAR,
-            var_typ);
+            SYM_VAR);
         if (!sym) {
             typ_free(var_typ);
             SEM_ERR_RETURN(ERR_VAR_REDEF, node->super.fst_l, node->str);
         }
+        sym->typ = var_typ;
     }
     RETURN(var_typ);
 }
@@ -250,10 +250,10 @@ VISIT(CONS_FUN) {
 
     syment_t *sym = sym_insert(
         node->str,
-        SYM_FUN,
-        ret_typ);
+        SYM_FUN);
 
     if (sym != NULL) {
+        sym->typ = ret_typ;
         sym_scope_push();
         ast_iter(node->params, it) {
             INSTANCE_OF(it, DECL_VAR) {
@@ -332,6 +332,14 @@ VISIT(CONS_SPEC) {
     symcpy(typ->str, node->str);
     typ->kind   = node->kind;
     typ->fields = NULL;
+    bool err    = false;
+
+    syment_t *sym = sym_insert(node->str, SYM_TYP);
+    if (sym == NULL) {
+        SEM_ERR(ERR_STRUCT_REDEF, node->super.fst_l, node->str);
+        err = true;
+    }
+
     ast_iter(node->fields, it) {
         INSTANCE_OF(it, DECL_VAR) {
             nested_struct++;
@@ -342,15 +350,16 @@ VISIT(CONS_SPEC) {
             if (field_exist(typ->fields, cnode->str)) {
                 typ_free(field_typ);
                 SEM_ERR(ERR_FIELD_REDEF, cnode->super.fst_l, cnode->str);
-            } else {
+            } else if (!err) {
                 LIST_APPEND(typ->fields, field_alloc(field_typ, cnode->str));
             }
         }
     }
-    if (NULL == sym_insert(typ->str, SYM_TYP, *typ)) {
-        typ_free(*typ);
-        SEM_ERR_RETURN(ERR_STRUCT_REDEF, node->super.fst_l, node->str);
+    if (err) {
+        RETURN((type_t){.kind = TYPE_ERR});
     }
+    sym->typ = *typ;
+    RETURN(*typ);
 }
 
 VISIT(DECL_FUN) {
@@ -358,10 +367,10 @@ VISIT(DECL_FUN) {
 
     syment_t *sym = sym_insert(
         node->str,
-        SYM_FUN,
-        ret_typ);
+        SYM_FUN);
 
     if (sym != NULL) {
+        sym->typ = ret_typ;
         sym_scope_push();
         ast_iter(node->params, it) {
             INSTANCE_OF(it, DECL_VAR) {
