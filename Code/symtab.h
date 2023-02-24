@@ -17,6 +17,7 @@ struct syment_t {
     struct type_t typ;
     u32           fst_l, fst_c;
     syment_t     *next, *params;
+    u32           nparam;
     struct ast_t *body;
 };
 

@@ -98,6 +98,17 @@ struct shared {
         }                                 \
     } while (0)
 
+#define LIST_LENGTH(LIST)                 \
+    ({                                    \
+        u32 __length = 0;                 \
+        for (__auto_type __list = (LIST); \
+             __list != (void *) NULL;     \
+             __list = __list->next) {     \
+            __length++;                   \
+        }                                 \
+        __length;                         \
+    })
+
 #define AST_NODES(F) \
     F(CONS_PROG)     \
     F(CONS_SPEC)     \

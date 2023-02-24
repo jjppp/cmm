@@ -43,6 +43,7 @@ struct CONS_SPEC_t {
     enum type_kind kind;
     char           str[MAX_SYM_LEN];
     ast_t         *fields;
+    u32            nfield;
     bool           is_ref, done;
 };
 
@@ -84,6 +85,7 @@ struct EXPR_CALL_t {
     syment_t *fun;
     ast_t    *expr; // nullable
     char      str[MAX_SYM_LEN];
+    u32       nexpr;
 };
 
 struct EXPR_ASS_t {
@@ -94,6 +96,7 @@ struct EXPR_ASS_t {
 struct EXPR_ARR_t {
     EXTENDS(ast_t);
     ast_t *arr, *ind; // indices
+    u32    nind;
 };
 
 struct EXPR_DOT_t {
@@ -141,6 +144,7 @@ struct CONS_FUN_t {
     ast_t    *params;
     ast_t    *spec;
     ast_t    *body;
+    u32       nparam;
 };
 
 struct DECL_TYP_t {
@@ -154,6 +158,7 @@ struct DECL_FUN_t {
     syment_t *sym;
     ast_t    *params;
     ast_t    *spec;
+    u32       nparam;
 };
 
 #define INSTANCE_OF(NODE, KIND) INSTANCE_OF_VAR(NODE, KIND, cnode)

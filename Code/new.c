@@ -91,6 +91,7 @@ VISIT(CONS_PROG) {
 VISIT(CONS_FUN) {
     symmov(node->str, va_arg(ap, char *));
     node->params = va_arg(ap, ast_t *);
+    node->nparam = LIST_LENGTH(node->params);
 }
 
 VISIT(DECL_VAR) {
@@ -100,8 +101,9 @@ VISIT(DECL_VAR) {
 }
 
 VISIT(EXPR_ARR) {
-    node->arr = va_arg(ap, ast_t *);
-    node->ind = va_arg(ap, ast_t *);
+    node->arr  = va_arg(ap, ast_t *);
+    node->ind  = va_arg(ap, ast_t *);
+    node->nind = LIST_LENGTH(node->ind);
 }
 
 VISIT(STMT_EXPR) {
@@ -110,7 +112,8 @@ VISIT(STMT_EXPR) {
 
 VISIT(EXPR_CALL) {
     symmov(node->str, va_arg(ap, char *));
-    node->expr = va_arg(ap, ast_t *);
+    node->expr  = va_arg(ap, ast_t *);
+    node->nexpr = LIST_LENGTH(node->expr);
 }
 
 VISIT(DECL_TYP) {
@@ -126,6 +129,7 @@ VISIT(CONS_SPEC) {
             symmov(node->str, va_arg(ap, char *));
             node->fields = va_arg(ap, ast_t *);
             node->is_ref = va_arg(ap, i32);
+            node->nfield = LIST_LENGTH(node->fields);
             break;
         default: UNREACHABLE;
     }

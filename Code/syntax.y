@@ -155,6 +155,7 @@ ExtDef
         $$.ast->kind = DECL_FUN;
         INSTANCE_OF($$.ast, DECL_FUN) {
             POINTS_TO(cnode->spec, $1.ast);
+            cnode->nparam = LIST_LENGTH(cnode->params);
         }
     }
 	| error SEMI {

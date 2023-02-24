@@ -84,19 +84,17 @@ VISIT(EXPR_CALL) {
         SEM_ERR(ERR_CALL_NON_FUN, node->super.fst_l, node->str);
     }
 
+    if (node->nexpr != node->fun->nparam) {
+        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
+    }
+
     syment_t *sit = node->fun->params;
     ast_iter(node->expr, nit) {
-        if (sit == NULL) {
-            SEM_ERR(ERR_FUN_ARG_MISMATCH, nit->fst_l, node->str);
-        }
         type_t arg_typ = ast_check(nit);
         if (!type_eq(arg_typ, sit->typ)) {
             SEM_ERR(ERR_FUN_ARG_MISMATCH, nit->fst_l, node->str);
         }
         sit = sit->next;
-    }
-    if (sit != NULL) {
-        SEM_ERR(ERR_FUN_ARG_MISMATCH, node->super.fst_l, node->str);
     }
     RETURN(node->fun->typ);
 }
@@ -149,7 +147,6 @@ VISIT(EXPR_DOT) {
         // TODO: print base
         SEM_ERR(ERR_ACC_NON_STRUCT, node->base->fst_l);
     }
-    printf("%d %s\n", node->super.fst_l, node->str);
     field_iter(base_typ.fields, it) {
         if (!symcmp(it->str, node->str)) {
             RETURN(it->typ);
@@ -265,14 +262,14 @@ VISIT(CONS_FUN) {
             SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
         }
         node->sym->body = node->body;
-        syment_t *jt    = node->sym->params;
+        if (node->nparam != node->sym->nparam) {
+            SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
+        }
+
         sym_scope_push();
+        syment_t *jt = node->sym->params;
         ast_iter(node->params, it) {
             type_t param_typ = ast_check(it);
-            if (jt == NULL) {
-                sym_scope_pop();
-                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
-            }
             if (!type_eq(param_typ, jt->typ)) {
                 sym_scope_pop();
                 SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
@@ -293,7 +290,8 @@ VISIT(CONS_FUN) {
     }
 
     cur_fun         = sym;
-    node->sym->body = node->body;
+    cur_fun->body   = node->body;
+    cur_fun->nparam = LIST_LENGTH(cur_fun->params);
     ast_check(node->body);
     cur_fun = NULL;
     sym_scope_pop();
@@ -367,14 +365,13 @@ VISIT(DECL_FUN) {
         if (!type_eq(node->sym->typ, ret_typ)) {
             SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
         }
+        if (node->sym->nparam != node->nparam) {
+            SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
+        }
         sym_scope_push();
         syment_t *jt = node->sym->params;
         ast_iter(node->params, it) {
             type_t param_typ = ast_check(it);
-            if (jt == NULL) {
-                sym_scope_pop();
-                SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
-            }
             if (!type_eq(param_typ, jt->typ)) {
                 sym_scope_pop();
                 SEM_ERR(ERR_FUN_DEC_COLLISION, node->super.fst_l, node->str);
@@ -393,4 +390,5 @@ VISIT(DECL_FUN) {
         }
     }
     sym_scope_pop();
+    sym->nparam = LIST_LENGTH(sym->params);
 }
