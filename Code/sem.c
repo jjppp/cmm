@@ -340,6 +340,7 @@ VISIT(CONS_SPEC) {
             nested_struct--;
 
             if (field_exist(typ->fields, cnode->str)) {
+                typ_free(field_typ);
                 SEM_ERR(ERR_FIELD_REDEF, cnode->super.fst_l, cnode->str);
             } else {
                 LIST_APPEND(typ->fields, field_alloc(field_typ, cnode->str));
