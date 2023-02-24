@@ -76,16 +76,14 @@ struct STMT_RET_t {
 /* Exprs */
 struct EXPR_IDEN_t {
     EXTENDS(ast_t);
-    syment_t *sym;
-    char      str[MAX_SYM_LEN];
+    char str[MAX_SYM_LEN];
 };
 
 struct EXPR_CALL_t {
     EXTENDS(ast_t);
-    syment_t *fun;
-    ast_t    *expr; // nullable
-    char      str[MAX_SYM_LEN];
-    u32       nexpr;
+    ast_t *expr; // nullable
+    char   str[MAX_SYM_LEN];
+    u32    nexpr;
 };
 
 struct EXPR_ASS_t {
@@ -130,21 +128,19 @@ struct EXPR_UNR_t {
 
 struct DECL_VAR_t {
     EXTENDS(ast_t);
-    syment_t *sym;
-    ast_t    *spec;
-    ast_t    *expr; // init val
-    char      str[MAX_SYM_LEN];
-    u32       len[MAX_DIM], dim;
+    ast_t *spec;
+    ast_t *expr; // init val
+    char   str[MAX_SYM_LEN];
+    u32    len[MAX_DIM], dim;
 };
 
 struct CONS_FUN_t {
     EXTENDS(ast_t);
-    char      str[MAX_SYM_LEN];
-    syment_t *sym;
-    ast_t    *params;
-    ast_t    *spec;
-    ast_t    *body;
-    u32       nparam;
+    char   str[MAX_SYM_LEN];
+    ast_t *params;
+    ast_t *spec;
+    ast_t *body;
+    u32    nparam;
 };
 
 struct DECL_TYP_t {
@@ -154,11 +150,10 @@ struct DECL_TYP_t {
 
 struct DECL_FUN_t {
     EXTENDS(ast_t);
-    char      str[MAX_SYM_LEN];
-    syment_t *sym;
-    ast_t    *params;
-    ast_t    *spec;
-    u32       nparam;
+    char   str[MAX_SYM_LEN];
+    ast_t *params;
+    ast_t *spec;
+    u32    nparam;
 };
 
 #define INSTANCE_OF(NODE, KIND) INSTANCE_OF_VAR(NODE, KIND, cnode)

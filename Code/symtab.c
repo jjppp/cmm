@@ -57,7 +57,7 @@ void *salloc(u32 size) {
     return ptr++;
 }
 
-void *sym_insert(const char *str, sym_kind_t kind, type_t typ, u32 fst_l, u32 fst_c) {
+void *sym_insert(const char *str, sym_kind_t kind, type_t typ) {
     ASSERT(init, "symtab used before initialized");
     ASSERT(strlen(str) < MAX_SYM_LEN, "sym_insert exceeds MAX_SYM_LEN");
     syment_t **sym = lookup(top, str);
@@ -67,10 +67,8 @@ void *sym_insert(const char *str, sym_kind_t kind, type_t typ, u32 fst_l, u32 fs
 
     *sym  = salloc(sizeof(syment_t));
     **sym = (syment_t){
-        .kind  = kind,
-        .fst_c = fst_c,
-        .fst_l = fst_l,
-        .typ   = typ};
+        .kind = kind,
+        .typ  = typ};
     symcpy((*sym)->str, str);
     return *sym;
 }

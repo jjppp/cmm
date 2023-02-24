@@ -15,7 +15,6 @@ struct syment_t {
     sym_kind_t    kind;
     char          str[MAX_SYM_LEN];
     struct type_t typ;
-    u32           fst_l, fst_c;
     syment_t     *next, *params;
     u32           nparam;
     struct ast_t *body;
@@ -30,7 +29,7 @@ void symtab_init();
 
 void symtab_fini();
 
-void *sym_insert(const char *str, sym_kind_t kind, type_t typ, u32 fst_l, u32 fst_c);
+void *sym_insert(const char *str, sym_kind_t kind, type_t typ);
 
 void sym_scope_push();
 
