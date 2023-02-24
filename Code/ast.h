@@ -9,6 +9,56 @@
 #define sym_iter(SYM, IT) for (syment_t * (IT) = (void *) (SYM); (SYM) != NULL && (IT) != NULL; (IT) = (IT)->next)
 #define sym_foreach(SYM, FUN) sym_iter(SYM, __it) FUN(__it);
 
+#define AST(F)       \
+    F(CONS_PROG)     \
+    F(CONS_SPEC)     \
+    F(CONS_FUN)      \
+    /* Stmts */      \
+    F(STMT_EXPR)     \
+    F(STMT_SCOP)     \
+    F(STMT_IFTE)     \
+    F(STMT_WHLE)     \
+    F(STMT_RET)      \
+    /* Exprs */      \
+    F(EXPR_CALL)     \
+    F(EXPR_IDEN)     \
+    F(EXPR_ARR)      \
+    F(EXPR_ASS)      \
+    F(EXPR_DOT)      \
+    F(EXPR_INT)      \
+    F(EXPR_FLT)      \
+    F(EXPR_BIN)      \
+    F(EXPR_UNR)      \
+    /* Constructs */ \
+    F(DECL_VAR)      \
+    F(DECL_TYP)      \
+    F(DECL_FUN)
+
+#define AST_WITH_ARG(F, ARG) \
+    F(CONS_PROG, ARG)        \
+    F(CONS_SPEC, ARG)        \
+    F(CONS_FUN, ARG)         \
+    /* Stmts */              \
+    F(STMT_EXPR, ARG)        \
+    F(STMT_SCOP, ARG)        \
+    F(STMT_IFTE, ARG)        \
+    F(STMT_WHLE, ARG)        \
+    F(STMT_RET, ARG)         \
+    /* Exprs */              \
+    F(EXPR_CALL, ARG)        \
+    F(EXPR_IDEN, ARG)        \
+    F(EXPR_ARR, ARG)         \
+    F(EXPR_ASS, ARG)         \
+    F(EXPR_DOT, ARG)         \
+    F(EXPR_INT, ARG)         \
+    F(EXPR_FLT, ARG)         \
+    F(EXPR_BIN, ARG)         \
+    F(EXPR_UNR, ARG)         \
+    /* Constructs */         \
+    F(DECL_VAR, ARG)         \
+    F(DECL_FUN, ARG)         \
+    F(DECL_TYP, ARG)
+
 typedef struct AST_t AST_t;
 
 typedef enum {

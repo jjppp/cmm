@@ -1,10 +1,6 @@
 #include "ast.h"
 #include "visitor.h"
-#include "common.h"
-#include "symtab.h"
 #include <string.h>
-
-#define STRING_LIST(NODE) STRINGIFY(NODE),
 
 const char *AST_NAMES[] = {AST(STRING_LIST) "\0"};
 const char *OP_NAMES[]  = {OPS(STRING_LIST) "\0"};

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "ir.h"
 #include "visitor.h"
 #include "symtab.h"
 #include "cst.h"
@@ -33,6 +34,9 @@ i32 main(i32 argc, char **argv) {
     }
     cst_print(croot, 0);
     cst_free(croot);
+
+    ir_list list;
+    ast_gen(root, &list);
 done:
     ast_free(root);
     return 0;
