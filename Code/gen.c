@@ -12,11 +12,10 @@ void ast_gen(AST_t *node, ir_list *list) {
 }
 
 VISIT(EXPR_INT) {
-    ir_list lit;
-    IR_t   *ir = ir_alloc(
+    ir_list lit = {0};
+    IR_t   *ir  = ir_alloc(
         IR_ASSIGN,
-        var_alloc(),
-        lit_alloc(node->value));
+        var_alloc(NULL), lit_alloc(node->value));
     ir_append(&lit, ir);
     RETURN(lit);
 }
@@ -35,7 +34,7 @@ VISIT(EXPR_BIN) {
     IR_t *ir = ir_alloc(
         IR_BINARY,
         node->op,
-        var_alloc(), lhs_var, rhs_var);
+        var_alloc(NULL), lhs_var, rhs_var);
     ir_concat(&lhs, &rhs);
     ir_append(&lhs, ir);
     RETURN(lhs);
@@ -49,7 +48,7 @@ VISIT(EXPR_UNR) {
     IR_t *ir = ir_alloc(
         IR_BINARY,
         node->op,
-        sub_var);
+        var_alloc(NULL), sub_var);
     ir_append(&sub, ir);
     RETURN(sub);
 }
@@ -120,11 +119,30 @@ VISIT(EXPR_ASS) {
 }
 
 VISIT(CONS_PROG) {
-    TODO("gen CONS_PROG");
+    ast_iter(node->decls, it) {
+        ast_gen(it, NULL);
+    }
 }
 
 VISIT(CONS_FUN) {
-    TODO("gen CONS_FUN");
+    extern ir_fun_t *prog;
+
+    ir_fun_t *fun   = zalloc(sizeof(ir_fun_t));
+    ir_list   param = {0};
+    ir_list   body  = {0};
+
+    ast_iter(node->params, it) {
+        INSTANCE_OF(it, DECL_VAR) {
+            IR_t *ir = ir_alloc(IR_ARG, var_alloc(cnode->str));
+            ir_append(&param, ir);
+        }
+    }
+    ast_gen(node->body, &body);
+    ir_concat(&param, &body);
+    fun->instrs = param;
+    fun->next   = prog;
+    symcpy(fun->str, node->str);
+    prog = fun;
 }
 
 VISIT(DECL_VAR) {
@@ -145,14 +163,15 @@ VISIT(EXPR_CALL) {
     TODO("gen EXPR_CALL");
 }
 
-VISIT(DECL_TYP) {
-    TODO("gen DECL_TYP");
+VISIT(DECL_FUN) {
+    extern ir_fun_t *prog;
+    TODO("gen DECL_FUN");
 }
 
 VISIT(CONS_SPEC) {
     TODO("gen CONS_SPEC");
 }
 
-VISIT(DECL_FUN) {
-    TODO("gen DECL_FUN");
+VISIT(DECL_TYP) {
+    TODO("gen DECL_TYP");
 }

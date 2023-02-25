@@ -23,11 +23,31 @@ void IR_visitor_dispatch(const struct IR_visitor visitor, IR_t *node, void *p) {
     }
 }
 
-oprd_t var_alloc() {
+oprd_t var_alloc(const char *name) {
     static u32 cnt = 0;
     return (oprd_t){
         .kind = OPRD_VAR,
-        .val  = cnt++};
+        .name = name,
+        .val  = ++cnt};
+}
+
+char *oprd_to_str(oprd_t oprd) {
+    static char buf[BUFSIZ];
+    switch (oprd.kind) {
+        case OPRD_LIT:
+            snprintf(buf, sizeof(buf), "#%d", oprd.val);
+            break;
+        case OPRD_VAR:
+            if (oprd.name != NULL) {
+                snprintf(buf, sizeof(buf), "%s", oprd.name);
+            } else {
+                snprintf(buf, sizeof(buf), "_%u", oprd.val);
+            }
+            break;
+        case OPRD_PTR:
+            TODO("OPRD_PTR");
+    }
+    return buf;
 }
 
 oprd_t lit_alloc(u32 value) {
@@ -70,26 +90,24 @@ void ir_concat(ir_list *front, ir_list *back) {
         return;
     }
     if (front->size == 0) {
-        front = back;
+        *front = *back;
         return;
     }
     front->tail->next = back->head;
     back->head->prev  = front->tail;
     front->size += back->size;
-    front->var = back->var;
+
+    front->tail = back->tail;
+    front->var  = back->var;
 }
 
 VISIT(IR_LABEL) {
     TODO("LABEL");
 }
 
-VISIT(IR_FUNCTION) {
-    TODO("FUNCTION");
-}
-
 VISIT(IR_ASSIGN) {
     node->tar = va_arg(ap, oprd_t);
-    node->rhs = va_arg(ap, oprd_t);
+    node->lhs = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_BINARY) {
@@ -103,7 +121,7 @@ VISIT(IR_BINARY) {
 VISIT(IR_UNARY) {
     node->op  = va_arg(ap, op_kind_t);
     node->tar = va_arg(ap, oprd_t);
-    node->rhs = va_arg(ap, oprd_t);
+    node->lhs = va_arg(ap, oprd_t);
     switch (node->op) {
         case OP_NEG: {
             node->lhs = lit_alloc(0);
@@ -138,7 +156,7 @@ VISIT(IR_BRANCH) {
 }
 
 VISIT(IR_RETURN) {
-    TODO("RETURN");
+    node->lhs = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_DEC) {

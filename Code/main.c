@@ -10,8 +10,9 @@ i32  yyparse(void);
 
 bool lex_err, syn_err, sem_err;
 
-cst_t *croot = NULL;
-AST_t *root  = NULL;
+cst_t    *croot = NULL;
+AST_t    *root  = NULL;
+ir_fun_t *prog  = NULL;
 
 i32 main(i32 argc, char **argv) {
     if (argc <= 1) {
@@ -35,8 +36,8 @@ i32 main(i32 argc, char **argv) {
     cst_print(croot, 0);
     cst_free(croot);
 
-    ir_list list;
-    ast_gen(root, &list);
+    ast_gen(root, NULL);
+    ir_fun_print(prog);
 done:
     ast_free(root);
     return 0;
