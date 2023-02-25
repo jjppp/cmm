@@ -1,13 +1,10 @@
 #pragma once
 
 #include "common.h"
-#include "symtab.h"
+#include "type.h"
 
 #define ast_iter(NODE, IT) for (AST_t * (IT) = (void *) (NODE); (NODE) != NULL && (IT) != NULL; (IT) = (IT)->next)
 #define ast_foreach(NODE, FUN) ast_iter(NODE, __it) FUN(__it);
-
-#define sym_iter(SYM, IT) for (syment_t * (IT) = (void *) (SYM); (SYM) != NULL && (IT) != NULL; (IT) = (IT)->next)
-#define sym_foreach(SYM, FUN) sym_iter(SYM, __it) FUN(__it);
 
 #define AST(F)       \
     F(CONS_PROG)     \
@@ -127,6 +124,8 @@ struct STMT_RET_t {
 struct EXPR_IDEN_t {
     EXTENDS(AST_t);
     char str[MAX_SYM_LEN];
+
+    struct syment_t *sym;
 };
 
 struct EXPR_CALL_t {
@@ -182,6 +181,8 @@ struct DECL_VAR_t {
     AST_t *expr; // init val
     char   str[MAX_SYM_LEN];
     u32    len[MAX_DIM], dim;
+
+    struct syment_t *sym;
 };
 
 struct CONS_FUN_t {

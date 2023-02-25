@@ -2,6 +2,7 @@
 
 #include "common.h"
 #include "type.h"
+#include "ir.h"
 
 typedef struct syment_t  syment_t;
 typedef struct hashtab_t hashtab_t;
@@ -10,14 +11,18 @@ typedef enum {
     SYMS(LIST)
 } sym_kind_t;
 
+#define sym_iter(SYM, IT) for (syment_t * (IT) = (void *) (SYM); (SYM) != NULL && (IT) != NULL; (IT) = (IT)->next)
+#define sym_foreach(SYM, FUN) sym_iter(SYM, __it) FUN(__it);
+
 struct syment_t {
     EXTENDS(shared);
     sym_kind_t    kind;
     char          str[MAX_SYM_LEN];
-    struct type_t typ;
+    type_t        typ;
     syment_t     *next, *params;
     u32           nparam;
     struct AST_t *body;
+    struct oprd_t var;
 };
 
 struct hashtab_t {

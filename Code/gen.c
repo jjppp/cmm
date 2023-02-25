@@ -2,6 +2,7 @@
 #include "ir.h"
 #include "common.h"
 #include "visitor.h"
+#include "symtab.h"
 
 #define RET_TYPE ir_list *
 #define ARG list
@@ -54,7 +55,12 @@ VISIT(EXPR_UNR) {
 }
 
 VISIT(EXPR_IDEN) {
-    TODO("gen IDEN");
+    ir_list   iden = {0};
+    syment_t *sym  = node->sym;
+    ASSERT(sym != NULL, "absent sym");
+
+    ir_append(&iden, ir_alloc(IR_ASSIGN, var_alloc(NULL), sym->var));
+    RETURN(iden);
 }
 
 VISIT(STMT_RET) {
@@ -104,18 +110,21 @@ VISIT(EXPR_DOT) {
 }
 
 VISIT(EXPR_ASS) {
-    ir_list lhs = {0}, rhs = {0};
-    ast_gen(node->lhs, &lhs);
+    ir_list rhs = {0};
     ast_gen(node->rhs, &rhs);
-    oprd_t lhs_var = lhs.var;
     oprd_t rhs_var = rhs.var;
 
-    IR_t *ir = ir_alloc(
-        IR_ASSIGN,
-        lhs_var, rhs_var);
-    ir_concat(&lhs, &rhs);
-    ir_append(&lhs, ir);
-    RETURN(lhs);
+    if (node->lhs->kind == EXPR_IDEN) {
+        INSTANCE_OF(node->lhs, EXPR_IDEN) {
+            oprd_t tar_var = cnode->sym->var;
+            IR_t  *ir      = ir_alloc(
+                IR_ASSIGN,
+                tar_var, rhs_var);
+            ir_append(&rhs, ir);
+            RETURN(rhs);
+        }
+    }
+    TODO("EXPR_ASS lhs");
 }
 
 VISIT(CONS_PROG) {
@@ -133,7 +142,7 @@ VISIT(CONS_FUN) {
 
     ast_iter(node->params, it) {
         INSTANCE_OF(it, DECL_VAR) {
-            IR_t *ir = ir_alloc(IR_ARG, var_alloc(cnode->str));
+            IR_t *ir = ir_alloc(IR_PARAM, cnode->sym->var);
             ir_append(&param, ir);
         }
     }
@@ -160,7 +169,17 @@ VISIT(STMT_EXPR) {
 }
 
 VISIT(EXPR_CALL) {
-    TODO("gen EXPR_CALL");
+    ir_list call = {0};
+    ast_iter(node->expr, it) {
+        ir_list arg = {0};
+        ast_gen(it, &arg);
+        ir_append(&arg, ir_alloc(IR_ARG, arg.var));
+        // reverse order
+        ir_concat(&arg, &call);
+        call = arg;
+    }
+    ir_append(&call, ir_alloc(IR_CALL, var_alloc(NULL), node->str));
+    RETURN(call);
 }
 
 VISIT(DECL_FUN) {

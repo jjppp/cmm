@@ -14,6 +14,37 @@ cst_t    *croot = NULL;
 AST_t    *root  = NULL;
 ir_fun_t *prog  = NULL;
 
+void done() {
+    ast_free(root);
+}
+
+bool parse(FILE *file) {
+    yyrestart(file);
+    yyparse();
+    if (lex_err || syn_err) {
+        return true;
+    }
+    return false;
+}
+
+bool check() {
+    symtab_init();
+    ast_check(root);
+    if (sem_err) {
+        return true;
+    }
+    return false;
+}
+
+void gen() {
+    cst_print(croot, 0);
+    cst_free(croot);
+    ast_gen(root, NULL);
+    ir_fun_print(prog);
+}
+
+#define andThen ? (done()):
+
 i32 main(i32 argc, char **argv) {
     if (argc <= 1) {
         return 1;
@@ -23,22 +54,10 @@ i32 main(i32 argc, char **argv) {
         perror(argv[1]);
         return 1;
     }
-    yyrestart(file);
-    yyparse();
-    if (lex_err || syn_err) {
-        goto done;
-    }
-    symtab_init();
-    ast_check(root);
-    if (sem_err) {
-        goto done;
-    }
-    cst_print(croot, 0);
-    cst_free(croot);
-
-    ast_gen(root, NULL);
-    ir_fun_print(prog);
-done:
-    ast_free(root);
+    parse(file)
+        andThen
+        check()
+            andThen
+            gen();
     return 0;
 }

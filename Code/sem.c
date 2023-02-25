@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "ir.h"
 #include "visitor.h"
 #include "common.h"
 #include "symtab.h"
@@ -103,6 +104,7 @@ VISIT(EXPR_IDEN) {
     if (sym == NULL) {
         SEM_ERR_RETURN(ERR_VAR_UNDEF, node->super.fst_l, node->str);
     }
+    node->sym = sym;
     RETURN(sym->typ);
 }
 
@@ -236,7 +238,9 @@ VISIT(DECL_VAR) {
             typ_free(var_typ);
             SEM_ERR_RETURN(ERR_VAR_REDEF, node->super.fst_l, node->str);
         }
-        sym->typ = var_typ;
+        sym->typ  = var_typ;
+        sym->var  = var_alloc(node->str);
+        node->sym = sym;
     }
     RETURN(var_typ);
 }

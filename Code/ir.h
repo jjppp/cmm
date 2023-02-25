@@ -2,7 +2,6 @@
 
 #include "ast.h"
 #include "common.h"
-#include "symtab.h"
 
 #define IR(F)    \
     F(IR_LABEL)  \

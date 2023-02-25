@@ -1,6 +1,7 @@
 #include "ir.h"
 #include "common.h"
 #include "visitor.h"
+#include "symtab.h"
 #include <stdarg.h>
 
 const char *IR_NAMES[] = {IR(STRING_LIST) "\0"};
@@ -39,7 +40,7 @@ char *oprd_to_str(oprd_t oprd) {
             break;
         case OPRD_VAR:
             if (oprd.name != NULL) {
-                snprintf(buf, sizeof(buf), "%s", oprd.name);
+                snprintf(buf, sizeof(buf), "%s%u", oprd.name, oprd.val);
             } else {
                 snprintf(buf, sizeof(buf), "_%u", oprd.val);
             }
@@ -102,7 +103,7 @@ void ir_concat(ir_list *front, ir_list *back) {
 }
 
 VISIT(IR_LABEL) {
-    TODO("LABEL");
+    symcpy(node->str, va_arg(ap, char *));
 }
 
 VISIT(IR_ASSIGN) {
@@ -164,15 +165,16 @@ VISIT(IR_DEC) {
 }
 
 VISIT(IR_ARG) {
-    TODO("ARG");
+    node->lhs = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_PARAM) {
-    TODO("PARAM");
+    node->lhs = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_CALL) {
-    TODO("CALL");
+    node->tar = va_arg(ap, oprd_t);
+    symcpy(node->str, va_arg(ap, char *));
 }
 
 VISIT(IR_READ) {

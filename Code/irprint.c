@@ -12,11 +12,14 @@ void ir_print(IR_t *ir) {
 
 void ir_fun_print(ir_fun_t *fun) {
     for (ir_fun_t *it = fun; it != NULL; it = it->next) {
+        printf("FUNCTION %s :\n", it->str);
         ir_foreach(it->instrs.head, ir_print);
+        printf("\n");
     }
 }
 
 VISIT(IR_LABEL) {
+    printf("LABEL %s :\n", node->str);
 }
 
 VISIT(IR_ASSIGN) {
@@ -72,12 +75,16 @@ VISIT(IR_DEC) {
 }
 
 VISIT(IR_ARG) {
+    printf("ARG %s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_PARAM) {
+    printf("PARAM %s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_CALL) {
+    printf("%s := CALL ", oprd_to_str(node->tar));
+    printf("%s\n", node->str);
 }
 
 VISIT(IR_READ) {
