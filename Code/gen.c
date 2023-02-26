@@ -277,7 +277,15 @@ VISIT(EXPR_CALL) {
         ir_concat(&arg, &call);
         call = arg;
     }
-    ir_append(&call, ir_alloc(IR_CALL, var_alloc(NULL), node->str));
+    oprd_t tar_var = var_alloc(NULL);
+    if (!symcmp(node->str, "read")) {
+        ir_append(&call, ir_alloc(IR_READ, tar_var));
+    } else if (!symcmp(node->str, "write")) {
+        oprd_t arg_var = call.var;
+        ir_append(&call, ir_alloc(IR_WRITE, tar_var, arg_var));
+    } else {
+        ir_append(&call, ir_alloc(IR_CALL, tar_var, node->str));
+    }
     RETURN(call);
 }
 

@@ -100,7 +100,9 @@ VISIT(IR_CALL) {
 }
 
 VISIT(IR_READ) {
+    printf("READ %s\n", oprd_to_str(node->tar));
 }
 
 VISIT(IR_WRITE) {
+    printf("WRITE %s\n", oprd_to_str(node->lhs));
 }

@@ -189,9 +189,10 @@ VISIT(IR_CALL) {
 }
 
 VISIT(IR_READ) {
-    TODO("READ");
+    node->tar = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_WRITE) {
-    TODO("WRITE");
+    node->tar = va_arg(ap, oprd_t);
+    node->lhs = va_arg(ap, oprd_t);
 }

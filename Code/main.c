@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "ast.h"
 #include "ir.h"
+#include "type.h"
 #include "visitor.h"
 #include "symtab.h"
 #include "cst.h"
@@ -27,13 +29,45 @@ bool parse(FILE *file) {
     return false;
 }
 
+void lib_init() {
+    static AST_t dummy = (AST_t){.kind = STMT_SCOP};
+
+    syment_t *sym_read  = sym_insert("read", SYM_FUN);
+    syment_t *sym_write = sym_insert("write", SYM_FUN);
+    sym_scope_push();
+    syment_t *sym_arg = sym_insert("x", SYM_VAR);
+    sym_scope_pop();
+
+    *sym_read = (syment_t){
+        .kind   = SYM_FUN,
+        .str    = "read",
+        .body   = &dummy,
+        .typ    = (type_t){.kind = TYPE_PRIM_INT},
+        .nparam = 0,
+        .params = NULL,
+        .next   = NULL};
+
+    *sym_arg = (syment_t){
+        .kind = SYM_VAR,
+        .str  = "x",
+        .typ  = (type_t){.kind = TYPE_PRIM_INT},
+        .next = NULL};
+
+    *sym_write = (syment_t){
+        .kind   = SYM_FUN,
+        .str    = "write",
+        .body   = &dummy,
+        .typ    = (type_t){.kind = TYPE_PRIM_INT},
+        .nparam = 1,
+        .params = sym_arg,
+        .next   = NULL};
+}
+
 bool check() {
     symtab_init();
+    lib_init();
     ast_check(root);
-    if (sem_err) {
-        return true;
-    }
-    return false;
+    return sem_err;
 }
 
 void gen() {
