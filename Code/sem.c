@@ -173,8 +173,6 @@ VISIT(EXPR_FLT) {
         .dim    = 0};
 }
 
-#define CASE(OP) case OP:
-
 static void logic_check(op_kind_t op, type_t typ) {
     switch (op) {
         LOGIC_OPS(CASE) {

@@ -1,5 +1,6 @@
 %option yylineno
 %option never-interactive
+%option nounput
 %{
 	#include "syntax.tab.h"
 	#include "ast.h"

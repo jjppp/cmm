@@ -96,10 +96,10 @@ i32 symcmp(const char *x, const char *y) {
     return strncmp(x, y, MAX_SYM_LEN);
 }
 
-char *symuniq() {
+char *symuniq(const char *suffix) {
     static u32 cnt = 0;
     char      *str = zalloc(MAX_SYM_LEN * sizeof(char));
-    snprintf(str, MAX_SYM_LEN - 1, "%u_struct", cnt);
+    snprintf(str, MAX_SYM_LEN - 1, "%u_%s", cnt, suffix);
     cnt++;
     return str;
 }

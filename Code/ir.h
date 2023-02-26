@@ -67,7 +67,8 @@ struct IR_t {
     ir_kind_t kind;
     oprd_t    tar, lhs, rhs;
     op_kind_t op;
-    IR_t     *prev, *next;
+    IR_t     *prev, *next, *jmpto;
+    u32       id;
 };
 
 struct IR_list {

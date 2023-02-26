@@ -20,6 +20,7 @@ typedef int8_t   i8;
 
 #define STRINGIFY(S) STRINGIFY_(S)
 #define STRINGIFY_(S) #S
+#define CASE(X) case (X):
 #define TODO(FEATURE)                                                                   \
     do {                                                                                \
         fprintf(stderr, "TODO: " FEATURE " in " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
@@ -111,27 +112,31 @@ struct shared {
         __length;                         \
     })
 
-#define OPS(F) \
-    F(OP_ADD)  \
-    F(OP_SUB)  \
-    F(OP_MUL)  \
-    F(OP_DIV)  \
-    F(OP_MOD)  \
-    F(OP_AND)  \
-    F(OP_LE)   \
-    F(OP_LT)   \
-    F(OP_GE)   \
-    F(OP_GT)   \
-    F(OP_NE)   \
-    F(OP_EQ)   \
-    F(OP_OR)   \
-    F(OP_NEG)  \
-    F(OP_NOT)
+#define OPS(F)   \
+    ARITH_OPS(F) \
+    LOGIC_OPS(F) \
+    REL_OPS(F)
 
 #define LOGIC_OPS(F) \
     F(OP_AND)        \
     F(OP_OR)         \
     F(OP_NOT)
+
+#define REL_OPS(F) \
+    F(OP_LT)       \
+    F(OP_LE)       \
+    F(OP_GT)       \
+    F(OP_GE)       \
+    F(OP_EQ)       \
+    F(OP_NE)
+
+#define ARITH_OPS(F) \
+    F(OP_ADD)        \
+    F(OP_SUB)        \
+    F(OP_MUL)        \
+    F(OP_DIV)        \
+    F(OP_MOD)        \
+    F(OP_NEG)
 
 #define SYMS(F) \
     F(SYM_TYP)  \

@@ -1,3 +1,4 @@
+#include "common.h"
 #include "ir.h"
 #include "visitor.h"
 #include <stdio.h>
@@ -28,18 +29,18 @@ VISIT(IR_ASSIGN) {
 }
 
 VISIT(IR_BINARY) {
-    char op_ch;
+    const char *op_str;
     switch (node->op) {
-        case OP_ADD: op_ch = '+'; break;
-        case OP_SUB: op_ch = '-'; break;
-        case OP_MUL: op_ch = '*'; break;
-        case OP_DIV: op_ch = '/'; break;
-        case OP_MOD: op_ch = '%'; break;
-        default: TODO("irprint OP");
+        case OP_ADD: op_str = "+"; break;
+        case OP_SUB: op_str = "-"; break;
+        case OP_MUL: op_str = "*"; break;
+        case OP_DIV: op_str = "/"; break;
+        case OP_MOD: op_str = "%"; break;
+        default: UNREACHABLE;
     }
 
     printf("%s := ", oprd_to_str(node->tar));
-    printf("%s %c ", oprd_to_str(node->lhs), op_ch);
+    printf("%s %s ", oprd_to_str(node->lhs), op_str);
     printf("%s\n", oprd_to_str(node->rhs));
 }
 
@@ -60,11 +61,22 @@ VISIT(IR_STORE) {
 }
 
 VISIT(IR_GOTO) {
-    TODO("IR_GOTO");
+    printf("GOTO %s\n", node->jmpto->str);
 }
 
 VISIT(IR_BRANCH) {
-    TODO("IR_BRANCH");
+    const char *op_str = NULL;
+    switch (node->op) {
+        case OP_EQ: op_str = "=="; break;
+        case OP_LE: op_str = "<="; break;
+        case OP_NE: op_str = "!="; break;
+        case OP_LT: op_str = "<"; break;
+        case OP_GE: op_str = ">="; break;
+        case OP_GT: op_str = ">"; break;
+        default: UNREACHABLE;
+    }
+    printf("IF %s %s ", oprd_to_str(node->lhs), op_str);
+    printf("%s GOTO %s\n", oprd_to_str(node->rhs), node->jmpto->str);
 }
 
 VISIT(IR_RETURN) {

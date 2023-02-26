@@ -1,8 +1,10 @@
 #include "ir.h"
+#include "ast.h"
 #include "common.h"
 #include "visitor.h"
 #include "symtab.h"
 #include <stdarg.h>
+#include <stdio.h>
 
 const char *IR_NAMES[] = {IR(STRING_LIST) "\0"};
 
@@ -62,12 +64,17 @@ oprd_t lit_alloc(u32 value) {
 VISITOR_DEF(IR, new, RET_TYPE);
 
 IR_t *ir_alloc(ir_kind_t kind, ...) {
+    static u32 cnt = 0;
+
     va_list ap;
     va_start(ap, kind);
 
     IR_t *ir = zalloc(sizeof(IR_t));
     ir->kind = kind;
+    ir->id   = ++cnt;
     VISITOR_DISPATCH(IR, new, ir, ap);
+
+    va_end(ap);
     return ir;
 }
 
@@ -103,7 +110,7 @@ void ir_concat(ir_list *front, ir_list *back) {
 }
 
 VISIT(IR_LABEL) {
-    symcpy(node->str, va_arg(ap, char *));
+    snprintf(node->str, sizeof(node->str), "label%u", node->id);
 }
 
 VISIT(IR_ASSIGN) {
@@ -120,9 +127,10 @@ VISIT(IR_BINARY) {
 }
 
 VISIT(IR_UNARY) {
-    node->op  = va_arg(ap, op_kind_t);
-    node->tar = va_arg(ap, oprd_t);
-    node->lhs = va_arg(ap, oprd_t);
+    node->kind = IR_BINARY;
+    node->op   = va_arg(ap, op_kind_t);
+    node->tar  = va_arg(ap, oprd_t);
+    node->rhs  = va_arg(ap, oprd_t);
     switch (node->op) {
         case OP_NEG: {
             node->lhs = lit_alloc(0);
@@ -149,11 +157,14 @@ VISIT(IR_STORE) {
 }
 
 VISIT(IR_GOTO) {
-    TODO("GOTO");
+    node->jmpto = va_arg(ap, IR_t *);
 }
 
 VISIT(IR_BRANCH) {
-    TODO("BRANCH");
+    node->op    = va_arg(ap, op_kind_t);
+    node->lhs   = va_arg(ap, oprd_t);
+    node->rhs   = va_arg(ap, oprd_t);
+    node->jmpto = va_arg(ap, IR_t *);
 }
 
 VISIT(IR_RETURN) {
