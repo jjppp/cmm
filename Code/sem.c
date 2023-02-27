@@ -12,7 +12,8 @@
 #define ARG typ
 VISITOR_DEF(AST, sem, RET_TYPE);
 
-extern bool sem_err;
+extern bool   sem_err;
+extern type_t type_int, type_flt;
 
 // no nested functions, a pointer is sufficient
 static syment_t *cur_fun;
@@ -153,6 +154,7 @@ VISIT(EXPR_DOT) {
     }
     field_iter(base_typ.fields, it) {
         if (!symcmp(it->str, node->str)) {
+            node->field = it;
             RETURN(it->typ);
         }
     }
@@ -160,17 +162,11 @@ VISIT(EXPR_DOT) {
 }
 
 VISIT(EXPR_INT) {
-    *typ = (type_t){
-        .kind   = TYPE_PRIM_INT,
-        .fields = NULL,
-        .dim    = 0};
+    RETURN(type_int);
 }
 
 VISIT(EXPR_FLT) {
-    *typ = (type_t){
-        .kind   = TYPE_PRIM_FLT,
-        .fields = NULL,
-        .dim    = 0};
+    RETURN(type_flt);
 }
 
 static void logic_check(op_kind_t op, type_t typ) {
@@ -218,6 +214,7 @@ VISIT(DECL_VAR) {
             .elem_typ = zalloc(sizeof(type_t)),
             .is_ref   = false};
         *var_typ.elem_typ = spec_typ;
+        var_typ.size      = typ_size(var_typ);
         memcpy(var_typ.len, node->len, node->dim * sizeof(var_typ.len[0]));
     }
     if (node->expr != NULL) {
@@ -311,8 +308,10 @@ VISIT(CONS_FUN) {
 }
 
 VISIT(CONS_SPEC) {
-    if (node->kind == TYPE_PRIM_INT || node->kind == TYPE_PRIM_FLT) {
-        RETURN((type_t){.kind = node->kind});
+    if (node->kind == TYPE_PRIM_INT) {
+        RETURN(type_int);
+    } else if (node->kind == TYPE_PRIM_FLT) {
+        RETURN(type_flt);
     }
     if (node->done) {
         RETURN(sym_lookup(node->str)->typ);
@@ -360,7 +359,8 @@ VISIT(CONS_SPEC) {
     if (err) {
         RETURN((type_t){.kind = TYPE_ERR});
     }
-    sym->typ = *typ;
+    typ->size = typ_size(*typ);
+    sym->typ  = *typ;
     RETURN(*typ);
 }
 

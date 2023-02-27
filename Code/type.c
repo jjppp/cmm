@@ -3,6 +3,20 @@
 #include "type.h"
 #include <string.h>
 
+type_t type_int = (type_t){
+    .kind     = TYPE_PRIM_INT,
+    .elem_typ = NULL,
+    .fields   = NULL,
+    .is_ref   = false,
+    .size     = 4};
+
+type_t type_flt = (type_t){
+    .kind     = TYPE_PRIM_FLT,
+    .elem_typ = NULL,
+    .fields   = NULL,
+    .is_ref   = false,
+    .size     = 4};
+
 field_t *field_alloc(type_t typ, const char str[]) {
     field_t *ptr = zalloc(sizeof(field_t));
     symcpy(ptr->str, str);
@@ -64,6 +78,32 @@ bool type_eq(type_t typ1, type_t typ2) {
             UNREACHABLE;
     }
     UNREACHABLE;
+}
+
+u32 typ_size(type_t typ) {
+    u32 size = 0;
+
+    switch (typ.kind) {
+        case TYPE_PRIM_FLT: size = 4; break;
+        case TYPE_PRIM_INT: size = 4; break;
+        case TYPE_STRUCT: {
+            field_iter(typ.fields, it) {
+                it->off = size;
+                size += typ_size(it->typ);
+            }
+            break;
+        }
+        case TYPE_ARRAY: {
+            size = typ.elem_typ->size;
+            for (u32 i = 0; i < typ.dim; i++) {
+                size *= typ.len[i];
+            }
+            break;
+        }
+        default: UNREACHABLE;
+    }
+
+    return size;
 }
 
 bool field_exist(field_t *field, const char *str) {

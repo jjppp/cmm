@@ -9,6 +9,8 @@
 #define ARG list
 VISITOR_DEF(AST, gen, RET_TYPE);
 
+void lexpr_gen(AST_t *node, ir_list *list);
+
 void ast_gen(AST_t *node, ir_list *list) {
     VISITOR_DISPATCH(AST, gen, node, list);
 }
@@ -191,7 +193,18 @@ VISIT(STMT_SCOP) {
 }
 
 VISIT(EXPR_DOT) {
-    TODO("gen EXPR_DOT");
+    ir_list base = {0};
+    oprd_t  off  = lit_alloc(node->field->off);
+
+    lexpr_gen(node->base, &base);
+    oprd_t base_var  = base.var;
+    oprd_t field_var = var_alloc(NULL);
+    ir_append(
+        &base,
+        ir_alloc(IR_BINARY,
+                 OP_ADD, field_var, base_var, off));
+    ir_append(&base, ir_alloc(IR_LOAD, var_alloc(NULL), field_var));
+    RETURN(base);
 }
 
 VISIT(EXPR_ASS) {
@@ -208,6 +221,14 @@ VISIT(EXPR_ASS) {
             ir_append(&rhs, ir);
             RETURN(rhs);
         }
+    } else {
+        ir_list lhs = {0};
+        lexpr_gen(node->lhs, &lhs);
+        oprd_t lhs_var = lhs.var;
+
+        ir_concat(&rhs, &lhs);
+        ir_append(&rhs, ir_alloc(IR_STORE, lhs_var, rhs_var));
+        RETURN(rhs);
     }
     TODO("EXPR_ASS lhs");
 }
@@ -240,21 +261,27 @@ VISIT(CONS_FUN) {
 }
 
 VISIT(DECL_VAR) {
-    ir_list decl = {0};
-    oprd_t  var  = {0};
-    if (node->sym->typ.kind == TYPE_PRIM_INT) {
-        var = node->sym->var;
-        if (node->expr != NULL) {
-            ir_list expr = {0};
-            ast_gen(node->expr, &expr);
+    ir_list   decl = {0};
+    syment_t *sym  = node->sym;
+    oprd_t    var  = sym->var;
+    switch (sym->typ.kind) {
+        case TYPE_PRIM_INT: {
+            if (node->expr != NULL) {
+                ir_list expr = {0};
+                ast_gen(node->expr, &expr);
 
-            IR_t *ir = ir_alloc(IR_ASSIGN, var, expr.var);
-            ir_concat(&decl, &expr);
-            ir_append(&decl, ir);
+                IR_t *ir = ir_alloc(IR_ASSIGN, var, expr.var);
+                ir_concat(&decl, &expr);
+                ir_append(&decl, ir);
+            }
+            RETURN(decl);
         }
-        RETURN(decl);
+        case TYPE_STRUCT: {
+            ir_append(&decl, ir_alloc(IR_DEC, var, lit_alloc(sym->typ.size)));
+            RETURN(decl);
+        }
+        default: TODO("gen DECL_VAR");
     }
-    TODO("gen DECL_VAR");
 }
 
 VISIT(EXPR_ARR) {
@@ -299,5 +326,5 @@ VISIT(CONS_SPEC) {
 }
 
 VISIT(DECL_TYP) {
-    TODO("gen DECL_TYP");
+    // do nothing
 }

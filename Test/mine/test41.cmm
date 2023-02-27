@@ -1,0 +1,25 @@
+struct pos {
+    int x, y;
+};
+
+int abs(int x) {
+    if (x < 0) {
+        x = -x;
+    }
+    return x;
+}
+
+int manhattan(struct pos a, struct pos b) {
+    return abs(a.x - b.x) + abs(a.y - b.y);
+}
+
+int main() {
+    struct pos a, b;
+
+    a.x = read();
+    a.y = read();
+    b.x = read();
+    b.y = read();
+
+    write(manhattan(a, b));
+}

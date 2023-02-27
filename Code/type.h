@@ -20,7 +20,7 @@ struct type_t {
     char     str[MAX_SYM_LEN];
     field_t *fields;
     type_t  *elem_typ;
-    u32      len[MAX_DIM], dim;
+    u32      len[MAX_DIM], dim, size;
     bool     is_ref; // e.g. struct STRUCT_NAME field;
 };
 
@@ -28,6 +28,7 @@ struct field_t {
     field_t *next;
     char     str[MAX_SYM_LEN];
     type_t   typ;
+    u32      off;
 };
 
 #define IS_SCALAR(TYPE)                \
@@ -50,5 +51,7 @@ void field_free(field_t *field);
 void typ_free(type_t typ);
 
 bool type_eq(type_t typ1, type_t typ2);
+
+u32 typ_size(type_t typ);
 
 bool field_exist(field_t *field, const char *str);

@@ -49,15 +49,18 @@ VISIT(IR_UNARY) {
 }
 
 VISIT(IR_DREF) {
-    TODO("IR_DREF");
+    printf("%s := ", oprd_to_str(node->tar));
+    printf("&%s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_LOAD) {
-    TODO("IR_LOAD");
+    printf("%s := ", oprd_to_str(node->tar));
+    printf("*%s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_STORE) {
-    TODO("IR_STORE");
+    printf("*%s := ", oprd_to_str(node->tar));
+    printf("%s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_GOTO) {
@@ -84,6 +87,8 @@ VISIT(IR_RETURN) {
 }
 
 VISIT(IR_DEC) {
+    printf("DEC %s ", oprd_to_str(node->tar));
+    printf("%s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_ARG) {

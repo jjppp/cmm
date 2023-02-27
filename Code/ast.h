@@ -148,8 +148,9 @@ struct EXPR_ARR_t {
 
 struct EXPR_DOT_t {
     EXTENDS(AST_t);
-    char   str[MAX_SYM_LEN];
-    AST_t *base;
+    char     str[MAX_SYM_LEN];
+    AST_t   *base;
+    field_t *field;
 };
 
 struct EXPR_INT_t {

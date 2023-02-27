@@ -145,15 +145,18 @@ VISIT(IR_UNARY) {
 }
 
 VISIT(IR_DREF) {
-    TODO("DREF");
+    node->tar = va_arg(ap, oprd_t);
+    node->lhs = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_LOAD) {
-    TODO("LOAD");
+    node->tar = va_arg(ap, oprd_t);
+    node->lhs = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_STORE) {
-    TODO("STORE");
+    node->tar = va_arg(ap, oprd_t);
+    node->lhs = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_GOTO) {
@@ -172,7 +175,8 @@ VISIT(IR_RETURN) {
 }
 
 VISIT(IR_DEC) {
-    TODO("DEC");
+    node->tar = va_arg(ap, oprd_t);
+    node->lhs = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_ARG) {
