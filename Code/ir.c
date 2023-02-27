@@ -44,7 +44,7 @@ char *oprd_to_str(oprd_t oprd) {
             if (oprd.name != NULL) {
                 snprintf(buf, sizeof(buf), "%s%u", oprd.name, oprd.val);
             } else {
-                snprintf(buf, sizeof(buf), "_%u", oprd.val);
+                snprintf(buf, sizeof(buf), "t_%u", oprd.val);
             }
             break;
         default: UNREACHABLE;

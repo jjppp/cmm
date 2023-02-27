@@ -7,25 +7,28 @@
 #define ARG p_res
 VISITOR_DEF(IR, print, RET_TYPE);
 
+static FILE *fout;
+
 void ir_print(IR_t *ir) {
     VISITOR_DISPATCH(IR, print, ir, NULL);
 }
 
-void ir_fun_print(ir_fun_t *fun) {
+void ir_fun_print(FILE *file, ir_fun_t *fun) {
+    fout = file;
     for (ir_fun_t *it = fun; it != NULL; it = it->next) {
-        printf("FUNCTION %s :\n", it->str);
+        fprintf(fout, "FUNCTION %s :\n", it->str);
         ir_foreach(it->instrs.head, ir_print);
-        printf("\n");
+        fprintf(fout, "\n");
     }
 }
 
 VISIT(IR_LABEL) {
-    printf("LABEL %s :\n", node->str);
+    fprintf(fout, "LABEL %s :\n", node->str);
 }
 
 VISIT(IR_ASSIGN) {
-    printf("%s := ", oprd_to_str(node->tar));
-    printf("%s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "%s := ", oprd_to_str(node->tar));
+    fprintf(fout, "%s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_BINARY) {
@@ -39,28 +42,28 @@ VISIT(IR_BINARY) {
         default: UNREACHABLE;
     }
 
-    printf("%s := ", oprd_to_str(node->tar));
-    printf("%s %s ", oprd_to_str(node->lhs), op_str);
-    printf("%s\n", oprd_to_str(node->rhs));
+    fprintf(fout, "%s := ", oprd_to_str(node->tar));
+    fprintf(fout, "%s %s ", oprd_to_str(node->lhs), op_str);
+    fprintf(fout, "%s\n", oprd_to_str(node->rhs));
 }
 
 VISIT(IR_DREF) {
-    printf("%s := ", oprd_to_str(node->tar));
-    printf("&%s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "%s := ", oprd_to_str(node->tar));
+    fprintf(fout, "&%s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_LOAD) {
-    printf("%s := ", oprd_to_str(node->tar));
-    printf("*%s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "%s := ", oprd_to_str(node->tar));
+    fprintf(fout, "*%s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_STORE) {
-    printf("*%s := ", oprd_to_str(node->tar));
-    printf("%s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "*%s := ", oprd_to_str(node->tar));
+    fprintf(fout, "%s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_GOTO) {
-    printf("GOTO %s\n", node->jmpto->str);
+    fprintf(fout, "GOTO %s\n", node->jmpto->str);
 }
 
 VISIT(IR_BRANCH) {
@@ -74,38 +77,38 @@ VISIT(IR_BRANCH) {
         case OP_GT: op_str = ">"; break;
         default: UNREACHABLE;
     }
-    printf("IF %s %s ", oprd_to_str(node->lhs), op_str);
-    printf("%s GOTO %s\n", oprd_to_str(node->rhs), node->jmpto->str);
+    fprintf(fout, "IF %s %s ", oprd_to_str(node->lhs), op_str);
+    fprintf(fout, "%s GOTO %s\n", oprd_to_str(node->rhs), node->jmpto->str);
 }
 
 VISIT(IR_RETURN) {
-    printf("RETURN %s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "RETURN %s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_DEC) {
-    printf("DEC %s ", oprd_to_str(node->tar));
-    printf("%s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "DEC %s ", oprd_to_str(node->tar));
+    fprintf(fout, "%s\n", oprd_to_str(node->lhs) + 1);
 }
 
 VISIT(IR_ARG) {
-    printf("ARG %s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "ARG %s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_PARAM) {
-    printf("PARAM %s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "PARAM %s\n", oprd_to_str(node->lhs));
 }
 
 VISIT(IR_CALL) {
-    printf("%s := CALL ", oprd_to_str(node->tar));
-    printf("%s\n", node->str);
+    fprintf(fout, "%s := CALL ", oprd_to_str(node->tar));
+    fprintf(fout, "%s\n", node->str);
 }
 
 VISIT(IR_READ) {
-    printf("READ %s\n", oprd_to_str(node->tar));
+    fprintf(fout, "READ %s\n", oprd_to_str(node->tar));
 }
 
 VISIT(IR_WRITE) {
-    printf("WRITE %s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "WRITE %s\n", oprd_to_str(node->lhs));
 }
 
 VISIT_UNDEF(IR_UNARY);

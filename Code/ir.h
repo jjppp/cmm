@@ -109,7 +109,7 @@ struct IR_visitor {
 
 IR(IR_EXTEND);
 
-void ir_fun_print(ir_fun_t *fun);
+void ir_fun_print(FILE *file, ir_fun_t *fun);
 
 IR_t *ir_alloc(ir_kind_t kind, ...);
 

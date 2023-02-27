@@ -70,28 +70,29 @@ bool check() {
     return sem_err;
 }
 
-void gen() {
+void gen(FILE *file) {
     cst_print(croot, 0);
     cst_free(croot);
     ast_gen(root);
-    ir_fun_print(prog);
+    ir_fun_print(file, prog);
 }
 
 #define andThen ? (done()):
 
 i32 main(i32 argc, char **argv) {
-    if (argc <= 1) {
+    if (argc <= 2) {
         return 1;
     }
-    FILE *file = fopen(argv[1], "r");
-    if (!file) {
+    FILE *fin = fopen(argv[1], "r");
+    if (!fin) {
         perror(argv[1]);
         return 1;
     }
-    parse(file)
+    FILE *fout = fopen(argv[2], "w");
+    parse(fin)
         andThen
         check()
             andThen
-            gen();
+                gen(fout);
     return 0;
 }

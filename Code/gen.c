@@ -300,21 +300,21 @@ VISIT(STMT_EXPR) {
 }
 
 VISIT(EXPR_CALL) {
-    ir_list call = {0};
-    ast_iter(node->expr, it) {
-        ir_list arg = ast_gen(it);
-        ir_append(&arg, ir_alloc(IR_ARG, arg.var));
-        // reverse order
-        ir_concat(&arg, call);
-        call = arg;
-    }
-    oprd_t tar_var = var_alloc(NULL);
+    ir_list call    = {0};
+    oprd_t  tar_var = var_alloc(NULL);
     if (!symcmp(node->str, "read")) {
         ir_append(&call, ir_alloc(IR_READ, tar_var));
     } else if (!symcmp(node->str, "write")) {
-        oprd_t arg_var = call.var;
-        ir_append(&call, ir_alloc(IR_WRITE, tar_var, arg_var));
+        call = ast_gen(node->expr);
+        ir_append(&call, ir_alloc(IR_WRITE, tar_var, call.var));
     } else {
+        ast_iter(node->expr, it) {
+            ir_list arg = ast_gen(it);
+            ir_append(&arg, ir_alloc(IR_ARG, arg.var));
+            // reverse order
+            ir_concat(&arg, call);
+            call = arg;
+        }
         ir_append(&call, ir_alloc(IR_CALL, tar_var, node->str));
     }
     RETURN(call);
