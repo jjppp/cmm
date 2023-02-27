@@ -67,7 +67,7 @@ VISIT(EXPR_BIN) {
                 IR_BRANCH,
                 OP_NE, lhs_var, lit_alloc(0), ltru);
 
-            done->lhs = tar_var; // workaround to make sure lhs.var == tar_var
+            done->tar = tar_var; // workaround to make sure lhs.var == tar_var
 
             ir_append(&lhs, cmp);
             switch (node->op) {
