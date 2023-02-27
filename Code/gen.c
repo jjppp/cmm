@@ -89,7 +89,7 @@ VISIT(EXPR_BIN) {
                     ir_append(&lhs, done);
                     break;
                 }
-                default: TODO("gen BINARY LOGIC_OPS");
+                default: UNREACHABLE;
             }
             break;
         }
@@ -154,12 +154,12 @@ VISIT(STMT_WHLE) {
     IR_t   *done  = ir_alloc(IR_LABEL);
 
     ir_append(&cond1, ir_alloc(IR_BRANCH, OP_EQ, cond1.var, lit_alloc(0), done));
-
     ir_prepend(&body, loop);
     ir_concat(&body, cond2);
     ir_append(&body, ir_alloc(IR_BRANCH, OP_NE, cond2.var, lit_alloc(0), loop));
     ir_append(&body, done);
-    RETURN(body);
+    ir_concat(&cond1, body);
+    RETURN(cond1);
 }
 
 VISIT(STMT_IFTE) {
@@ -231,11 +231,9 @@ VISIT(EXPR_ASS) {
 }
 
 VISIT(CONS_PROG) {
-    ir_list global_decls = {0};
     ast_iter(node->decls, it) {
-        ir_concat(&global_decls, ast_gen(it));
+        ast_gen(it);
     }
-    RETURN(global_decls);
 }
 
 VISIT(CONS_FUN) {
