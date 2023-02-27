@@ -93,6 +93,23 @@ void ir_append(ir_list *list, IR_t *ir) {
     list->size++;
 }
 
+void ir_prepend(ir_list *list, IR_t *ir) {
+    if (list->size == 0) {
+        list->head = ir;
+        list->tail = ir;
+        ir->prev   = NULL;
+        ir->next   = NULL;
+        list->var  = ir->tar;
+    } else {
+        ir->next = list->head;
+        ir->prev = NULL;
+
+        list->head->prev = ir;
+        list->head       = ir;
+    }
+    list->size++;
+}
+
 void ir_concat(ir_list *front, ir_list *back) {
     if (back->size == 0) {
         return;

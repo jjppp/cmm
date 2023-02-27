@@ -9,10 +9,12 @@
 #define ARG list
 VISITOR_DEF(AST, gen, RET_TYPE);
 
-void lexpr_gen(AST_t *node, ir_list *list);
+ir_list lexpr_gen(AST_t *node);
 
-void ast_gen(AST_t *node, ir_list *list) {
-    VISITOR_DISPATCH(AST, gen, node, list);
+ir_list ast_gen(AST_t *node) {
+    ir_list ARG;
+    VISITOR_DISPATCH(AST, gen, node, &ARG);
+    return ARG;
 }
 
 VISIT(EXPR_INT) {
@@ -24,14 +26,10 @@ VISIT(EXPR_INT) {
     RETURN(lit);
 }
 
-VISIT(EXPR_FLT) {
-    TODO("gen EXPR_FLT");
-}
-
 VISIT(EXPR_BIN) {
-    ir_list lhs = {0}, rhs = {0};
-    ast_gen(node->lhs, &lhs);
-    ast_gen(node->rhs, &rhs);
+    ir_list lhs = ast_gen(node->lhs);
+    ir_list rhs = ast_gen(node->rhs);
+
     oprd_t lhs_var = lhs.var;
     oprd_t rhs_var = rhs.var;
     oprd_t tar_var = var_alloc(NULL);
@@ -110,9 +108,8 @@ VISIT(EXPR_BIN) {
 }
 
 VISIT(EXPR_UNR) {
-    ir_list sub = {0};
-    ast_gen(node->sub, &sub);
-    oprd_t sub_var = sub.var;
+    ir_list sub     = ast_gen(node->sub);
+    oprd_t  sub_var = sub.var;
 
     IR_t *ir = ir_alloc(
         IR_UNARY,
@@ -132,9 +129,8 @@ VISIT(EXPR_IDEN) {
 }
 
 VISIT(STMT_RET) {
-    ir_list expr = {0};
-    ast_gen(node->expr, &expr);
-    oprd_t expr_var = expr.var;
+    ir_list expr     = ast_gen(node->expr);
+    oprd_t  expr_var = expr.var;
 
     IR_t *ir = ir_alloc(
         IR_RETURN,
@@ -144,16 +140,31 @@ VISIT(STMT_RET) {
 }
 
 VISIT(STMT_WHLE) {
-    ir_list cond = {0}, body = {0};
-    ast_gen(node->cond, &cond);
-    ast_gen(node->body, &body);
-    TODO("gen STMT_WHLE");
+    /* while (cond) body =>
+       if (!cond1) goto done
+         loop:
+         <body>
+         if (cond2) goto loop
+       done:
+    */
+    ir_list cond1 = ast_gen(node->cond);
+    ir_list cond2 = ast_gen(node->cond);
+    ir_list body  = ast_gen(node->body);
+    IR_t   *loop  = ir_alloc(IR_LABEL);
+    IR_t   *done  = ir_alloc(IR_LABEL);
+
+    ir_append(&cond1, ir_alloc(IR_BRANCH, OP_EQ, cond1.var, lit_alloc(0), done));
+
+    ir_prepend(&body, loop);
+    ir_concat(&body, &cond2);
+    ir_append(&body, ir_alloc(IR_BRANCH, OP_NE, cond2.var, lit_alloc(0), loop));
+    ir_append(&body, done);
+    RETURN(body);
 }
 
 VISIT(STMT_IFTE) {
-    ir_list cond = {0}, tru_stmt = {0}, fls_stmt = {0};
-    ast_gen(node->cond, &cond);
-    ast_gen(node->tru_stmt, &tru_stmt);
+    ir_list cond     = ast_gen(node->cond);
+    ir_list tru_stmt = ast_gen(node->tru_stmt);
 
     IR_t *ltru = ir_alloc(IR_LABEL);
     IR_t *done = ir_alloc(IR_LABEL);
@@ -167,7 +178,7 @@ VISIT(STMT_IFTE) {
             IR_BRANCH,
             OP_NE, cond_var, lit_alloc(0), ltru));
     if (node->fls_stmt != NULL) {
-        ast_gen(node->fls_stmt, &fls_stmt);
+        ir_list fls_stmt = ast_gen(node->fls_stmt);
         ir_concat(&cond, &fls_stmt);
         ir_append(&cond, ir_alloc(IR_GOTO, done));
     }
@@ -180,23 +191,20 @@ VISIT(STMT_IFTE) {
 VISIT(STMT_SCOP) {
     ir_list result = {0};
     ast_iter(node->decls, it) {
-        ir_list decl = {0};
-        ast_gen(it, &decl);
+        ir_list decl = ast_gen(it);
         ir_concat(&result, &decl);
     }
     ast_iter(node->stmts, it) {
-        ir_list stmt = {0};
-        ast_gen(it, &stmt);
+        ir_list stmt = ast_gen(it);
         ir_concat(&result, &stmt);
     }
     RETURN(result);
 }
 
 VISIT(EXPR_DOT) {
-    ir_list base = {0};
+    ir_list base = lexpr_gen(node->base);
     oprd_t  off  = lit_alloc(node->field->off);
 
-    lexpr_gen(node->base, &base);
     oprd_t base_var  = base.var;
     oprd_t field_var = var_alloc(NULL);
     ir_append(
@@ -208,9 +216,8 @@ VISIT(EXPR_DOT) {
 }
 
 VISIT(EXPR_ASS) {
-    ir_list rhs = {0};
-    ast_gen(node->rhs, &rhs);
-    oprd_t rhs_var = rhs.var;
+    ir_list rhs     = ast_gen(node->rhs);
+    oprd_t  rhs_var = rhs.var;
 
     if (node->lhs->kind == EXPR_IDEN) {
         INSTANCE_OF(node->lhs, EXPR_IDEN) {
@@ -219,23 +226,20 @@ VISIT(EXPR_ASS) {
                 IR_ASSIGN,
                 tar_var, rhs_var);
             ir_append(&rhs, ir);
-            RETURN(rhs);
         }
     } else {
-        ir_list lhs = {0};
-        lexpr_gen(node->lhs, &lhs);
-        oprd_t lhs_var = lhs.var;
+        ir_list lhs     = lexpr_gen(node->lhs);
+        oprd_t  lhs_var = lhs.var;
 
         ir_concat(&rhs, &lhs);
         ir_append(&rhs, ir_alloc(IR_STORE, lhs_var, rhs_var));
-        RETURN(rhs);
     }
-    TODO("EXPR_ASS lhs");
+    RETURN(rhs);
 }
 
 VISIT(CONS_PROG) {
     ast_iter(node->decls, it) {
-        ast_gen(it, NULL);
+        ast_gen(it);
     }
 }
 
@@ -244,15 +248,14 @@ VISIT(CONS_FUN) {
 
     ir_fun_t *fun   = zalloc(sizeof(ir_fun_t));
     ir_list   param = {0};
-    ir_list   body  = {0};
-
     ast_iter(node->params, it) {
         INSTANCE_OF(it, DECL_VAR) {
             IR_t *ir = ir_alloc(IR_PARAM, cnode->sym->var);
             ir_append(&param, ir);
         }
     }
-    ast_gen(node->body, &body);
+
+    ir_list body = ast_gen(node->body);
     ir_concat(&param, &body);
     fun->instrs = param;
     fun->next   = prog;
@@ -267,8 +270,7 @@ VISIT(DECL_VAR) {
     switch (sym->typ.kind) {
         case TYPE_PRIM_INT: {
             if (node->expr != NULL) {
-                ir_list expr = {0};
-                ast_gen(node->expr, &expr);
+                ir_list expr = ast_gen(node->expr);
 
                 IR_t *ir = ir_alloc(IR_ASSIGN, var, expr.var);
                 ir_concat(&decl, &expr);
@@ -289,16 +291,13 @@ VISIT(EXPR_ARR) {
 }
 
 VISIT(STMT_EXPR) {
-    ir_list expr = {0};
-    ast_gen(node->expr, &expr);
-    RETURN(expr);
+    RETURN(ast_gen(node->expr));
 }
 
 VISIT(EXPR_CALL) {
     ir_list call = {0};
     ast_iter(node->expr, it) {
-        ir_list arg = {0};
-        ast_gen(it, &arg);
+        ir_list arg = ast_gen(it);
         ir_append(&arg, ir_alloc(IR_ARG, arg.var));
         // reverse order
         ir_concat(&arg, &call);
@@ -316,15 +315,8 @@ VISIT(EXPR_CALL) {
     RETURN(call);
 }
 
-VISIT(DECL_FUN) {
-    extern ir_fun_t *prog;
-    TODO("gen DECL_FUN");
-}
+VISIT_EMPTY(CONS_SPEC);
+VISIT_EMPTY(DECL_FUN);
+VISIT_EMPTY(DECL_TYP);
 
-VISIT(CONS_SPEC) {
-    TODO("gen CONS_SPEC");
-}
-
-VISIT(DECL_TYP) {
-    // do nothing
-}
+VISIT_UNDEF(EXPR_FLT);

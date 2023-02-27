@@ -93,6 +93,8 @@ struct IR_fun_t {
 
 void ir_append(ir_list *list, IR_t *ir);
 
+void ir_prepend(ir_list *list, IR_t *ir);
+
 void ir_concat(ir_list *front, ir_list *back);
 
 typedef void (*ir_visitor_fun_t)(IR_t *, void *);
@@ -118,4 +120,4 @@ oprd_t lit_alloc(u32 value);
 
 char *oprd_to_str(oprd_t oprd);
 
-void ast_gen(AST_t *node, ir_list *list);
+ir_list ast_gen(AST_t *node);

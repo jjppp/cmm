@@ -13,6 +13,13 @@
     }
 
 #define VISIT(NODE) static void visit_##NODE(NODE##_t *node, RET_TYPE ARG)
+#define VISIT_EMPTY(NODE)                                    \
+    static void visit_##NODE(NODE##_t *node, RET_TYPE ARG) { \
+    }
+#define VISIT_UNDEF(NODE) \
+    static void visit_##NODE(NODE##_t *node, RET_TYPE ARG) { UNREACHABLE; }
+#define VISIT_TODO(NODE) \
+    static void visit_##NODE(NODE##_t *node, RET_TYPE ARG) { TODO(STRINGIFY(NODE)); }
 #define RETURN(RET_VALUE)       \
     do {                        \
         (*(ARG)) = (RET_VALUE); \

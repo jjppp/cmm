@@ -73,7 +73,7 @@ bool check() {
 void gen() {
     cst_print(croot, 0);
     cst_free(croot);
-    ast_gen(root, NULL);
+    ast_gen(root);
     ir_fun_print(prog);
 }
 

@@ -9,24 +9,10 @@
 #define ARG list
 VISITOR_DEF(AST, lexpr, RET_TYPE);
 
-void lexpr_gen(AST_t *node, ir_list *list) {
-    VISITOR_DISPATCH(AST, lexpr, node, list);
-}
-
-VISIT(EXPR_INT) {
-    UNREACHABLE;
-}
-
-VISIT(EXPR_FLT) {
-    UNREACHABLE;
-}
-
-VISIT(EXPR_BIN) {
-    UNREACHABLE;
-}
-
-VISIT(EXPR_UNR) {
-    UNREACHABLE;
+ir_list lexpr_gen(AST_t *node) {
+    ir_list ARG = {0};
+    VISITOR_DISPATCH(AST, lexpr, node, &ARG);
+    return ARG;
 }
 
 VISIT(EXPR_IDEN) {
@@ -38,27 +24,10 @@ VISIT(EXPR_IDEN) {
     RETURN(iden);
 }
 
-VISIT(STMT_RET) {
-    UNREACHABLE;
-}
-
-VISIT(STMT_WHLE) {
-    UNREACHABLE;
-}
-
-VISIT(STMT_IFTE) {
-    UNREACHABLE;
-}
-
-VISIT(STMT_SCOP) {
-    UNREACHABLE;
-}
-
 VISIT(EXPR_DOT) {
-    ir_list base = {0};
+    ir_list base = lexpr_gen(node->base);
     oprd_t  off  = lit_alloc(node->field->off);
 
-    lexpr_gen(node->base, &base);
     oprd_t base_var  = base.var;
     oprd_t field_var = var_alloc(NULL);
     ir_append(
@@ -68,42 +37,25 @@ VISIT(EXPR_DOT) {
     RETURN(base);
 }
 
-VISIT(EXPR_ASS) {
-    UNREACHABLE;
-}
+VISIT_TODO(EXPR_ARR);
 
-VISIT(CONS_PROG) {
-    UNREACHABLE;
-}
+VISIT_UNDEF(CONS_PROG);
+VISIT_UNDEF(CONS_SPEC);
+VISIT_UNDEF(CONS_FUN);
 
-VISIT(CONS_FUN) {
-    UNREACHABLE;
-}
+VISIT_UNDEF(DECL_FUN);
+VISIT_UNDEF(DECL_TYP);
+VISIT_UNDEF(DECL_VAR);
 
-VISIT(DECL_VAR) {
-    UNREACHABLE;
-}
+VISIT_UNDEF(EXPR_CALL);
+VISIT_UNDEF(EXPR_ASS);
+VISIT_UNDEF(EXPR_INT);
+VISIT_UNDEF(EXPR_FLT);
+VISIT_UNDEF(EXPR_BIN);
+VISIT_UNDEF(EXPR_UNR);
 
-VISIT(EXPR_ARR) {
-    TODO("lexpr EXPR_ARR");
-}
-
-VISIT(STMT_EXPR) {
-    UNREACHABLE;
-}
-
-VISIT(EXPR_CALL) {
-    UNREACHABLE;
-}
-
-VISIT(DECL_FUN) {
-    UNREACHABLE;
-}
-
-VISIT(CONS_SPEC) {
-    UNREACHABLE;
-}
-
-VISIT(DECL_TYP) {
-    UNREACHABLE;
-}
+VISIT_UNDEF(STMT_EXPR);
+VISIT_UNDEF(STMT_WHLE);
+VISIT_UNDEF(STMT_IFTE);
+VISIT_UNDEF(STMT_SCOP);
+VISIT_UNDEF(STMT_RET);
