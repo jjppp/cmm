@@ -180,8 +180,8 @@ VISIT(STMT_IFTE) {
     if (node->fls_stmt != NULL) {
         ir_list fls_stmt = ast_gen(node->fls_stmt);
         ir_concat(&cond, fls_stmt);
-        ir_append(&cond, ir_alloc(IR_GOTO, done));
     }
+    ir_append(&cond, ir_alloc(IR_GOTO, done));
     ir_append(&cond, ltru);
     ir_concat(&cond, tru_stmt);
     ir_append(&cond, done);
