@@ -336,8 +336,8 @@ VISIT(CONS_SPEC) {
     typ->fields = NULL;
     bool err    = false;
 
-    syment_t *sym = sym_insert(node->str, SYM_TYP);
-    if (sym == NULL) {
+    syment_t *sym = sym_lookup(node->str);
+    if (sym != NULL) {
         SEM_ERR(ERR_STRUCT_REDEF, node->super.fst_l, node->str);
         err = true;
     }
@@ -352,10 +352,15 @@ VISIT(CONS_SPEC) {
             if (field_exist(typ->fields, cnode->str)) {
                 typ_free(field_typ);
                 SEM_ERR(ERR_FIELD_REDEF, cnode->super.fst_l, cnode->str);
-            } else if (!err) {
+            } else if (!err && field_typ.kind != TYPE_ERR) {
                 LIST_APPEND(typ->fields, field_alloc(field_typ, cnode->str));
             }
         }
+    }
+    sym = sym_insert(node->str, SYM_TYP);
+    if (!err && sym == NULL) {
+        SEM_ERR(ERR_STRUCT_REDEF, node->super.fst_l, node->str);
+        err = true;
     }
     if (err) {
         RETURN(type_err);
