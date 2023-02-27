@@ -279,7 +279,9 @@ VISIT(DECL_VAR) {
         }
         case TYPE_STRUCT:
         case TYPE_ARRAY: {
-            ir_append(&decl, ir_alloc(IR_DEC, var, lit_alloc(sym->typ.size)));
+            oprd_t dummy_var = var_alloc(NULL);
+            ir_append(&decl, ir_alloc(IR_DEC, dummy_var, lit_alloc(sym->typ.size)));
+            ir_append(&decl, ir_alloc(IR_DREF, var, dummy_var));
             RETURN(decl);
         }
         default: TODO("gen DECL_VAR");

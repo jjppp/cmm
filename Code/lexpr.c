@@ -20,7 +20,7 @@ VISIT(EXPR_IDEN) {
     syment_t *sym  = node->sym;
     ASSERT(sym != NULL, "absent sym");
 
-    ir_append(&iden, ir_alloc(IR_DREF, var_alloc(NULL), sym->var));
+    ir_append(&iden, ir_alloc(IR_ASSIGN, var_alloc(NULL), sym->var));
     RETURN(iden);
 }
 
