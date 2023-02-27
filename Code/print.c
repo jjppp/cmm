@@ -134,6 +134,3 @@ VISIT(CONS_SPEC) {
         ast_foreach(node->fields, print_);
     }
 }
-
-VISIT(DECL_FUN) {
-}

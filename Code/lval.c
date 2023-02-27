@@ -87,6 +87,3 @@ VISIT(DECL_TYP) {
 VISIT(CONS_SPEC) {
     RETURN(false);
 }
-
-VISIT(DECL_FUN) {
-}

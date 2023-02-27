@@ -240,6 +240,9 @@ VISIT(CONS_PROG) {
 
 VISIT(CONS_FUN) {
     extern ir_fun_t *prog;
+    if (node->body == NULL) {
+        RETURN((ir_list){0});
+    }
 
     ir_fun_t *fun   = zalloc(sizeof(ir_fun_t));
     ir_list   param = {0};
@@ -316,7 +319,6 @@ VISIT(EXPR_CALL) {
 }
 
 VISIT_EMPTY(CONS_SPEC);
-VISIT_EMPTY(DECL_FUN);
 VISIT_EMPTY(DECL_TYP);
 
 VISIT_UNDEF(EXPR_FLT);

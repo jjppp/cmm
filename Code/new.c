@@ -134,6 +134,3 @@ VISIT(CONS_SPEC) {
         default: UNREACHABLE;
     }
 }
-
-VISIT(DECL_FUN) {
-}

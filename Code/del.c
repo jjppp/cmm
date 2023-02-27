@@ -100,8 +100,3 @@ VISIT(DECL_TYP) {
 VISIT(CONS_SPEC) {
     ast_free(node->fields);
 }
-
-VISIT(DECL_FUN) {
-    ast_free(node->params);
-    POINTS_FREE(node->spec, ast_free);
-}

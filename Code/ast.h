@@ -28,8 +28,7 @@
     F(EXPR_UNR)      \
     /* Constructs */ \
     F(DECL_VAR)      \
-    F(DECL_TYP)      \
-    F(DECL_FUN)
+    F(DECL_TYP)
 
 #define AST_WITH_ARG(F, ARG) \
     F(CONS_PROG, ARG)        \
@@ -53,7 +52,6 @@
     F(EXPR_UNR, ARG)         \
     /* Constructs */         \
     F(DECL_VAR, ARG)         \
-    F(DECL_FUN, ARG)         \
     F(DECL_TYP, ARG)
 
 typedef struct AST_t AST_t;
@@ -199,14 +197,6 @@ struct CONS_FUN_t {
 struct DECL_TYP_t {
     EXTENDS(AST_t);
     AST_t *spec;
-};
-
-struct DECL_FUN_t {
-    EXTENDS(AST_t);
-    char   str[MAX_SYM_LEN];
-    AST_t *params;
-    AST_t *spec;
-    u32    nparam;
 };
 
 #define INSTANCE_OF(NODE, KIND) INSTANCE_OF_VAR(NODE, KIND, cnode)

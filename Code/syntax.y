@@ -146,14 +146,14 @@ ExtDef
         $$.ast = $2.ast;
         INSTANCE_OF($$.ast, CONS_FUN) {
             POINTS_TO(cnode->spec, $1.ast);
+            cnode->nparam = LIST_LENGTH(cnode->params);
             cnode->body = $3.ast;
         }
     }
     | Specifier FunDec SEMI {
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $2.ast;
-        $$.ast->kind = DECL_FUN;
-        INSTANCE_OF($$.ast, DECL_FUN) {
+        INSTANCE_OF($$.ast, CONS_FUN) {
             POINTS_TO(cnode->spec, $1.ast);
             cnode->nparam = LIST_LENGTH(cnode->params);
         }
