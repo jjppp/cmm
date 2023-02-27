@@ -13,7 +13,7 @@
 VISITOR_DEF(AST, sem, RET_TYPE);
 
 extern bool   sem_err;
-extern type_t type_int, type_flt;
+extern type_t type_int, type_flt, type_err;
 
 // no nested functions, a pointer is sufficient
 static syment_t *cur_fun;
@@ -23,7 +23,7 @@ static u32 nested_struct = 0;
 
 type_t ast_check(AST_t *node) {
     if (node == NULL) {
-        return (type_t){.kind = TYPE_ERR};
+        return type_err;
     }
     type_t ARG = {0};
     VISITOR_DISPATCH(AST, sem, node, &ARG);
@@ -126,7 +126,7 @@ VISIT(EXPR_ARR) {
         }
     }
     if (err) {
-        RETURN((type_t){.kind = TYPE_ERR});
+        RETURN(type_err);
     }
     if (len != arr_typ.dim) {
         arr_typ.dim -= len;
@@ -155,6 +155,7 @@ VISIT(EXPR_DOT) {
     field_iter(base_typ.fields, it) {
         if (!symcmp(it->str, node->str)) {
             node->field = it;
+            node->typ   = it->typ;
             RETURN(it->typ);
         }
     }
@@ -214,8 +215,8 @@ VISIT(DECL_VAR) {
             .elem_typ = zalloc(sizeof(type_t)),
             .is_ref   = false};
         *var_typ.elem_typ = spec_typ;
-        var_typ.size      = typ_size(var_typ);
         memcpy(var_typ.len, node->len, node->dim * sizeof(var_typ.len[0]));
+        var_typ.size = typ_set_size(&var_typ);
     }
     if (node->expr != NULL) {
         type_t expr_typ = ast_check(node->expr);
@@ -357,9 +358,9 @@ VISIT(CONS_SPEC) {
         }
     }
     if (err) {
-        RETURN((type_t){.kind = TYPE_ERR});
+        RETURN(type_err);
     }
-    typ->size = typ_size(*typ);
+    typ->size = typ_set_size(typ);
     sym->typ  = *typ;
     RETURN(*typ);
 }

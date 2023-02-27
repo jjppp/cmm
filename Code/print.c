@@ -127,7 +127,6 @@ VISIT(CONS_SPEC) {
         case TYPE_PRIM_INT: display("INT\n"); break;
         case TYPE_PRIM_FLT: display("FLT\n"); break;
         case TYPE_STRUCT: display("STRUCT\n"); break;
-        case TYPE_ARRAY: TODO("TYPE_ARRAY");
         default: UNREACHABLE;
     }
     display("%s\n", node->str);

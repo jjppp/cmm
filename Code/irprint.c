@@ -44,10 +44,6 @@ VISIT(IR_BINARY) {
     printf("%s\n", oprd_to_str(node->rhs));
 }
 
-VISIT(IR_UNARY) {
-    TODO("IR_UNARY");
-}
-
 VISIT(IR_DREF) {
     printf("%s := ", oprd_to_str(node->tar));
     printf("&%s\n", oprd_to_str(node->lhs));
@@ -111,3 +107,5 @@ VISIT(IR_READ) {
 VISIT(IR_WRITE) {
     printf("WRITE %s\n", oprd_to_str(node->lhs));
 }
+
+VISIT_UNDEF(IR_UNARY);

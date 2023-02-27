@@ -151,6 +151,7 @@ struct EXPR_DOT_t {
     char     str[MAX_SYM_LEN];
     AST_t   *base;
     field_t *field;
+    type_t   typ;
 };
 
 struct EXPR_INT_t {

@@ -52,7 +52,6 @@ typedef struct oprd_t   oprd_t;
 typedef enum {
     OPRD_LIT,
     OPRD_VAR,
-    OPRD_PTR,
 } oprd_kind_t;
 
 struct oprd_t {
@@ -95,7 +94,7 @@ void ir_append(ir_list *list, IR_t *ir);
 
 void ir_prepend(ir_list *list, IR_t *ir);
 
-void ir_concat(ir_list *front, ir_list *back);
+void ir_concat(ir_list *front, const ir_list back);
 
 typedef void (*ir_visitor_fun_t)(IR_t *, void *);
 

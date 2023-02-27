@@ -2,12 +2,7 @@ struct pos {
     int x, y;
 };
 
-int abs(int x) {
-    if (x < 0) {
-        x = -x;
-    }
-    return x;
-}
+int abs(int x);
 
 int manhattan(struct pos a, struct pos b) {
     return abs(a.x - b.x) + abs(a.y - b.y);
@@ -22,4 +17,11 @@ int main() {
     b.y = read();
 
     write(manhattan(a, b));
+}
+
+int abs(int x) {
+    if (x < 0) {
+        x = -x;
+    }
+    return x;
 }

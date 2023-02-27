@@ -44,7 +44,7 @@ VISIT(EXPR_BIN) {
 
             done->tar = tar_var; // workaround to make sure lhs.var == tar_var
 
-            ir_concat(&lhs, &rhs);
+            ir_concat(&lhs, rhs);
             ir_append(&lhs, cmp);
             ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
             ir_append(&lhs, ir_alloc(IR_GOTO, done));
@@ -75,13 +75,13 @@ VISIT(EXPR_BIN) {
                     ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
                     ir_append(&lhs, ir_alloc(IR_GOTO, done));
                     ir_append(&lhs, ltru);
-                    ir_concat(&lhs, &rhs);
+                    ir_concat(&lhs, rhs);
                     ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, rhs_var));
                     ir_append(&lhs, done);
                     break;
                 }
                 case OP_OR: {
-                    ir_concat(&lhs, &rhs);
+                    ir_concat(&lhs, rhs);
                     ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, rhs_var));
                     ir_append(&lhs, ir_alloc(IR_GOTO, done));
                     ir_append(&lhs, ltru);
@@ -98,7 +98,7 @@ VISIT(EXPR_BIN) {
                 IR_BINARY,
                 node->op,
                 tar_var, lhs_var, rhs_var);
-            ir_concat(&lhs, &rhs);
+            ir_concat(&lhs, rhs);
             ir_append(&lhs, ir);
             break;
         }
@@ -156,7 +156,7 @@ VISIT(STMT_WHLE) {
     ir_append(&cond1, ir_alloc(IR_BRANCH, OP_EQ, cond1.var, lit_alloc(0), done));
 
     ir_prepend(&body, loop);
-    ir_concat(&body, &cond2);
+    ir_concat(&body, cond2);
     ir_append(&body, ir_alloc(IR_BRANCH, OP_NE, cond2.var, lit_alloc(0), loop));
     ir_append(&body, done);
     RETURN(body);
@@ -179,11 +179,11 @@ VISIT(STMT_IFTE) {
             OP_NE, cond_var, lit_alloc(0), ltru));
     if (node->fls_stmt != NULL) {
         ir_list fls_stmt = ast_gen(node->fls_stmt);
-        ir_concat(&cond, &fls_stmt);
+        ir_concat(&cond, fls_stmt);
         ir_append(&cond, ir_alloc(IR_GOTO, done));
     }
     ir_append(&cond, ltru);
-    ir_concat(&cond, &tru_stmt);
+    ir_concat(&cond, tru_stmt);
     ir_append(&cond, done);
     RETURN(cond);
 }
@@ -192,27 +192,20 @@ VISIT(STMT_SCOP) {
     ir_list result = {0};
     ast_iter(node->decls, it) {
         ir_list decl = ast_gen(it);
-        ir_concat(&result, &decl);
+        ir_concat(&result, decl);
     }
     ast_iter(node->stmts, it) {
         ir_list stmt = ast_gen(it);
-        ir_concat(&result, &stmt);
+        ir_concat(&result, stmt);
     }
     RETURN(result);
 }
 
 VISIT(EXPR_DOT) {
-    ir_list base = lexpr_gen(node->base);
-    oprd_t  off  = lit_alloc(node->field->off);
-
-    oprd_t base_var  = base.var;
-    oprd_t field_var = var_alloc(NULL);
-    ir_append(
-        &base,
-        ir_alloc(IR_BINARY,
-                 OP_ADD, field_var, base_var, off));
-    ir_append(&base, ir_alloc(IR_LOAD, var_alloc(NULL), field_var));
-    RETURN(base);
+    ir_list expr = lexpr_gen((AST_t *) node);
+    oprd_t  pos  = expr.var;
+    ir_append(&expr, ir_alloc(IR_LOAD, var_alloc(NULL), pos));
+    RETURN(expr);
 }
 
 VISIT(EXPR_ASS) {
@@ -231,16 +224,18 @@ VISIT(EXPR_ASS) {
         ir_list lhs     = lexpr_gen(node->lhs);
         oprd_t  lhs_var = lhs.var;
 
-        ir_concat(&rhs, &lhs);
+        ir_concat(&rhs, lhs);
         ir_append(&rhs, ir_alloc(IR_STORE, lhs_var, rhs_var));
     }
     RETURN(rhs);
 }
 
 VISIT(CONS_PROG) {
+    ir_list global_decls = {0};
     ast_iter(node->decls, it) {
-        ast_gen(it);
+        ir_concat(&global_decls, ast_gen(it));
     }
+    RETURN(global_decls);
 }
 
 VISIT(CONS_FUN) {
@@ -256,11 +251,12 @@ VISIT(CONS_FUN) {
     }
 
     ir_list body = ast_gen(node->body);
-    ir_concat(&param, &body);
+    ir_concat(&param, body);
     fun->instrs = param;
     fun->next   = prog;
     symcpy(fun->str, node->str);
     prog = fun;
+    RETURN((ir_list){0});
 }
 
 VISIT(DECL_VAR) {
@@ -273,12 +269,13 @@ VISIT(DECL_VAR) {
                 ir_list expr = ast_gen(node->expr);
 
                 IR_t *ir = ir_alloc(IR_ASSIGN, var, expr.var);
-                ir_concat(&decl, &expr);
+                ir_concat(&decl, expr);
                 ir_append(&decl, ir);
             }
             RETURN(decl);
         }
-        case TYPE_STRUCT: {
+        case TYPE_STRUCT:
+        case TYPE_ARRAY: {
             ir_append(&decl, ir_alloc(IR_DEC, var, lit_alloc(sym->typ.size)));
             RETURN(decl);
         }
@@ -287,7 +284,10 @@ VISIT(DECL_VAR) {
 }
 
 VISIT(EXPR_ARR) {
-    TODO("gen EXPR_ARR");
+    ir_list arr = lexpr_gen((AST_t *) node);
+    oprd_t  pos = arr.var;
+    ir_append(&arr, ir_alloc(IR_LOAD, var_alloc(NULL), pos));
+    RETURN(arr);
 }
 
 VISIT(STMT_EXPR) {
@@ -300,7 +300,7 @@ VISIT(EXPR_CALL) {
         ir_list arg = ast_gen(it);
         ir_append(&arg, ir_alloc(IR_ARG, arg.var));
         // reverse order
-        ir_concat(&arg, &call);
+        ir_concat(&arg, call);
         call = arg;
     }
     oprd_t tar_var = var_alloc(NULL);

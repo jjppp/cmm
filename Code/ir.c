@@ -47,8 +47,7 @@ char *oprd_to_str(oprd_t oprd) {
                 snprintf(buf, sizeof(buf), "_%u", oprd.val);
             }
             break;
-        case OPRD_PTR:
-            TODO("OPRD_PTR");
+        default: UNREACHABLE;
     }
     return buf;
 }
@@ -110,20 +109,20 @@ void ir_prepend(ir_list *list, IR_t *ir) {
     list->size++;
 }
 
-void ir_concat(ir_list *front, ir_list *back) {
-    if (back->size == 0) {
+void ir_concat(ir_list *front, const ir_list back) {
+    if (back.size == 0) {
         return;
     }
     if (front->size == 0) {
-        *front = *back;
+        *front = back;
         return;
     }
-    front->tail->next = back->head;
-    back->head->prev  = front->tail;
-    front->size += back->size;
+    front->tail->next = back.head;
+    back.head->prev   = front->tail;
+    front->size += back.size;
 
-    front->tail = back->tail;
-    front->var  = back->var;
+    front->tail = back.tail;
+    front->var  = back.var;
 }
 
 VISIT(IR_LABEL) {
@@ -136,7 +135,6 @@ VISIT(IR_ASSIGN) {
 }
 
 VISIT(IR_BINARY) {
-    // TODO: REL short-circuit
     node->op  = va_arg(ap, op_kind_t);
     node->tar = va_arg(ap, oprd_t);
     node->lhs = va_arg(ap, oprd_t);

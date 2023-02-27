@@ -20,7 +20,8 @@ struct type_t {
     char     str[MAX_SYM_LEN];
     field_t *fields;
     type_t  *elem_typ;
-    u32      len[MAX_DIM], dim, size;
+    u32      len[MAX_DIM], dim;
+    u32      acc[MAX_DIM], size;
     bool     is_ref; // e.g. struct STRUCT_NAME field;
 };
 
@@ -52,6 +53,6 @@ void typ_free(type_t typ);
 
 bool type_eq(type_t typ1, type_t typ2);
 
-u32 typ_size(type_t typ);
+u32 typ_set_size(type_t *typ);
 
 bool field_exist(field_t *field, const char *str);

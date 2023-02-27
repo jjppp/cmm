@@ -37,7 +37,40 @@ VISIT(EXPR_DOT) {
     RETURN(base);
 }
 
-VISIT_TODO(EXPR_ARR);
+VISIT(EXPR_ARR) {
+    ir_list arr     = lexpr_gen(node->arr);
+    oprd_t  arr_var = arr.var;
+    type_t  arr_typ = {0};
+    switch (node->arr->kind) {
+        case EXPR_IDEN: {
+            INSTANCE_OF(node->arr, EXPR_IDEN) {
+                arr_typ = cnode->sym->typ;
+            }
+            break;
+        }
+        case EXPR_DOT: {
+            INSTANCE_OF(node->arr, EXPR_DOT) {
+                arr_typ = cnode->typ;
+            }
+            break;
+        }
+        default: UNREACHABLE;
+    }
+
+    u32 cnt = 0;
+    ast_iter(node->ind, it) {
+        ir_list ind      = ast_gen(it);
+        oprd_t  acc_size = lit_alloc(arr_typ.acc[cnt++]);
+        ir_append(&ind,
+                  ir_alloc(IR_BINARY,
+                           OP_MUL, ind.var, ind.var, acc_size));
+        ir_append(&ind,
+                  ir_alloc(IR_BINARY,
+                           OP_ADD, arr_var, arr_var, ind.var));
+        ir_concat(&arr, ind);
+    }
+    RETURN(arr);
+}
 
 VISIT_UNDEF(CONS_PROG);
 VISIT_UNDEF(CONS_SPEC);
