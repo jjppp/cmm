@@ -9,15 +9,20 @@ VISITOR_DEF(IR, print, RET_TYPE);
 
 static FILE *fout;
 
-void ir_print(IR_t *ir) {
+static void ir_print_(IR_t *ir) {
     VISITOR_DISPATCH(IR, print, ir, NULL);
+}
+
+void ir_print(FILE *file, IR_t *ir) {
+    fout = file;
+    ir_print_(ir);
 }
 
 void ir_fun_print(FILE *file, ir_fun_t *fun) {
     fout = file;
-    for (ir_fun_t *it = fun; it != NULL; it = it->next) {
+    LIST_ITER(fun, it) {
         fprintf(fout, "FUNCTION %s :\n", it->str);
-        ir_foreach(it->instrs.head, ir_print);
+        ir_foreach(it->instrs.head, ir_print_);
         fprintf(fout, "\n");
     }
 }

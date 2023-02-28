@@ -191,12 +191,10 @@ VISIT(STMT_IFTE) {
 VISIT(STMT_SCOP) {
     ir_list result = {0};
     ast_iter(node->decls, it) {
-        ir_list decl = ast_gen(it);
-        ir_concat(&result, decl);
+        ir_concat(&result, ast_gen(it));
     }
     ast_iter(node->stmts, it) {
-        ir_list stmt = ast_gen(it);
-        ir_concat(&result, stmt);
+        ir_concat(&result, ast_gen(it));
     }
     RETURN(result);
 }

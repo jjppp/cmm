@@ -125,6 +125,27 @@ void ir_concat(ir_list *front, const ir_list back) {
     front->var  = back.var;
 }
 
+ir_list ir_split(ir_list *list, IR_t *it) {
+    ir_list front = {0};
+    ASSERT(list != NULL, "split NULL list");
+    ASSERT(it != NULL, "split NULL it");
+
+    if (list->head != it) {
+        front = (ir_list){
+            .head = it,
+            .tail = list->tail,
+            .var  = list->var,
+            .size = LIST_LENGTH(it)};
+        list->tail = it->prev;
+        list->size -= front.size;
+
+        it->prev->next = NULL;
+        it->prev       = NULL;
+        swap(front, *list);
+    }
+    return front;
+}
+
 VISIT(IR_LABEL) {
     snprintf(node->str, sizeof(node->str), "label%u", node->id);
 }

@@ -56,6 +56,13 @@ typedef int8_t   i8;
     } while (0);
 #endif
 
+#define swap(X, Y)                     \
+    do {                               \
+        __auto_type __tmp_x = (X);     \
+        (X)                 = (Y);     \
+        (Y)                 = __tmp_x; \
+    } while (0)
+
 /* refcount ptr. obj must extend struct shared. */
 #define POINTS_TO(PTR, OBJ)                                    \
     do {                                                       \
@@ -100,7 +107,6 @@ struct shared {
             }                             \
         }                                 \
     } while (0)
-
 #define LIST_LENGTH(LIST)                 \
     ({                                    \
         u32 __length = 0;                 \
@@ -111,6 +117,10 @@ struct shared {
         }                                 \
         __length;                         \
     })
+#define LIST_ITER(LIST, IT)        \
+    for (__auto_type(IT) = (LIST); \
+         (IT) != (void *) NULL;    \
+         (IT) = (IT)->next)
 
 #define OPS(F)   \
     ARITH_OPS(F) \

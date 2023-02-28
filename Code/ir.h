@@ -43,7 +43,6 @@ typedef enum {
     IR(LIST)
 } ir_kind_t;
 
-typedef struct block_t  block_t;
 typedef struct IR_list  ir_list;
 typedef struct IR_fun_t ir_fun_t;
 typedef struct IR_t     IR_t;
@@ -68,17 +67,14 @@ struct IR_t {
     op_kind_t op;
     IR_t     *prev, *next, *jmpto;
     u32       id;
+
+    struct block_t *parent;
 };
 
 struct IR_list {
     IR_t  *head, *tail;
     oprd_t var;
     u32    size;
-};
-
-struct block_t {
-    ir_list instrs;
-    u32     blk_id;
 };
 
 struct IR_fun_t {
@@ -96,6 +92,8 @@ void ir_prepend(ir_list *list, IR_t *ir);
 
 void ir_concat(ir_list *front, const ir_list back);
 
+ir_list ir_split(ir_list *list, IR_t *it);
+
 typedef void (*ir_visitor_fun_t)(IR_t *, void *);
 
 #define IR_VISIT(NAME) ir_visitor_fun_t visit_##NAME;
@@ -110,6 +108,8 @@ struct IR_visitor {
 IR(IR_EXTEND);
 
 void ir_fun_print(FILE *file, ir_fun_t *fun);
+
+void ir_print(FILE *file, IR_t *ir);
 
 IR_t *ir_alloc(ir_kind_t kind, ...);
 

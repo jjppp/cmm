@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "ast.h"
+#include "cfg.h"
+#include "common.h"
 #include "ir.h"
 #include "type.h"
 #include "visitor.h"
@@ -12,6 +14,7 @@ i32  yyparse(void);
 
 bool lex_err, syn_err, sem_err;
 
+cfg_t    *cfgs  = NULL;
 cst_t    *croot = NULL;
 AST_t    *root  = NULL;
 ir_fun_t *prog  = NULL;
@@ -70,11 +73,19 @@ bool check() {
     return sem_err;
 }
 
-void gen(FILE *file) {
+void gen(FILE *file, const char *fname) {
     cst_print(croot, 0);
     cst_free(croot);
     ast_gen(root);
     ir_fun_print(file, prog);
+
+    LIST_ITER(prog, it) {
+        cfg_t *cfg = cfg_build(it);
+        LIST_APPEND(cfgs, cfg);
+    }
+
+    FILE *fcfg = fopen("./cfg.dot", "w");
+    cfg_fprint(fcfg, fname, cfgs);
 }
 
 #define andThen ? (done()):
@@ -93,6 +104,6 @@ i32 main(i32 argc, char **argv) {
         andThen
         check()
             andThen
-                gen(fout);
+                gen(fout, argv[1]);
     return 0;
 }
