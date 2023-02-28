@@ -31,9 +31,7 @@ type_t ast_check(AST_t *node) {
 }
 
 VISIT(CONS_PROG) {
-    ast_iter(node->decls, it) {
-        ast_check(it);
-    }
+    LIST_FOREACH(node->decls, ast_check);
 }
 
 VISIT(STMT_EXPR) {
@@ -42,12 +40,8 @@ VISIT(STMT_EXPR) {
 
 VISIT(STMT_SCOP) {
     sym_scope_push();
-    ast_iter(node->decls, it) {
-        ast_check(it);
-    }
-    ast_iter(node->stmts, it) {
-        ast_check(it);
-    }
+    LIST_FOREACH(node->decls, ast_check);
+    LIST_FOREACH(node->stmts, ast_check);
     sym_scope_pop();
 }
 
@@ -90,7 +84,7 @@ VISIT(EXPR_CALL) {
     }
 
     syment_t *sit = sym->params;
-    ast_iter(node->expr, nit) {
+    LIST_ITER(node->expr, nit) {
         type_t arg_typ = ast_check(nit);
         if (!type_eq(arg_typ, sit->typ)) {
             SEM_ERR_RETURN(ERR_FUN_ARG_MISMATCH, nit->fst_l, node->str);
@@ -117,7 +111,7 @@ VISIT(EXPR_ARR) {
         SEM_ERR(ERR_ACC_NON_ARRAY, node->arr->fst_l);
         err = true;
     }
-    ast_iter(node->ind, it) {
+    LIST_ITER(node->ind, it) {
         len++;
         type_t ind_typ = ast_check(it);
         if (!IS_LOGIC(ind_typ)) {
@@ -152,7 +146,7 @@ VISIT(EXPR_DOT) {
     if (base_typ.kind != TYPE_STRUCT) {
         SEM_ERR_RETURN(ERR_ACC_NON_STRUCT, node->base->fst_l);
     }
-    field_iter(base_typ.fields, it) {
+    LIST_ITER(base_typ.fields, it) {
         if (!symcmp(it->str, node->str)) {
             node->field = it;
             node->typ   = it->typ;
@@ -247,7 +241,7 @@ VISIT(DECL_TYP) {
 
 static void check_params(AST_t *params, syment_t *sym_params, u32 fst_l, const char *str, bool err) {
     syment_t *jt = sym_params;
-    ast_iter(params, it) {
+    LIST_ITER(params, it) {
         type_t param_typ = ast_check(it);
         if (!err && !type_eq(param_typ, jt->typ)) {
             SEM_ERR(ERR_FUN_DEC_COLLISION, fst_l, str);
@@ -266,7 +260,7 @@ VISIT(CONS_FUN) {
     if (sym != NULL) {
         sym->typ = ret_typ;
         sym_scope_push();
-        ast_iter(node->params, it) {
+        LIST_ITER(node->params, it) {
             INSTANCE_OF(it, DECL_VAR) {
                 ast_check(it);
                 LIST_APPEND(sym->params, sym_lookup(cnode->str));
@@ -346,7 +340,7 @@ VISIT(CONS_SPEC) {
         err = true;
     }
 
-    ast_iter(node->fields, it) {
+    LIST_ITER(node->fields, it) {
         INSTANCE_OF(it, DECL_VAR) {
             nested_struct++;
             // ast_check(spec var) -> typeof(spec)

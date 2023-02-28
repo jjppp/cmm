@@ -42,9 +42,6 @@ struct field_t {
       && IS_SCALAR(TYPE))            \
      || ((TYPE).kind == TYPE_ERR))
 
-#define field_iter(FIELD, IT) \
-    for (field_t *IT = (FIELD); (IT) != NULL; (IT) = (IT)->next)
-
 field_t *field_alloc(type_t typ, const char str[]);
 
 void field_free(field_t *field);

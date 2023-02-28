@@ -93,7 +93,7 @@ u32 typ_set_size(type_t *typ) {
         case TYPE_PRIM_FLT: size = 4; break;
         case TYPE_PRIM_INT: size = 4; break;
         case TYPE_STRUCT: {
-            field_iter(typ->fields, it) {
+            LIST_ITER(typ->fields, it) {
                 it->off = size;
                 size += typ_set_size(&it->typ);
             }
@@ -115,7 +115,7 @@ u32 typ_set_size(type_t *typ) {
 }
 
 bool field_exist(field_t *field, const char *str) {
-    field_iter(field, it) {
+    LIST_ITER(field, it) {
         if (!symcmp(it->str, str)) {
             return true;
         }

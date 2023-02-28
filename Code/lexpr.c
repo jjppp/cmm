@@ -58,7 +58,7 @@ VISIT(EXPR_ARR) {
     }
 
     u32 cnt = 0;
-    ast_iter(node->ind, it) {
+    LIST_ITER(node->ind, it) {
         ir_list ind      = ast_gen(it);
         oprd_t  acc_size = lit_alloc(arr_typ.acc[cnt++]);
         ir_append(&ind,

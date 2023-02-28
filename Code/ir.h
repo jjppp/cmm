@@ -83,9 +83,6 @@ struct IR_fun_t {
     ir_fun_t *next;
 };
 
-#define ir_iter(IR, IT) for (IR_t * (IT) = (IR); (IT) != NULL; (IT) = (IT)->next)
-#define ir_foreach(IR, FUN) ir_iter((IR), __it) FUN(__it);
-
 void ir_append(ir_list *list, IR_t *ir);
 
 void ir_prepend(ir_list *list, IR_t *ir);

@@ -6,8 +6,7 @@
 
 typedef struct cst_t cst_t;
 
-#define cst_iter(NODE, IT) \
-    for (cst_t *IT = (NODE)->chld; IT != NULL; IT = IT->next)
+#define cst_iter(NODE, IT) LIST_ITER((NODE)->chld, (IT))
 
 struct cst_t {
     char   str[MAX_SYM_LEN];

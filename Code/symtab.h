@@ -11,9 +11,6 @@ typedef enum {
     SYMS(LIST)
 } sym_kind_t;
 
-#define sym_iter(SYM, IT) for (syment_t * (IT) = (void *) (SYM); (SYM) != NULL && (IT) != NULL; (IT) = (IT)->next)
-#define sym_foreach(SYM, FUN) sym_iter(SYM, __it) FUN(__it);
-
 struct syment_t {
     EXTENDS(shared);
     sym_kind_t    kind;

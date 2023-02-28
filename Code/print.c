@@ -88,11 +88,11 @@ VISIT(EXPR_ASS) {
 }
 
 VISIT(CONS_PROG) {
-    ast_foreach(node->decls, print_);
+    LIST_FOREACH(node->decls, print_);
 }
 
 VISIT(CONS_FUN) {
-    ast_foreach(node->body, print_);
+    LIST_FOREACH(node->body, print_);
 }
 
 VISIT(DECL_VAR) {
@@ -109,8 +109,8 @@ VISIT(EXPR_ARR) {
 }
 
 VISIT(STMT_SCOP) {
-    ast_foreach(node->decls, print_);
-    ast_foreach(node->stmts, print_);
+    LIST_FOREACH(node->decls, print_);
+    LIST_FOREACH(node->stmts, print_);
 }
 
 VISIT(EXPR_CALL) {
@@ -131,6 +131,6 @@ VISIT(CONS_SPEC) {
     }
     display("%s\n", node->str);
     if (node->kind == TYPE_STRUCT) {
-        ast_foreach(node->fields, print_);
+        LIST_FOREACH(node->fields, print_);
     }
 }

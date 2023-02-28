@@ -190,10 +190,10 @@ VISIT(STMT_IFTE) {
 
 VISIT(STMT_SCOP) {
     ir_list result = {0};
-    ast_iter(node->decls, it) {
+    LIST_ITER(node->decls, it) {
         ir_concat(&result, ast_gen(it));
     }
-    ast_iter(node->stmts, it) {
+    LIST_ITER(node->stmts, it) {
         ir_concat(&result, ast_gen(it));
     }
     RETURN(result);
@@ -229,9 +229,7 @@ VISIT(EXPR_ASS) {
 }
 
 VISIT(CONS_PROG) {
-    ast_iter(node->decls, it) {
-        ast_gen(it);
-    }
+    LIST_FOREACH(node->decls, ast_gen);
 }
 
 VISIT(CONS_FUN) {
@@ -242,7 +240,7 @@ VISIT(CONS_FUN) {
 
     ir_fun_t *fun   = zalloc(sizeof(ir_fun_t));
     ir_list   param = {0};
-    ast_iter(node->params, it) {
+    LIST_ITER(node->params, it) {
         INSTANCE_OF(it, DECL_VAR) {
             IR_t *ir = ir_alloc(IR_PARAM, cnode->sym->var);
             ir_append(&param, ir);
@@ -304,7 +302,7 @@ VISIT(EXPR_CALL) {
         call = ast_gen(node->expr);
         ir_append(&call, ir_alloc(IR_WRITE, tar_var, call.var));
     } else {
-        ast_iter(node->expr, it) {
+        LIST_ITER(node->expr, it) {
             ir_list arg = ast_gen(it);
             ir_append(&arg, ir_alloc(IR_ARG, arg.var));
             // reverse order

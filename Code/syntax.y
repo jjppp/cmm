@@ -127,7 +127,7 @@ ExtDefList
 ExtDef
     : Specifier ExtDecList SEMI {
         $$.cst = cst_alloc("ExtDef", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
-        ast_iter($2.ast, it) {
+        LIST_ITER($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR) {
                 POINTS_TO(cnode->spec, $1.ast);
             }
@@ -289,7 +289,7 @@ VarList
 ParamDec
     : Specifier VarDec {
         $$.cst = cst_alloc("ParamDec", "", @1.first_line, 2, $1.cst, $2.cst);
-        ast_iter($2.ast, it) {
+        LIST_ITER($2.ast, it) {
             INSTANCE_OF(it, DECL_VAR) {
                 POINTS_TO(cnode->spec, $1.ast);
             }
@@ -392,7 +392,7 @@ DefList
 Def : Specifier DecList SEMI {
         $$.cst = cst_alloc("Def", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $2.ast;
-        ast_iter($$.ast, it) {
+        LIST_ITER($$.ast, it) {
             INSTANCE_OF(it, DECL_VAR) {
                 POINTS_TO(cnode->spec, $1.ast);
             }

@@ -3,9 +3,6 @@
 #include "common.h"
 #include "type.h"
 
-#define ast_iter(NODE, IT) for (AST_t * (IT) = (void *) (NODE); (NODE) != NULL && (IT) != NULL; (IT) = (IT)->next)
-#define ast_foreach(NODE, FUN) ast_iter(NODE, __it) FUN(__it);
-
 #define AST(F)       \
     F(CONS_PROG)     \
     F(CONS_SPEC)     \

@@ -121,6 +121,9 @@ struct shared {
     for (__auto_type(IT) = (LIST); \
          (IT) != (void *) NULL;    \
          (IT) = (IT)->next)
+#define LIST_FOREACH(LIST, FUN) \
+    LIST_ITER(LIST, __it)       \
+    FUN(__it);
 
 #define OPS(F)   \
     ARITH_OPS(F) \

@@ -22,7 +22,7 @@ void ir_fun_print(FILE *file, ir_fun_t *fun) {
     fout = file;
     LIST_ITER(fun, it) {
         fprintf(fout, "FUNCTION %s :\n", it->str);
-        ir_foreach(it->instrs.head, ir_print_);
+        LIST_FOREACH(it->instrs.head, ir_print_);
         fprintf(fout, "\n");
     }
 }

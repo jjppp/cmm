@@ -69,7 +69,7 @@ block_t *block_alloc(cfg_t *cfg, ir_list instrs) {
     ptr->next   = cfg->blocks;
     ptr->instrs = instrs;
     ptr->id     = cnt++;
-    ir_iter(instrs.head, it) {
+    LIST_ITER(instrs.head, it) {
         it->parent = ptr;
     }
 
@@ -85,7 +85,7 @@ cfg_t *cfg_build(ir_fun_t *fun) {
     symcpy(cfg->str, fun->str);
     IR_t *done = ir_alloc(IR_LABEL);
 
-    ir_iter(instrs.head, it) {
+    LIST_ITER(instrs.head, it) {
         if (is_start(it) || is_term(it->prev)) {
             ir_list front = ir_split(&instrs, it);
             block_alloc(cfg, front);
@@ -100,7 +100,7 @@ cfg_t *cfg_build(ir_fun_t *fun) {
     }
     done->parent = block_alloc(cfg, (ir_list){.head = done, .tail = done, .size = 1, .var = {0}});
 
-    block_iter(cfg->blocks, it) {
+    LIST_ITER(cfg->blocks, it) {
         IR_t *tail = it->instrs.tail;
         if (it->next != NULL && is_fall(it->next->instrs.tail)) {
             edge_insert(cfg, it->next, it, EDGE_THROUGH);
@@ -135,16 +135,16 @@ void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfgs) {
     LIST_ITER(cfgs, cfg) {
         fprintf(fout, "  subgraph cluster_%s {\n", cfg->str);
         fprintf(fout, "    label=\"%s\";\n", cfg->str);
-        block_iter(cfg->blocks, block) {
+        LIST_ITER(cfg->blocks, block) {
             fprintf(fout, "    %u [shape=box, xlabel=\"%u\", label=\"",
                     block->id, block->id);
-            ir_iter(block->instrs.head, it) {
+            LIST_ITER(block->instrs.head, it) {
                 ir_print(fout, it);
             }
             fprintf(fout, "\"];\n");
         }
 
-        block_iter(cfg->blocks, block) {
+        LIST_ITER(cfg->blocks, block) {
             succ_iter(block, edge) {
                 fprintf(fout, "    %u -> %u[label=\"%s\"];\n",
                         block->id, edge->to->id, EDGE_NAMES[edge->kind]);

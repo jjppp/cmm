@@ -8,10 +8,7 @@ typedef struct edge_t  edge_t;
 typedef struct cfg_t   cfg_t;
 
 #define succ_iter(BLOCK, IT) \
-    for (edge_t * (IT) = (BLOCK)->fedge; (IT) != NULL; (IT) = (IT)->next)
-
-#define block_iter(BLOCK, IT) \
-    for (block_t * (IT) = (BLOCK); (IT) != NULL; (IT) = (IT)->next)
+    LIST_ITER((BLOCK)->fedge, (IT))
 
 struct cfg_t {
     block_t *blocks;
