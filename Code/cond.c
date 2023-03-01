@@ -16,8 +16,13 @@ ir_list cond_gen(AST_t *node) {
 }
 
 static ir_list wrapper(AST_t *node) {
-    ir_list result = ast_gen((AST_t *) node);
-    ir_append(&result, ir_alloc(IR_BRANCH, OP_EQ, result.var, lit_alloc(0), NULL));
+    ir_list result  = ast_gen((AST_t *) node);
+    IR_t   *cmp_tru = ir_alloc(IR_BRANCH, OP_NE, result.var, lit_alloc(0), NULL);
+    IR_t   *jmp_fls = ir_alloc(IR_GOTO, NULL);
+    ir_append(&result, cmp_tru);
+    ir_append(&result, jmp_fls);
+    chain_insert(&result.tru, cmp_tru);
+    chain_insert(&result.fls, jmp_fls);
     return result;
 }
 
@@ -121,18 +126,22 @@ VISIT(EXPR_BIN) { // yields jmp
 }
 
 VISIT(EXPR_UNR) {
+    ir_list result = {0};
     switch (node->op) {
-        REL_OPS(CASE) {
-            UNREACHABLE;
+        case OP_NOT: {
+            ir_list sub = cond_gen(node->sub);
+            ir_concat(&result, sub);
+            chain_merge(&result.fls, sub.tru);
+            chain_merge(&result.tru, sub.fls);
+            break;
         }
-        LOGIC_OPS(CASE) {
-            TODO("cond UNR LOGIC");
-        }
-        ARITH_OPS(CASE) {
-            RETURN(wrapper((AST_t *) node));
+        case OP_NEG: {
+            result = wrapper((AST_t *) node);
+            break;
         }
         default: UNREACHABLE;
     }
+    RETURN(result);
 }
 
 VISIT_UNDEF(EXPR_FLT);

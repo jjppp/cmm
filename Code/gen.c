@@ -106,15 +106,36 @@ VISIT(EXPR_BIN) {
 }
 
 VISIT(EXPR_UNR) {
-    ir_list sub     = ast_gen(node->sub);
-    oprd_t  sub_var = sub.var;
-
-    IR_t *ir = ir_alloc(
-        IR_UNARY,
-        node->op,
-        var_alloc(NULL), sub_var);
-    ir_append(&sub, ir);
-    RETURN(sub);
+    ir_list result = {0};
+    switch (node->op) {
+        case OP_NOT: {
+            IR_t   *done    = ir_alloc(IR_LABEL);
+            IR_t   *tru     = ir_alloc(IR_LABEL);
+            IR_t   *fls     = ir_alloc(IR_LABEL);
+            ir_list sub     = cond_gen(node->sub);
+            oprd_t  tar_var = var_alloc(NULL);
+            done->tar       = tar_var;
+            chain_resolve(sub.fls, tru);
+            chain_resolve(sub.tru, fls);
+            ir_concat(&result, sub);
+            ir_append(&result, tru);
+            ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
+            ir_append(&result, ir_alloc(IR_GOTO, done));
+            ir_append(&result, fls);
+            ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
+            ir_append(&result, done);
+            break;
+        }
+        case OP_NEG: {
+            ir_list sub = ast_gen(node->sub);
+            IR_t   *ir  = ir_alloc(IR_UNARY, node->op, var_alloc(NULL), sub.var);
+            ir_concat(&result, sub);
+            ir_append(&result, ir);
+            break;
+        }
+        default: UNREACHABLE;
+    }
+    RETURN(result);
 }
 
 VISIT(EXPR_IDEN) {
