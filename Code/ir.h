@@ -47,6 +47,7 @@ typedef struct IR_list  ir_list;
 typedef struct IR_fun_t ir_fun_t;
 typedef struct IR_t     IR_t;
 typedef struct oprd_t   oprd_t;
+typedef struct chain_t  chain_t;
 
 typedef enum {
     OPRD_LIT,
@@ -71,10 +72,16 @@ struct IR_t {
     struct block_t *parent;
 };
 
+struct chain_t {
+    IR_t    *ir;
+    chain_t *next;
+};
+
 struct IR_list {
-    IR_t  *head, *tail;
-    oprd_t var;
-    u32    size;
+    IR_t    *head, *tail;
+    chain_t *fls, *tru;
+    oprd_t   var;
+    u32      size;
 };
 
 struct IR_fun_t {
@@ -117,3 +124,9 @@ oprd_t lit_alloc(u32 value);
 char *oprd_to_str(oprd_t oprd);
 
 ir_list ast_gen(AST_t *node);
+
+void chain_insert(chain_t **chain, IR_t *ir);
+
+void chain_resolve(chain_t *chain, IR_t *ir);
+
+void chain_merge(chain_t **into, chain_t *rhs);

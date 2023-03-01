@@ -78,6 +78,7 @@ void gen(FILE *file, const char *fname) {
     cst_free(croot);
     ast_gen(root);
     ir_fun_print(file, prog);
+    fclose(file);
 
     LIST_ITER(prog, it) {
         cfg_t *cfg = cfg_build(it);
@@ -86,6 +87,7 @@ void gen(FILE *file, const char *fname) {
 
     FILE *fcfg = fopen("./cfg.dot", "w");
     cfg_fprint(fcfg, fname, cfgs);
+    fclose(fcfg);
 }
 
 #define andThen ? (done()):

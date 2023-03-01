@@ -58,6 +58,23 @@ oprd_t lit_alloc(u32 value) {
         .val  = value};
 }
 
+void chain_merge(chain_t **into, chain_t *rhs) {
+    LIST_APPEND(*into, rhs);
+}
+
+void chain_insert(chain_t **chain, IR_t *ir) {
+    chain_t *node = zalloc(sizeof(chain_t));
+
+    *node = (chain_t){.ir = ir};
+    chain_merge(chain, node);
+}
+
+void chain_resolve(chain_t *chain, IR_t *ir) {
+    LIST_ITER(chain, it) {
+        it->ir->jmpto = ir;
+    }
+}
+
 #define RET_TYPE va_list
 #define ARG ap
 VISITOR_DEF(IR, new, RET_TYPE);
@@ -114,7 +131,10 @@ void ir_concat(ir_list *front, const ir_list back) {
         return;
     }
     if (front->size == 0) {
-        *front = back;
+        front->size = back.size;
+        front->head = back.head;
+        front->tail = back.tail;
+        front->var  = back.var;
         return;
     }
     front->tail->next = back.head;

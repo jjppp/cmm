@@ -10,6 +10,7 @@
 VISITOR_DEF(AST, gen, RET_TYPE);
 
 ir_list lexpr_gen(AST_t *node);
+ir_list cond_gen(AST_t *node);
 
 ir_list ast_gen(AST_t *node) {
     ir_list ARG;
@@ -35,7 +36,7 @@ VISIT(EXPR_BIN) {
     oprd_t tar_var = var_alloc(NULL);
 
     switch (node->op) {
-        REL_OPS(CASE) {
+        REL_OPS(CASE) { // yields jmp
             IR_t *done = ir_alloc(IR_LABEL);
             IR_t *cmp  = ir_alloc(
                 IR_BRANCH,
@@ -50,7 +51,7 @@ VISIT(EXPR_BIN) {
             ir_append(&lhs, done);
             break;
         }
-        LOGIC_OPS(CASE) {
+        LOGIC_OPS(CASE) { // yields jmp
             /*  if (lhs != 0) goto ltru
                     <false stuff>
                     goto done
@@ -90,7 +91,7 @@ VISIT(EXPR_BIN) {
             }
             break;
         }
-        ARITH_OPS(CASE) {
+        ARITH_OPS(CASE) { // yields value
             IR_t *ir = ir_alloc(
                 IR_BINARY,
                 node->op,
@@ -137,48 +138,45 @@ VISIT(STMT_RET) {
 }
 
 VISIT(STMT_WHLE) {
-    /* while (cond) body =>
-       if (!cond1) goto done
-         loop:
-         <body>
-         if (cond2) goto loop
-       done:
-    */
-    ir_list cond1 = ast_gen(node->cond);
-    ir_list cond2 = ast_gen(node->cond);
-    ir_list body  = ast_gen(node->body);
-    IR_t   *loop  = ir_alloc(IR_LABEL);
-    IR_t   *done  = ir_alloc(IR_LABEL);
+    ir_list cond1  = cond_gen(node->cond);
+    ir_list cond2  = cond_gen(node->cond);
+    ir_list body   = ast_gen(node->body);
+    ir_list result = {0};
+    IR_t   *loop   = ir_alloc(IR_LABEL);
+    IR_t   *done   = ir_alloc(IR_LABEL);
 
-    ir_append(&cond1, ir_alloc(IR_BRANCH, OP_EQ, cond1.var, lit_alloc(0), done));
-    ir_prepend(&body, loop);
-    ir_concat(&body, cond2);
-    ir_append(&body, ir_alloc(IR_BRANCH, OP_NE, cond2.var, lit_alloc(0), loop));
-    ir_append(&body, done);
-    ir_concat(&cond1, body);
-    RETURN(cond1);
+    chain_resolve(cond1.tru, loop);
+    chain_resolve(cond1.fls, done);
+    chain_resolve(cond2.tru, loop);
+    chain_resolve(cond2.fls, done);
+
+    ir_concat(&result, cond1);
+    ir_append(&result, loop);
+    ir_concat(&result, body);
+    ir_concat(&result, cond2);
+    ir_append(&result, done);
+    RETURN(result);
 }
 
 VISIT(STMT_IFTE) {
-    ir_list cond     = ast_gen(node->cond);
+    ir_list cond     = cond_gen(node->cond);
     ir_list tru_stmt = ast_gen(node->tru_stmt);
 
     IR_t *ltru = ir_alloc(IR_LABEL);
     IR_t *done = ir_alloc(IR_LABEL);
+    chain_resolve(cond.tru, ltru);
 
-    oprd_t cond_var = cond.var;
-    done->lhs       = cond_var; // workaround to make sure lhs.var == tar_var
-
-    ir_append(
-        &cond,
-        ir_alloc(
-            IR_BRANCH,
-            OP_NE, cond_var, lit_alloc(0), ltru));
     if (node->fls_stmt != NULL) {
         ir_list fls_stmt = ast_gen(node->fls_stmt);
+
+        IR_t *lfls = ir_alloc(IR_LABEL);
+        chain_resolve(cond.fls, lfls);
+        ir_append(&cond, lfls);
         ir_concat(&cond, fls_stmt);
+        ir_append(&cond, ir_alloc(IR_GOTO, done));
+    } else {
+        chain_resolve(cond.fls, done);
     }
-    ir_append(&cond, ir_alloc(IR_GOTO, done));
     ir_append(&cond, ltru);
     ir_concat(&cond, tru_stmt);
     ir_append(&cond, done);
