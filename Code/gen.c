@@ -36,20 +36,17 @@ VISIT(EXPR_BIN) {
 
     switch (node->op) {
         REL_OPS(CASE) {
-            IR_t *ltru = ir_alloc(IR_LABEL);
             IR_t *done = ir_alloc(IR_LABEL);
             IR_t *cmp  = ir_alloc(
                 IR_BRANCH,
-                node->op, lhs_var, rhs_var, ltru);
+                node->op, lhs_var, rhs_var, done);
 
             done->tar = tar_var; // workaround to make sure lhs.var == tar_var
 
             ir_concat(&lhs, rhs);
+            ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
             ir_append(&lhs, cmp);
             ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
-            ir_append(&lhs, ir_alloc(IR_GOTO, done));
-            ir_append(&lhs, ltru);
-            ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
             ir_append(&lhs, done);
             break;
         }
