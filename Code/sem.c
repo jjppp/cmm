@@ -48,9 +48,8 @@ VISIT(STMT_SCOP) {
 VISIT(STMT_IFTE) {
     type_t cond_typ = ast_check(node->cond);
     if (!IS_LOGIC(cond_typ)) {
-        TODO("IFTE cond_typ");
+        SEM_ERR_RETURN(ERR_COND_TYPE, node->cond->fst_l);
     }
-
     ast_check(node->tru_stmt);
     ast_check(node->fls_stmt);
 }
@@ -58,7 +57,7 @@ VISIT(STMT_IFTE) {
 VISIT(STMT_WHLE) {
     type_t cond_typ = ast_check(node->cond);
     if (!IS_LOGIC(cond_typ)) {
-        TODO("WHLE cond_typ");
+        SEM_ERR_RETURN(ERR_COND_TYPE, node->cond->fst_l);
     }
     ast_check(node->body);
 }

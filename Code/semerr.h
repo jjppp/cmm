@@ -29,7 +29,8 @@ enum err_id {
     ERR_STRUCT_REDEF,
     ERR_STRUCT_UNDEF,
     ERR_FUN_DEC_UNDEF,
-    ERR_FUN_DEC_COLLISION
+    ERR_FUN_DEC_COLLISION,
+    ERR_COND_TYPE,
 };
 
 static const char *SEM_ERR_MSG[] = {
@@ -53,6 +54,7 @@ static const char *SEM_ERR_MSG[] = {
     "Undefined structure \"%s\"",
     "Undefined function \"%s\"",
     "Inconsistent declaration of function \"%s\"",
+    "Condition type error",
     "\0"};
 
 #define SEM_ERR_RETURN(...)                 \
