@@ -20,7 +20,7 @@ VISIT(EXPR_IDEN) {
     syment_t *sym  = node->sym;
     ASSERT(sym != NULL, "absent sym");
 
-    ir_append(&iden, ir_alloc(IR_ASSIGN, var_alloc(NULL), sym->var));
+    ir_append(&iden, ir_alloc(IR_ASSIGN, var_alloc(NULL, node->super.fst_l), sym->var));
     RETURN(iden);
 }
 
@@ -29,7 +29,7 @@ VISIT(EXPR_DOT) {
     oprd_t  off  = lit_alloc(node->field->off);
 
     oprd_t base_var  = base.var;
-    oprd_t field_var = var_alloc(NULL);
+    oprd_t field_var = var_alloc(NULL, node->super.fst_l);
     ir_append(
         &base,
         ir_alloc(IR_BINARY,

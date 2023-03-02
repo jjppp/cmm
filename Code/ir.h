@@ -57,7 +57,7 @@ typedef enum {
 struct oprd_t {
     const char *name;
     oprd_kind_t kind;
-    u32         val;
+    u32         val, lineno;
 };
 
 struct IR_t {
@@ -117,7 +117,7 @@ void ir_print(FILE *file, IR_t *ir);
 
 IR_t *ir_alloc(ir_kind_t kind, ...);
 
-oprd_t var_alloc(const char *name);
+oprd_t var_alloc(const char *name, u32 lineno);
 
 oprd_t lit_alloc(u32 value);
 

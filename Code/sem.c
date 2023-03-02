@@ -228,7 +228,7 @@ VISIT(DECL_VAR) {
             SEM_ERR_RETURN(ERR_VAR_REDEF, node->super.fst_l, node->str);
         }
         sym->typ  = var_typ;
-        sym->var  = var_alloc(node->str);
+        sym->var  = var_alloc(node->str, node->super.fst_l);
         node->sym = sym;
     }
     RETURN(var_typ);

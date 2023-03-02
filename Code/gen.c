@@ -22,7 +22,7 @@ VISIT(EXPR_INT) {
     ir_list lit = {0};
     IR_t   *ir  = ir_alloc(
         IR_ASSIGN,
-        var_alloc(NULL), lit_alloc(node->value));
+        var_alloc(NULL, node->super.fst_l), lit_alloc(node->value));
     ir_append(&lit, ir);
     RETURN(lit);
 }
@@ -113,7 +113,7 @@ VISIT(EXPR_UNR) {
             IR_t   *tru     = ir_alloc(IR_LABEL);
             IR_t   *fls     = ir_alloc(IR_LABEL);
             ir_list sub     = cond_gen(node->sub);
-            oprd_t  tar_var = var_alloc(NULL);
+            oprd_t  tar_var = var_alloc(NULL, node->super.fst_l);
             done->tar       = tar_var;
             chain_resolve(sub.fls, tru);
             chain_resolve(sub.tru, fls);
@@ -128,7 +128,7 @@ VISIT(EXPR_UNR) {
         }
         case OP_NEG: {
             ir_list sub = ast_gen(node->sub);
-            IR_t   *ir  = ir_alloc(IR_UNARY, node->op, var_alloc(NULL), sub.var);
+            IR_t   *ir  = ir_alloc(IR_UNARY, node->op, var_alloc(NULL, node->super.fst_l), sub.var);
             ir_concat(&result, sub);
             ir_append(&result, ir);
             break;
@@ -143,7 +143,7 @@ VISIT(EXPR_IDEN) {
     syment_t *sym  = node->sym;
     ASSERT(sym != NULL, "absent sym");
 
-    ir_append(&iden, ir_alloc(IR_ASSIGN, var_alloc(NULL), sym->var));
+    ir_append(&iden, ir_alloc(IR_ASSIGN, var_alloc(NULL, node->super.fst_l), sym->var));
     RETURN(iden);
 }
 
@@ -218,7 +218,7 @@ VISIT(STMT_SCOP) {
 VISIT(EXPR_DOT) {
     ir_list expr = lexpr_gen((AST_t *) node);
     oprd_t  pos  = expr.var;
-    ir_append(&expr, ir_alloc(IR_LOAD, var_alloc(NULL), pos));
+    ir_append(&expr, ir_alloc(IR_LOAD, var_alloc(NULL, node->super.fst_l), pos));
     RETURN(expr);
 }
 
@@ -289,7 +289,7 @@ VISIT(DECL_VAR) {
         }
         case TYPE_STRUCT:
         case TYPE_ARRAY: {
-            oprd_t dummy_var = var_alloc(NULL);
+            oprd_t dummy_var = var_alloc(NULL, node->super.fst_l);
             ir_append(&decl, ir_alloc(IR_DEC, dummy_var, lit_alloc(sym->typ.size)));
             ir_append(&decl, ir_alloc(IR_DREF, var, dummy_var));
             RETURN(decl);
@@ -301,7 +301,7 @@ VISIT(DECL_VAR) {
 VISIT(EXPR_ARR) {
     ir_list arr = lexpr_gen((AST_t *) node);
     oprd_t  pos = arr.var;
-    ir_append(&arr, ir_alloc(IR_LOAD, var_alloc(NULL), pos));
+    ir_append(&arr, ir_alloc(IR_LOAD, var_alloc(NULL, node->super.fst_l), pos));
     RETURN(arr);
 }
 
@@ -311,7 +311,7 @@ VISIT(STMT_EXPR) {
 
 VISIT(EXPR_CALL) {
     ir_list call    = {0};
-    oprd_t  tar_var = var_alloc(NULL);
+    oprd_t  tar_var = var_alloc(NULL, node->super.fst_l);
     if (!symcmp(node->str, "read")) {
         ir_append(&call, ir_alloc(IR_READ, tar_var));
     } else if (!symcmp(node->str, "write")) {

@@ -26,12 +26,13 @@ void IR_visitor_dispatch(const struct IR_visitor visitor, IR_t *node, void *p) {
     }
 }
 
-oprd_t var_alloc(const char *name) {
+oprd_t var_alloc(const char *name, u32 lineno) {
     static u32 cnt = 0;
     return (oprd_t){
-        .kind = OPRD_VAR,
-        .name = name,
-        .val  = ++cnt};
+        .kind   = OPRD_VAR,
+        .name   = name,
+        .lineno = lineno,
+        .val    = ++cnt};
 }
 
 char *oprd_to_str(oprd_t oprd) {
@@ -44,7 +45,7 @@ char *oprd_to_str(oprd_t oprd) {
             if (oprd.name != NULL) {
                 snprintf(buf, sizeof(buf), "%s%u", oprd.name, oprd.val);
             } else {
-                snprintf(buf, sizeof(buf), "t_%u", oprd.val);
+                snprintf(buf, sizeof(buf), "t_%u_at_%u", oprd.val, oprd.lineno);
             }
             break;
         default: UNREACHABLE;
