@@ -52,3 +52,6 @@ VISIT(IR_READ) {
 
 VISIT(IR_WRITE) {
 }
+
+VISIT(IR_NULL) {
+}

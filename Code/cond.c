@@ -87,7 +87,7 @@ VISIT(EXPR_BIN) { // yields jmp
                      rhs
                     */
                     IR_t *tru = ir_alloc(IR_LABEL);
-                    chain_resolve(lhs.tru, tru);
+                    chain_resolve(&lhs.tru, tru);
                     ir_concat(&result, lhs);
                     ir_append(&result, tru);
                     ir_concat(&result, rhs);
@@ -103,7 +103,7 @@ VISIT(EXPR_BIN) { // yields jmp
                      rhs
                     */
                     IR_t *fls = ir_alloc(IR_LABEL);
-                    chain_resolve(lhs.fls, fls);
+                    chain_resolve(&lhs.fls, fls);
                     ir_concat(&result, lhs);
                     ir_append(&result, fls);
                     ir_concat(&result, rhs);

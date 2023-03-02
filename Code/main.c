@@ -77,6 +77,7 @@ void gen(FILE *file, const char *fname) {
     cst_print(croot, 0);
     cst_free(croot);
     ast_gen(root);
+    ir_check(&prog->instrs);
     ir_fun_print(file, prog);
     fclose(file);
 

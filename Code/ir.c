@@ -45,7 +45,7 @@ char *oprd_to_str(oprd_t oprd) {
             if (oprd.name != NULL) {
                 snprintf(buf, sizeof(buf), "%s%u", oprd.name, oprd.val);
             } else {
-                snprintf(buf, sizeof(buf), "t_%u_at_%u", oprd.val, oprd.lineno);
+                snprintf(buf, sizeof(buf), "t_%u_at_%u_", oprd.val, oprd.lineno);
             }
             break;
         default: UNREACHABLE;
@@ -70,10 +70,11 @@ void chain_insert(chain_t **chain, IR_t *ir) {
     chain_merge(chain, node);
 }
 
-void chain_resolve(chain_t *chain, IR_t *ir) {
-    LIST_ITER(chain, it) {
+void chain_resolve(chain_t **chain, IR_t *ir) {
+    LIST_ITER(*chain, it) {
         it->ir->jmpto = ir;
     }
+    *chain = NULL; // TODO: mem leak
 }
 
 #define RET_TYPE va_list
@@ -167,6 +168,16 @@ ir_list ir_split(ir_list *list, IR_t *it) {
     return front;
 }
 
+void ir_check(ir_list *list) {
+    LIST_ITER(list->head, it) {
+        if (it->kind == IR_NULL) {
+            abort();
+        } else if ((it->kind == IR_GOTO || it->kind == IR_BRANCH) && it->jmpto == NULL) {
+            abort();
+        }
+    }
+}
+
 VISIT(IR_LABEL) {
     snprintf(node->str, sizeof(node->str), "label%u", node->id);
 }
@@ -257,3 +268,5 @@ VISIT(IR_WRITE) {
     node->tar = va_arg(ap, oprd_t);
     node->lhs = va_arg(ap, oprd_t);
 }
+
+VISIT_UNDEF(IR_NULL);

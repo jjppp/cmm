@@ -4,6 +4,7 @@
 #include "common.h"
 
 #define IR(F)    \
+    F(IR_NULL)   \
     F(IR_LABEL)  \
     F(IR_ASSIGN) \
     F(IR_BINARY) \
@@ -22,6 +23,7 @@
     F(IR_WRITE)
 
 #define IR_WITH_ARG(F, ARG) \
+    F(IR_NULL, ARG)         \
     F(IR_LABEL, ARG)        \
     F(IR_ASSIGN, ARG)       \
     F(IR_BINARY, ARG)       \
@@ -117,6 +119,8 @@ void ir_print(FILE *file, IR_t *ir);
 
 IR_t *ir_alloc(ir_kind_t kind, ...);
 
+void ir_check(ir_list *list);
+
 oprd_t var_alloc(const char *name, u32 lineno);
 
 oprd_t lit_alloc(u32 value);
@@ -127,6 +131,6 @@ ir_list ast_gen(AST_t *node);
 
 void chain_insert(chain_t **chain, IR_t *ir);
 
-void chain_resolve(chain_t *chain, IR_t *ir);
+void chain_resolve(chain_t **chain, IR_t *ir);
 
 void chain_merge(chain_t **into, chain_t *rhs);
