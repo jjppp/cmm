@@ -73,8 +73,8 @@ VISIT(EXPR_UNR) {
             IR_t *lfls = ir_alloc(IR_LABEL);
             IR_t *done = ir_alloc(IR_LABEL);
             done->tar  = tar_var;
-            chain_resolve(&result.fls, ltru);
-            chain_resolve(&result.tru, lfls);
+            chain_resolve(&result.tru, ltru);
+            chain_resolve(&result.fls, lfls);
             ir_append(&result, ltru);
             ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
             ir_append(&result, ir_alloc(IR_GOTO, done));
