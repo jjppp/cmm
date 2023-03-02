@@ -28,81 +28,58 @@ VISIT(EXPR_INT) {
 }
 
 VISIT(EXPR_BIN) {
-    ir_list lhs = ast_gen(node->lhs);
-    ir_list rhs = ast_gen(node->rhs);
-
-    oprd_t lhs_var = lhs.var;
-    oprd_t rhs_var = rhs.var;
-    oprd_t tar_var = var_alloc(NULL);
+    ir_list lhs = {0}, rhs = {0};
+    oprd_t  lhs_var = {0}, rhs_var = {0};
+    oprd_t  tar_var = var_alloc(NULL, node->super.fst_l);
 
     switch (node->op) {
         REL_OPS(CASE) { // yields jmp
+            lhs     = ast_gen(node->lhs);
+            rhs     = ast_gen(node->rhs);
+            lhs_var = lhs.var;
+            rhs_var = rhs.var;
+
             IR_t *done = ir_alloc(IR_LABEL);
             IR_t *cmp  = ir_alloc(
                 IR_BRANCH,
                 node->op, lhs_var, rhs_var, done);
-
             done->tar = tar_var; // workaround to make sure lhs.var == tar_var
-
             ir_concat(&lhs, rhs);
             ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
             ir_append(&lhs, cmp);
             ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
             ir_append(&lhs, done);
-            break;
+            RETURN(lhs);
         }
-        LOGIC_OPS(CASE) { // yields jmp
-            /*  if (lhs != 0) goto ltru
-                    <false stuff>
-                    goto done
-                ltru:
-                    <true stuff>
-                done:
-                    <finally> */
+        LOGIC_OPS(CASE) {
+            ir_list result = cond_gen((AST_t *) node);
+
             IR_t *ltru = ir_alloc(IR_LABEL);
+            IR_t *lfls = ir_alloc(IR_LABEL);
             IR_t *done = ir_alloc(IR_LABEL);
-            IR_t *cmp  = ir_alloc(
-                IR_BRANCH,
-                OP_NE, lhs_var, lit_alloc(0), ltru);
-
-            done->tar = tar_var; // workaround to make sure lhs.var == tar_var
-
-            ir_append(&lhs, cmp);
-            switch (node->op) {
-                case OP_AND: {
-                    ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
-                    ir_append(&lhs, ir_alloc(IR_GOTO, done));
-                    ir_append(&lhs, ltru);
-                    ir_concat(&lhs, rhs);
-                    ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, rhs_var));
-                    ir_append(&lhs, done);
-                    break;
-                }
-                case OP_OR: {
-                    ir_concat(&lhs, rhs);
-                    ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, rhs_var));
-                    ir_append(&lhs, ir_alloc(IR_GOTO, done));
-                    ir_append(&lhs, ltru);
-                    ir_append(&lhs, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
-                    ir_append(&lhs, done);
-                    break;
-                }
-                default: UNREACHABLE;
-            }
-            break;
+            done->tar  = tar_var; // workaround to make sure lhs.var == tar_var
+            chain_resolve(result.tru, ltru);
+            chain_resolve(result.fls, lfls);
+            ir_append(&result, ltru);
+            ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
+            ir_append(&result, ir_alloc(IR_GOTO, done));
+            ir_append(&result, lfls);
+            ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
+            ir_append(&result, done);
+            RETURN(result);
         }
         ARITH_OPS(CASE) { // yields value
-            IR_t *ir = ir_alloc(
-                IR_BINARY,
-                node->op,
-                tar_var, lhs_var, rhs_var);
+            lhs     = ast_gen(node->lhs);
+            rhs     = ast_gen(node->rhs);
+            lhs_var = lhs.var;
+            rhs_var = rhs.var;
             ir_concat(&lhs, rhs);
-            ir_append(&lhs, ir);
-            break;
+            ir_append(&lhs, ir_alloc(IR_BINARY, node->op, tar_var, lhs_var, rhs_var));
+            RETURN(lhs);
         }
         default: UNREACHABLE;
     }
-    RETURN(lhs);
+    UNREACHABLE;
 }
 
 VISIT(EXPR_UNR) {
