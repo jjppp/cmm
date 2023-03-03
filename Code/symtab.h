@@ -1,11 +1,17 @@
 #pragma once
 
 #include "common.h"
+#include "hashtab.h"
 #include "type.h"
 #include "ir.h"
 
-typedef struct syment_t  syment_t;
-typedef struct hashtab_t hashtab_t;
+typedef struct syment_t syment_t;
+typedef struct symtab_t symtab_t;
+
+struct symtab_t {
+    hashtab_t        hashtab;
+    struct symtab_t *next;
+};
 
 typedef enum {
     SYMS(LIST)
@@ -20,11 +26,6 @@ struct syment_t {
     u32           nparam;
     struct AST_t *body;
     struct oprd_t var;
-};
-
-struct hashtab_t {
-    syment_t  *bucket[MAX_SYM];
-    hashtab_t *prev;
 };
 
 void symtab_init();

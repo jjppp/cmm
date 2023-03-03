@@ -1,35 +1,20 @@
 #include "symtab.h"
 #include "ast.h"
 #include "common.h"
+#include "hashtab.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 
-static hashtab_t *top  = NULL;
-static bool       init = false;
-static syment_t   entries[MAX_SYM];
-
-static u32 str_hash(const char *s) {
-    u32 hash = 0;
-    for (const char *p = s; *p; p++) {
-        hash = (hash * 17 + *p) % MAX_SYM;
-    }
-    return hash;
-}
-
-static syment_t **lookup(hashtab_t *hashtab, const char *str) {
-    syment_t **bucket = hashtab->bucket;
-    u32        hash   = str_hash(str);
-    while (bucket[hash] && strcmp(bucket[hash]->str, str)) {
-        hash = (hash + 1) % MAX_SYM;
-    }
-    return &bucket[hash];
-}
+static symtab_t *top  = NULL;
+static bool      init = false;
+static syment_t  entries[MAX_SYM];
 
 syment_t *sym_lookup(const char *str) {
     ASSERT(init, "symtab used before initialized");
-    for (hashtab_t *cur = top; cur; cur = cur->prev) {
-        syment_t *sym = *lookup(cur, str);
+    LIST_ITER(top, cur) {
+        hashent_t *ent = hash_lookup(&cur->hashtab, str);
+        syment_t  *sym = ent->ptr;
         if (sym && !strcmp(sym->str, str)) {
             return sym;
         }
@@ -39,16 +24,16 @@ syment_t *sym_lookup(const char *str) {
 
 void sym_scope_push() {
     ASSERT(init, "symtab used before initialized");
-    hashtab_t *hashtab = zalloc(sizeof(hashtab_t));
-    hashtab->prev      = top;
-    top                = hashtab;
+    symtab_t *symtab = zalloc(sizeof(symtab_t));
+    symtab->next     = top;
+    top              = symtab;
 }
 
 void sym_scope_pop() {
     ASSERT(init, "symtab used before initialized");
-    hashtab_t *hashtab = top;
-    top                = top->prev;
-    zfree(hashtab);
+    symtab_t *symtab = top;
+    top              = top->next;
+    zfree(symtab);
 }
 
 void *salloc(u32 size) {
@@ -60,15 +45,18 @@ void *salloc(u32 size) {
 void *sym_insert(const char *str, sym_kind_t kind) {
     ASSERT(init, "symtab used before initialized");
     ASSERT(strlen(str) < MAX_SYM_LEN, "sym_insert exceeds MAX_SYM_LEN");
-    syment_t **sym = lookup(top, str);
-    if (*sym != NULL) {
+    hashent_t *ent = hash_lookup(&top->hashtab, str);
+    if (ent->ptr != NULL) {
         return NULL;
     }
 
-    *sym  = salloc(sizeof(syment_t));
-    **sym = (syment_t){.kind = kind};
-    symcpy((*sym)->str, str);
-    return *sym;
+    syment_t *sym = salloc(sizeof(syment_t));
+    *sym          = (syment_t){.kind = kind};
+    symcpy(sym->str, str);
+
+    ent->ptr = sym;
+    ent->str = sym->str;
+    return sym;
 }
 
 void symtab_init() {

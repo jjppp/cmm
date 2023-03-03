@@ -3,39 +3,33 @@
 
 static const char *syms[] = {
     "sym1", "arr", "struct", "_ddd", "0x12345"};
-static i32 *ints[ARR_LEN(syms)] = {};
+
+syment_t *ents[ARR_LEN(syms)];
 
 void test_insert() {
-    for (u32 i = 0; i < ARR_LEN(syms); i++) {
-        ints[i]  = malloc(sizeof(i32));
-        *ints[i] = i;
-    }
     symtab_init();
     {
         for (u32 i = 0; i < ARR_LEN(syms); i++) {
-            sym_insert(syms[i], ints[i], 0, 0);
+            ents[i] = sym_insert(syms[i], SYM_VAR);
+            assert(sym_lookup(syms[i]) == ents[i]);
         }
         assert(sym_lookup("sym2") == NULL);
-        assert(sym_lookup("sym1")->data == (void *) ints[0]);
+        assert(sym_lookup("sym1") == ents[0]);
     }
     symtab_fini();
 }
 
 void test_scope() {
-    for (u32 i = 0; i < ARR_LEN(syms); i++) {
-        ints[i]  = malloc(sizeof(i32));
-        *ints[i] = i;
-    }
     symtab_init();
     {
-        sym_insert(syms[0], ints[0], 0, 0);
+        syment_t *sym0 = sym_insert(syms[0], SYM_VAR);
         sym_scope_push();
-        sym_insert(syms[0], ints[1], 0, 0);
-        sym_insert(syms[1], ints[2], 0, 0);
-        assert(sym_lookup(syms[0])->data == (void *) ints[1]);
-        assert(sym_lookup(syms[1])->data == (void *) ints[2]);
+        syment_t *sym1 = sym_insert(syms[0], SYM_VAR);
+        syment_t *sym2 = sym_insert(syms[1], SYM_VAR);
+        assert(sym_lookup(syms[0]) == sym1);
+        assert(sym_lookup(syms[1]) == sym2);
         sym_scope_pop();
-        assert(sym_lookup(syms[0])->data == (void *) ints[0]);
+        assert(sym_lookup(syms[0]) == sym0);
         assert(sym_lookup(syms[1]) == NULL);
     }
     symtab_fini();
