@@ -194,24 +194,6 @@ VISIT(IR_BINARY) {
     node->rhs = va_arg(ap, oprd_t);
 }
 
-VISIT(IR_UNARY) {
-    node->kind = IR_BINARY;
-    node->op   = va_arg(ap, op_kind_t);
-    node->tar  = va_arg(ap, oprd_t);
-    node->rhs  = va_arg(ap, oprd_t);
-    switch (node->op) {
-        case OP_NEG: {
-            node->lhs = lit_alloc(0);
-            node->op  = OP_SUB;
-            break;
-        }
-        case OP_NOT: {
-            TODO("gen OP_NOT");
-        }
-        default: UNREACHABLE;
-    }
-}
-
 VISIT(IR_DREF) {
     node->tar = va_arg(ap, oprd_t);
     node->lhs = va_arg(ap, oprd_t);

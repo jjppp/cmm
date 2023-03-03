@@ -116,5 +116,4 @@ VISIT(IR_WRITE) {
     fprintf(fout, "WRITE %s\n", oprd_to_str(node->lhs));
 }
 
-VISIT_UNDEF(IR_UNARY);
 VISIT_UNDEF(IR_NULL);

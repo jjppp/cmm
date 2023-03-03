@@ -53,9 +53,9 @@ void *sym_insert(const char *str, sym_kind_t kind) {
     syment_t *sym = salloc(sizeof(syment_t));
     *sym          = (syment_t){.kind = kind};
     symcpy(sym->str, str);
+    symcpy(ent->str, str);
 
     ent->ptr = sym;
-    ent->str = sym->str;
     return sym;
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <bits/types/FILE.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,11 +13,13 @@
 #define MAX_CHAR 63
 #define SYM_STR_SIZE (sizeof(char) * MAX_SYM_LEN)
 
-typedef double   f32;
-typedef uint32_t u32;
-typedef int32_t  i32;
-typedef uint8_t  u8;
-typedef int8_t   i8;
+typedef double    f32;
+typedef uintptr_t uptr;
+typedef intptr_t  iptr;
+typedef uint32_t  u32;
+typedef int32_t   i32;
+typedef uint8_t   u8;
+typedef int8_t    i8;
 
 #define STRINGIFY(S) STRINGIFY_(S)
 #define STRINGIFY_(S) #S
@@ -62,6 +65,8 @@ typedef int8_t   i8;
         (X)                 = (Y);     \
         (Y)                 = __tmp_x; \
     } while (0)
+#define FOPEN(FNAME, F, MODE) \
+    for (FILE *F = fopen(FNAME, MODE); F != NULL; fclose(F), F = NULL)
 
 /* refcount ptr. obj must extend struct shared. */
 #define POINTS_TO(PTR, OBJ)                                    \

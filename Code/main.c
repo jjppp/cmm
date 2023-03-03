@@ -8,6 +8,7 @@
 #include "visitor.h"
 #include "symtab.h"
 #include "cst.h"
+#include "opt.h"
 
 void yyrestart(FILE *input_file);
 i32  yyparse(void);
@@ -23,9 +24,15 @@ void done() {
     ast_free(root);
 }
 
-bool parse(FILE *file) {
-    yyrestart(file);
-    yyparse();
+bool parse(const char *fname) {
+    FOPEN(fname, file, "r") {
+        if (!file) {
+            perror(fname);
+            exit(1);
+        }
+        yyrestart(file);
+        yyparse();
+    }
     if (lex_err || syn_err) {
         return true;
     }
@@ -73,22 +80,42 @@ bool check() {
     return sem_err;
 }
 
-void gen(FILE *file, const char *fname) {
+void gen(const char *sfname, const char *irfname) {
     cst_print(croot, 0);
     cst_free(croot);
     ast_gen(root);
     ir_check(&prog->instrs);
-    ir_fun_print(file, prog);
-    fclose(file);
+
+    FOPEN(irfname, file, "w") {
+        if (!file) {
+            perror(irfname);
+            exit(1);
+        }
+        ir_fun_print(file, prog);
+    }
 
     LIST_ITER(prog, it) {
         cfg_t *cfg = cfg_build(it);
         LIST_APPEND(cfgs, cfg);
     }
+    FOPEN("./cfg.dot", file, "w") {
+        if (!file) {
+            perror("./cfg.dot");
+            exit(1);
+        }
+        cfg_fprint(file, sfname, cfgs);
+    }
 
-    FILE *fcfg = fopen("./cfg.dot", "w");
-    cfg_fprint(fcfg, fname, cfgs);
-    fclose(fcfg);
+    LIST_ITER(cfgs, it) {
+        optimize(it);
+    }
+    FOPEN("./opt-cfg.dot", file, "w") {
+        if (!file) {
+            perror("./opt-cfg.dot");
+            exit(1);
+        }
+        cfg_fprint(file, sfname, cfgs);
+    }
 }
 
 #define andThen ? (done()):
@@ -97,16 +124,10 @@ i32 main(i32 argc, char **argv) {
     if (argc <= 2) {
         return 1;
     }
-    FILE *fin = fopen(argv[1], "r");
-    if (!fin) {
-        perror(argv[1]);
-        return 1;
-    }
-    FILE *fout = fopen(argv[2], "w");
-    parse(fin)
+    parse(argv[1])
         andThen
         check()
             andThen
-                gen(fout, argv[1]);
+                gen(argv[1], argv[2]);
     return 0;
 }

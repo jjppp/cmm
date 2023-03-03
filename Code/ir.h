@@ -8,7 +8,6 @@
     F(IR_LABEL)  \
     F(IR_ASSIGN) \
     F(IR_BINARY) \
-    F(IR_UNARY)  \
     F(IR_DREF)   \
     F(IR_LOAD)   \
     F(IR_STORE)  \
@@ -27,7 +26,6 @@
     F(IR_LABEL, ARG)        \
     F(IR_ASSIGN, ARG)       \
     F(IR_BINARY, ARG)       \
-    F(IR_UNARY, ARG)        \
     F(IR_DREF, ARG)         \
     F(IR_LOAD, ARG)         \
     F(IR_STORE, ARG)        \
@@ -59,7 +57,11 @@ typedef enum {
 struct oprd_t {
     const char *name;
     oprd_kind_t kind;
-    u32         val, lineno;
+    union {
+        u32 val;
+        u32 id;
+    };
+    u32 lineno;
 };
 
 struct IR_t {

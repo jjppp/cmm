@@ -85,7 +85,7 @@ VISIT(EXPR_UNR) {
         }
         case OP_NEG: {
             ir_list result = ast_gen(node->sub);
-            ir_append(&result, ir_alloc(IR_UNARY, node->op, tar_var, result.var));
+            ir_append(&result, ir_alloc(IR_BINARY, OP_SUB, tar_var, lit_alloc(0), result.var));
             RETURN(result);
         }
         default: UNREACHABLE;

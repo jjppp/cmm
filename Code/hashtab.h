@@ -4,7 +4,7 @@
 #define MAX_TAB_SIZE 8192
 
 typedef struct hashent_t {
-    char *str;
+    char  str[MAX_SYM_LEN];
     void *ptr;
 } hashent_t;
 
