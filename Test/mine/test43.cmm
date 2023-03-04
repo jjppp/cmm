@@ -2,7 +2,7 @@ int main() {
     int n = read();
     int i = 2;
     while (i * 2 <= n) {
-        if (n % i == 0) {
+        if ((n / i) * i == n) {
             write(0);
             return 0;
         }

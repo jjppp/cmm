@@ -5,6 +5,7 @@
 #include "symtab.h"
 #include <stdarg.h>
 #include <stdio.h>
+#include <string.h>
 
 const char *IR_NAMES[] = {IR(STRING_LIST) "\0"};
 
@@ -166,6 +167,29 @@ ir_list ir_split(ir_list *list, IR_t *it) {
         swap(front, *list);
     }
     return front;
+}
+
+void ir_remove_mark(ir_list *list) {
+    LIST_ITER(list->head, it) {
+        while (it->next && it->next->mark) {
+            void *ptr = it->next;
+            if (it->next->next) {
+                it->next->next->prev = it;
+            }
+            it->next = it->next->next;
+            zfree(ptr);
+            list->size--;
+        }
+    }
+    if (list->head && list->head->mark) {
+        void *ptr = list->head;
+        if (list->head->next) {
+            list->head->next->prev = NULL;
+        }
+        list->head = list->head->next;
+        zfree(ptr);
+        list->size--;
+    }
 }
 
 void ir_check(ir_list *list) {

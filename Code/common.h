@@ -122,6 +122,10 @@ struct shared {
         }                                 \
         __length;                         \
     })
+#define LIST_REV_ITER(LIST, IT)    \
+    for (__auto_type(IT) = (LIST); \
+         (IT) != (void *) NULL;    \
+         (IT) = (IT)->prev)
 #define LIST_ITER(LIST, IT)        \
     for (__auto_type(IT) = (LIST); \
          (IT) != (void *) NULL;    \

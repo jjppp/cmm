@@ -21,6 +21,12 @@
     F(IR_READ)   \
     F(IR_WRITE)
 
+#define IR_PURE(F) \
+    F(IR_ASSIGN)   \
+    F(IR_BINARY)   \
+    F(IR_DREF)     \
+    F(IR_LOAD)
+
 #define IR_WITH_ARG(F, ARG) \
     F(IR_NULL, ARG)         \
     F(IR_LABEL, ARG)        \
@@ -72,6 +78,7 @@ struct IR_t {
     op_kind_t op;
     IR_t     *prev, *next, *jmpto;
     u32       id;
+    bool      mark;
 
     struct block_t *parent;
 };
@@ -99,6 +106,8 @@ void ir_append(ir_list *list, IR_t *ir);
 void ir_prepend(ir_list *list, IR_t *ir);
 
 void ir_concat(ir_list *front, const ir_list back);
+
+void ir_remove_mark(ir_list *list);
 
 ir_list ir_split(ir_list *list, IR_t *it);
 

@@ -86,7 +86,21 @@ static val_t unrtab_lookup(oprd_t oprd) {
     return (val_t) ent->ptr;
 }
 
+static bool abel(op_kind_t op) {
+    switch (op) {
+        case OP_ADD:
+        case OP_MUL:
+            return true;
+        default:
+            return false;
+    }
+    UNREACHABLE;
+}
+
 static val_t bintab_insert(op_kind_t op, val_t lhs, val_t rhs) {
+    if (abel(op) && lhs > rhs) {
+        swap(lhs, rhs);
+    }
     static char str[BUFSIZ];
     snprintf(str, sizeof(str), "%lu %u %lu", lhs, op, rhs);
     hashent_t *ent = hash_lookup(&hashtab, str);
@@ -96,6 +110,9 @@ static val_t bintab_insert(op_kind_t op, val_t lhs, val_t rhs) {
 }
 
 static val_t bintab_lookup(op_kind_t op, val_t lhs, val_t rhs) {
+    if (abel(op) && lhs > rhs) {
+        swap(lhs, rhs);
+    }
     static char str[BUFSIZ];
     snprintf(str, sizeof(str), "%lu %u %lu", lhs, op, rhs);
     hashent_t *ent = hash_lookup(&hashtab, str);
@@ -159,35 +176,64 @@ VISIT(IR_BINARY) {
 }
 
 VISIT(IR_DREF) {
-    TODO("lvn DREF");
+    val_t lhs = oprd_to_val(node->lhs);
+    if (cvar[lhs] != NULL) {
+        node->lhs = cvar[lhs]->var;
+    }
+    oprd_holds(node->tar, unrtab_insert(node->tar));
 }
 
 VISIT(IR_LOAD) {
-    TODO("lvn LOAD");
+    val_t lhs = oprd_to_val(node->lhs);
+    if (cvar[lhs] != NULL) {
+        node->lhs = cvar[lhs]->var;
+    }
+    oprd_holds(node->tar, unrtab_insert(node->tar));
 }
 
 VISIT(IR_STORE) {
-    TODO("lvn STORE");
+    val_t lhs = oprd_to_val(node->lhs);
+    if (cvar[lhs] != NULL) {
+        node->lhs = cvar[lhs]->var;
+    }
 }
 
 VISIT(IR_BRANCH) {
-    TODO("lvn BRANCH");
+    val_t lhs = oprd_to_val(node->lhs);
+    val_t rhs = oprd_to_val(node->rhs);
+    if (cvar[lhs] != NULL) {
+        node->lhs = cvar[lhs]->var;
+    }
+    if (cvar[rhs] != NULL) {
+        node->rhs = cvar[rhs]->var;
+    }
 }
 
 VISIT(IR_RETURN) {
-    TODO("lvn RETURN");
+    val_t expr = oprd_to_val(node->lhs);
+    if (cvar[expr] != NULL) {
+        node->lhs = cvar[expr]->var;
+    }
 }
 
 VISIT(IR_CALL) {
-    TODO("lvn CALL");
+    val_t expr = oprd_to_val(node->lhs);
+    if (cvar[expr] != NULL) {
+        node->lhs = cvar[expr]->var;
+    }
+    oprd_holds(node->tar, unrtab_insert(node->tar));
 }
 
 VISIT(IR_READ) {
-    TODO("lvn READ");
+    oprd_holds(node->tar, unrtab_insert(node->tar));
 }
 
 VISIT(IR_WRITE) {
-    TODO("lvn WRITE");
+    val_t expr = oprd_to_val(node->lhs);
+    if (cvar[expr] != NULL) {
+        node->lhs = cvar[expr]->var;
+    }
+    oprd_holds(node->tar, expr);
 }
 
 VISIT_UNDEF(IR_NULL);

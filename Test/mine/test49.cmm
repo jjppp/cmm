@@ -1,0 +1,8 @@
+int main() {
+    int y, a, b, c;
+    y = 8; // kills y
+    a = read();
+    b = a + y;
+    c = y + a;
+    return c * b;
+}

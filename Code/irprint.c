@@ -10,6 +10,9 @@ VISITOR_DEF(IR, print, RET_TYPE);
 static FILE *fout;
 
 static void ir_print_(IR_t *ir) {
+    if (ir->mark) {
+        fprintf(fout, "=> ");
+    }
     VISITOR_DISPATCH(IR, print, ir, NULL);
 }
 
