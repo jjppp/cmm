@@ -267,13 +267,15 @@ VISIT(EXPR_CALL) {
         call = ast_gen(node->expr);
         ir_append(&call, ir_alloc(IR_WRITE, tar_var, call.var));
     } else {
+        ir_list arglist = {0};
         LIST_ITER(node->expr, it) {
             ir_list arg = ast_gen(it);
-            ir_append(&arg, ir_alloc(IR_ARG, arg.var));
+            ir_append(&arglist, ir_alloc(IR_ARG, arg.var));
             // reverse order
             ir_concat(&arg, call);
             call = arg;
         }
+        ir_concat(&call, arglist);
         ir_append(&call, ir_alloc(IR_CALL, tar_var, node->str));
     }
     RETURN(call);
