@@ -98,6 +98,7 @@ IR_t *ir_alloc(ir_kind_t kind, ...) {
 }
 
 void ir_append(ir_list *list, IR_t *ir) {
+    ir_validate(list);
     if (list->size == 0) {
         list->head = list->tail = ir;
         ir->prev = ir->next = NULL;
@@ -110,9 +111,11 @@ void ir_append(ir_list *list, IR_t *ir) {
     }
     list->var = ir->tar;
     list->size++;
+    ir_validate(list);
 }
 
 void ir_prepend(ir_list *list, IR_t *ir) {
+    ir_validate(list);
     if (list->size == 0) {
         list->head = ir;
         list->tail = ir;
@@ -127,9 +130,12 @@ void ir_prepend(ir_list *list, IR_t *ir) {
         list->head       = ir;
     }
     list->size++;
+    ir_validate(list);
 }
 
 void ir_concat(ir_list *front, const ir_list back) {
+    ir_validate(front);
+    ir_validate(&back);
     if (back.size == 0) {
         return;
     }
@@ -146,9 +152,11 @@ void ir_concat(ir_list *front, const ir_list back) {
 
     front->tail = back.tail;
     front->var  = back.var;
+    ir_validate(front);
 }
 
 ir_list ir_split(ir_list *list, IR_t *it) {
+    ir_validate(list);
     ir_list front = {0};
     ASSERT(list != NULL, "split NULL list");
     ASSERT(it != NULL, "split NULL it");
@@ -166,30 +174,51 @@ ir_list ir_split(ir_list *list, IR_t *it) {
         it->prev       = NULL;
         swap(front, *list);
     }
+    ir_validate(list);
+    ir_validate(&front);
     return front;
 }
 
+void ir_validate(const ir_list *list) {
+    ASSERT(LIST_LENGTH(list->head) == list->size, "%u != %u", LIST_LENGTH(list->head), list->size);
+    IR_t *last = NULL;
+    LIST_ITER(list->head, it) {
+        last = it;
+    }
+    ASSERT(last == list->tail, "tail unreachable");
+    last = NULL;
+    LIST_REV_ITER(list->tail, it) {
+        last = it;
+    }
+    ASSERT(last == list->head, "head unreachable");
+}
+
 void ir_remove_mark(ir_list *list) {
+    ir_validate(list);
     LIST_ITER(list->head, it) {
         while (it->next && it->next->mark) {
-            void *ptr = it->next;
+            // void *ptr = it->next;
             if (it->next->next) {
                 it->next->next->prev = it;
             }
             it->next = it->next->next;
-            zfree(ptr);
+            // zfree(ptr);
             list->size--;
         }
     }
     if (list->head && list->head->mark) {
-        void *ptr = list->head;
+        // void *ptr = list->head;
         if (list->head->next) {
             list->head->next->prev = NULL;
         }
         list->head = list->head->next;
-        zfree(ptr);
+        // zfree(ptr);
         list->size--;
     }
+    for (list->tail = list->head; list->tail && list->tail->next;) {
+        list->tail = list->tail->next;
+    }
+    ir_validate(list);
 }
 
 void ir_check(ir_list *list) {

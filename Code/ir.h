@@ -107,6 +107,8 @@ void ir_prepend(ir_list *list, IR_t *ir);
 
 void ir_concat(ir_list *front, const ir_list back);
 
+void ir_validate(const ir_list *list);
+
 void ir_remove_mark(ir_list *list);
 
 ir_list ir_split(ir_list *list, IR_t *it);
