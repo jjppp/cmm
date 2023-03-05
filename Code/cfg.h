@@ -8,7 +8,12 @@ typedef struct edge_t  edge_t;
 typedef struct cfg_t   cfg_t;
 
 #define succ_iter(BLOCK, IT) LIST_ITER((BLOCK)->fedge, (IT))
+#define succ_foreach(BLOCK, FUN) \
+    LIST_ITER((BLOCK)->fedge, __it) { FUN(__it->to); }
+
 #define pred_iter(BLOCK, IT) LIST_ITER((BLOCK)->bedge, (IT))
+#define pred_foreach(BLOCK, FUN) \
+    LIST_ITER((BLOCK)->bedge, __it) { FUN(__it->to); }
 
 struct cfg_t {
     block_t *blocks, *entry, *exit;

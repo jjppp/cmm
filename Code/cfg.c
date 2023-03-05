@@ -7,6 +7,7 @@
 
 const static char *EDGE_NAMES[] = {
     EDGES(STRING_LIST) "\0"};
+static u32 blk_cnt;
 
 static edge_t *fedge_alloc(block_t *from, block_t *to, edge_kind_t kind) {
     edge_t *e = zalloc(sizeof(edge_t));
@@ -65,13 +66,12 @@ static inline bool is_fall(IR_t *ir) {
 }
 
 block_t *block_alloc(cfg_t *cfg, ir_list instrs) {
-    static u32 cnt = 1;
     ASSERT(instrs.size != 0, "empty block");
     block_t *ptr = zalloc(sizeof(block_t));
 
     ptr->next   = cfg->blocks;
     ptr->instrs = instrs;
-    ptr->id     = cnt++;
+    ptr->id     = blk_cnt++;
     LIST_ITER(instrs.head, it) {
         it->parent = ptr;
     }
@@ -90,6 +90,7 @@ cfg_t *cfg_build(ir_fun_t *fun) {
     ir_list instrs = fun->instrs;
     symcpy(cfg->str, fun->str);
     IR_t *done = ir_alloc(IR_LABEL);
+    blk_cnt    = 0;
 
     LIST_ITER(instrs.head, it) {
         if (is_start(it) || is_term(it->prev)) {
@@ -191,13 +192,19 @@ void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfgs) {
     fprintf(fout, "digraph program {\n");
     fprintf(fout, "label=\"%s\";\n", fname);
     fprintf(fout, "labeljust=l;\n");
+    u32 cnt = 0;
 
     LIST_ITER(cfgs, cfg) {
+        u32 *pid = zalloc(sizeof(u32) * cfg->nnode);
+        LIST_ITER(cfg->blocks, blk) {
+            pid[blk->id] = cnt++;
+        }
+
         fprintf(fout, "  subgraph cluster_%s {\n", cfg->str);
         fprintf(fout, "    label=\"%s\";\n", cfg->str);
         LIST_ITER(cfg->blocks, block) {
             fprintf(fout, "    %u [shape=box, xlabel=\"%u\", label=\"",
-                    block->id, block->id);
+                    pid[block->id], pid[block->id]);
             LIST_ITER(block->instrs.head, it) {
                 ir_print(fout, it);
             }
@@ -207,10 +214,11 @@ void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfgs) {
         LIST_ITER(cfg->blocks, block) {
             succ_iter(block, edge) {
                 fprintf(fout, "    %u -> %u[label=\"%s\"];\n",
-                        block->id, edge->to->id, EDGE_NAMES[edge->kind]);
+                        pid[block->id], pid[edge->to->id], EDGE_NAMES[edge->kind]);
             }
         }
         fprintf(fout, "    }\n");
+        zfree(pid);
     }
     fprintf(fout, "  }\n");
 }
