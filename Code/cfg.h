@@ -11,7 +11,7 @@ typedef struct cfg_t   cfg_t;
 #define pred_iter(BLOCK, IT) LIST_ITER((BLOCK)->bedge, (IT))
 
 struct cfg_t {
-    block_t *blocks;
+    block_t *blocks, *entry, *exit;
     cfg_t   *next;
 
     u32  nnode, nedge;
@@ -33,7 +33,7 @@ struct edge_t {
     char        str[MAX_SYM_LEN];
     edge_kind_t kind;
     block_t    *from, *to;
-    edge_t     *next;
+    edge_t     *next, *rev;
 };
 
 struct block_t {
@@ -41,10 +41,13 @@ struct block_t {
     ir_list  instrs;
     block_t *next;
     u32      id;
+    bool     mark;
 };
 
 void edge_insert(cfg_t *cfg, block_t *from, block_t *to, edge_kind_t kind);
 
 cfg_t *cfg_build(ir_fun_t *fun);
+
+ir_fun_t *cfg_destruct(cfg_t *cfg);
 
 void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfg);

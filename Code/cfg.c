@@ -19,19 +19,22 @@ static edge_t *fedge_alloc(block_t *from, block_t *to, edge_kind_t kind) {
     return e;
 }
 
-static edge_t *bedge_alloc(block_t *from, block_t *to) {
+static edge_t *bedge_alloc(edge_t *fedge) {
     edge_t *e = zalloc(sizeof(edge_t));
 
     *e = (edge_t){
-        .from = from,
-        .to   = to,
-        .next = from->bedge};
+        .kind = fedge->kind,
+        .from = fedge->to,
+        .to   = fedge->from,
+        .next = fedge->to->bedge,
+        .rev  = fedge};
     return e;
 }
 
 void edge_insert(cfg_t *cfg, block_t *from, block_t *to, edge_kind_t kind) {
-    from->fedge = fedge_alloc(from, to, kind);
-    to->bedge   = bedge_alloc(to, from);
+    from->fedge      = fedge_alloc(from, to, kind);
+    to->bedge        = bedge_alloc(from->fedge);
+    from->fedge->rev = to->bedge;
 }
 
 static inline bool is_term(IR_t *ir) {
@@ -75,6 +78,9 @@ block_t *block_alloc(cfg_t *cfg, ir_list instrs) {
 
     cfg->blocks = ptr;
     cfg->nnode++;
+    if (ptr->next == NULL) {
+        cfg->entry = ptr;
+    }
     return ptr;
 }
 
@@ -99,6 +105,7 @@ cfg_t *cfg_build(ir_fun_t *fun) {
         block_alloc(cfg, instrs);
     }
     done->parent = block_alloc(cfg, (ir_list){.head = done, .tail = done, .size = 1, .var = {0}});
+    cfg->exit    = done->parent;
 
     LIST_ITER(cfg->blocks, it) {
         IR_t *tail = it->instrs.tail;
@@ -125,6 +132,59 @@ cfg_t *cfg_build(ir_fun_t *fun) {
         }
     }
     return cfg;
+}
+
+static void dfs1(block_t *blk, ir_list *list) {
+    if (blk->mark) {
+        return;
+    }
+    blk->mark = true;
+    ir_concat(list, blk->instrs);
+    succ_iter(blk, e) {
+        if (e->kind == EDGE_THROUGH) {
+            dfs1(e->to, list);
+        }
+    }
+}
+
+static void dfs2(block_t *blk, ir_list *list) {
+    if (blk->mark) {
+        return;
+    }
+    blk->mark = true;
+    ir_concat(list, blk->instrs);
+    succ_iter(blk, e) {
+        dfs2(e->to, list);
+    }
+}
+
+static bool is_leading(block_t *blk) {
+    pred_iter(blk, e) {
+        if (e->kind == EDGE_THROUGH) {
+            return false;
+        }
+    }
+    return true;
+}
+
+ir_fun_t *cfg_destruct(cfg_t *cfg) { // TODO: mem leak
+    ir_fun_t *fun    = zalloc(sizeof(ir_fun_t));
+    ir_list  *instrs = &fun->instrs;
+    symcpy(fun->str, cfg->str);
+    LIST_ITER(cfg->blocks, blk) {
+        blk->mark = false;
+    }
+    cfg->exit->mark = true;
+    dfs1(cfg->entry, instrs);
+    LIST_ITER(cfg->blocks, blk) {
+        if (is_leading(blk)) {
+            dfs1(blk, instrs);
+        }
+    }
+    LIST_ITER(cfg->blocks, blk) {
+        dfs2(blk, instrs);
+    }
+    return fun;
 }
 
 void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfgs) {

@@ -113,30 +113,32 @@ VISIT(IR_ASSIGN) {
 }
 
 VISIT(IR_BINARY) {
+    out->used[node->tar.id] = false;
     if (node->lhs.kind == OPRD_VAR) {
         out->used[node->lhs.id] = true;
     }
     if (node->rhs.kind == OPRD_VAR) {
         out->used[node->rhs.id] = true;
     }
-    out->used[node->tar.id] = false;
 }
 
 VISIT(IR_DREF) {
-    out->used[node->lhs.id] = true;
     out->used[node->tar.id] = false;
+    out->used[node->lhs.id] = true;
 }
 
 VISIT(IR_LOAD) {
-    out->used[node->lhs.id] = true;
     out->used[node->tar.id] = false;
+    out->used[node->lhs.id] = true;
 }
 
 VISIT(IR_STORE) {
+    if (node->tar.kind == OPRD_VAR) {
+        out->used[node->tar.id] = true;
+    }
     if (node->lhs.kind == OPRD_VAR) {
         out->used[node->lhs.id] = true;
     }
-    out->used[node->tar.id] = false;
 }
 
 VISIT(IR_BRANCH) {
@@ -155,10 +157,10 @@ VISIT(IR_RETURN) {
 }
 
 VISIT(IR_CALL) {
+    out->used[node->tar.id] = false;
     if (node->lhs.kind == OPRD_VAR) {
         out->used[node->lhs.id] = true;
     }
-    out->used[node->tar.id] = false;
 }
 
 VISIT(IR_READ) {
@@ -166,10 +168,10 @@ VISIT(IR_READ) {
 }
 
 VISIT(IR_WRITE) {
+    out->used[node->tar.id] = false;
     if (node->lhs.kind == OPRD_VAR) {
         out->used[node->lhs.id] = true;
     }
-    out->used[node->tar.id] = false;
 }
 
 VISIT(IR_DEC) {

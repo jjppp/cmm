@@ -13,3 +13,9 @@ int f(int n) {
         return g(f(n - 1), f(n - 2));
     }
 }
+
+int main() {
+    int n = read();
+    write(f(n));
+    return 0;
+}

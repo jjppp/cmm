@@ -80,15 +80,15 @@ bool check() {
     return sem_err;
 }
 
-void gen(const char *sfname, const char *irfname) {
+void gen(const char *sfname) {
     cst_print(croot, 0);
     cst_free(croot);
     ast_gen(root);
     ir_check(&prog->instrs);
 
-    FOPEN(irfname, file, "w") {
+    FOPEN("./out.ir", file, "w") {
         if (!file) {
-            perror(irfname);
+            perror("./out.ir");
             exit(1);
         }
         ir_fun_print(file, prog);
@@ -106,9 +106,7 @@ void gen(const char *sfname, const char *irfname) {
         cfg_fprint(file, sfname, cfgs);
     }
 
-    LIST_ITER(cfgs, it) {
-        optimize(it);
-    }
+    LIST_FOREACH(cfgs, optimize);
     FOPEN("./opt-cfg.dot", file, "w") {
         if (!file) {
             perror("./opt-cfg.dot");
@@ -116,18 +114,31 @@ void gen(const char *sfname, const char *irfname) {
         }
         cfg_fprint(file, sfname, cfgs);
     }
+
+    prog = NULL; // TODO: mem leak
+    LIST_ITER(cfgs, cfg) {
+        ir_fun_t *fun = cfg_destruct(cfg);
+        LIST_APPEND(prog, fun);
+    }
+    FOPEN("./opt-out.ir", file, "w") {
+        if (!file) {
+            perror("./opt-out.ir");
+            exit(1);
+        }
+        ir_fun_print(file, prog);
+    }
 }
 
 #define andThen ? (done()):
 
 i32 main(i32 argc, char **argv) {
-    if (argc <= 2) {
+    if (argc <= 1) {
         return 1;
     }
     parse(argv[1])
         andThen
         check()
             andThen
-                gen(argv[1], argv[2]);
+                gen(argv[1]);
     return 0;
 }

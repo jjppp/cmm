@@ -47,6 +47,9 @@ clean:
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
 	rm -f *.o
 	rm -f test-symtab test-visitor
+	rm -f *.jpg
+	rm -f *.dot
+	rm -f *.ir
 	rm -f *~
 submit: clean
 	zip -r ../201250101.zip ../Code ../README.md ../report.zip
