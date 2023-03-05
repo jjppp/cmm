@@ -18,13 +18,14 @@ static bool     inq[MAX_INSTR];
 static block_t *queue[MAX_INSTR];
 static struct data_t {
     bool used[MAX_INSTR];
-} data[MAX_INSTR];
+} data_in[MAX_INSTR], data_out[MAX_INSTR];
 static u32 head, tail;
 
 static void live_init() { // TODO: mem leak
     memset(inq, 0, sizeof(inq));
     memset(queue, 0, sizeof(queue));
-    memset(data, 0, sizeof(data));
+    memset(data_in, 0, sizeof(data_in));
+    memset(data_out, 0, sizeof(data_out));
     head = tail = 0;
 }
 
@@ -50,7 +51,7 @@ static void dead_check(IR_t *node, data_t *data) {
 
 static void merge(data_t *into, data_t *rhs) {
     for (u32 i = 0; i < MAX_INSTR; i++) {
-        into->used[i] |= into->used[i];
+        into->used[i] |= rhs->used[i];
     }
 }
 
@@ -64,25 +65,25 @@ void do_live(cfg_t *cfg) {
     live_init();
     LIST_FOREACH(cfg->blocks, push);
 
+    data_t *newd = zalloc(sizeof(data_t));
     while (!empty()) {
-        block_t *blk  = pop();
-        data_t  *newd = zalloc(sizeof(data_t));
-        // memset(data[blk->id].used, 0, sizeof(data[blk->id].used));
+        block_t *blk = pop();
         succ_iter(blk, e) {
-            merge(newd, &data[e->to->id]);
+            merge(&data_in[blk->id], &data_out[e->to->id]);
         }
+        memcpy(newd, &data_in[blk->id], sizeof(data_t));
         transfer(blk, newd);
-        if (memcmp(&data[blk->id], newd, sizeof(data_t))) {
-            memmove(&data[blk->id], newd, sizeof(data_t));
+        if (memcmp(&data_out[blk->id], newd, sizeof(data_t))) {
+            memmove(&data_out[blk->id], newd, sizeof(data_t));
             pred_iter(blk, e) {
                 push(e->to);
             }
         }
-        zfree(newd);
     }
+    zfree(newd);
 
     LIST_ITER(cfg->blocks, blk) {
-        data_t *pd = &data[blk->id];
+        data_t *pd = &data_in[blk->id];
         LIST_REV_ITER(blk->instrs.tail, ir) {
             switch (ir->kind) {
                 IR_PURE(CASE) {
@@ -168,6 +169,7 @@ VISIT(IR_WRITE) {
     if (node->lhs.kind == OPRD_VAR) {
         out->used[node->lhs.id] = true;
     }
+    out->used[node->tar.id] = false;
 }
 
 VISIT(IR_DEC) {
