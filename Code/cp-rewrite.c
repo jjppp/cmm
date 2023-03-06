@@ -6,7 +6,7 @@
 VISITOR_DEF(IR, cp_rewrite, RET_TYPE);
 
 void cp_rewrite(IR_t *ir, cp_data_t *out) {
-    ASSERT(out->super.magic == CP_DATA_MAGIC, "data magic");
+    ASSERT(out->super.magic == MAGIC, "data magic");
     VISITOR_DISPATCH(IR, cp_rewrite, ir, out);
 }
 

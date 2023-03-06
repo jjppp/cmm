@@ -64,10 +64,12 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
-        df->data_init(newd);
-        succ_iter(blk, e) {
-            df->merge(newd, df->data_at(df->data_out, e->to->id));
-            data_validate(newd);
+        if (blk->fedge) {
+            df->data_init(newd);
+            succ_iter(blk, e) {
+                df->merge(newd, df->data_at(df->data_out, e->to->id));
+                data_validate(newd);
+            }
         }
         memcpy(df->data_at(df->data_in, blk->id), newd, df->DSIZE);
         df->transfer_block(blk, newd);
@@ -90,9 +92,11 @@ static void dataflow_fsolve(cfg_t *cfg) { // forward
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
-        df->data_init(df->data_at(df->data_in, blk->id));
-        pred_iter(blk, e) {
-            df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
+        if (blk->bedge) {
+            df->data_init(df->data_at(df->data_in, blk->id));
+            pred_iter(blk, e) {
+                df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
+            }
         }
         memcpy(newd, df->data_at(df->data_in, blk->id), df->DSIZE);
         df->transfer_block(blk, newd);

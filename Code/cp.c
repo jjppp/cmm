@@ -10,12 +10,12 @@ VISITOR_DEF(IR, cp, RET_TYPE);
 static fact_t NAC = (fact_t){.kind = FACT_NAC};
 
 static void const_prop(IR_t *node, data_t *data) {
-    ASSERT(data->magic == CP_DATA_MAGIC, "data magic");
+    ASSERT(data->magic == MAGIC, "data magic");
     VISITOR_DISPATCH(IR, cp, node, data);
 }
 
 static void data_init(cp_data_t *data) {
-    data->super.magic = CP_DATA_MAGIC;
+    data->super.magic = MAGIC;
     memset(data->fact, 0, sizeof(data->fact));
 }
 
@@ -51,7 +51,7 @@ static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
 }
 
 static void merge(cp_data_t *into, const cp_data_t *rhs) {
-    ASSERT(rhs->super.magic == CP_DATA_MAGIC, "rhs magic");
+    ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     for (u32 i = 0; i < MAX_VARID; i++) {
         into->fact[i] = fact_merge(into->fact[i], rhs->fact[i]);
     }
@@ -69,7 +69,7 @@ void do_cp(cfg_t *cfg) {
         .transfer_instr = const_prop,
         .transfer_block = NULL,
         .DSIZE          = sizeof(cp_data_t),
-        .DMAGIC         = CP_DATA_MAGIC,
+        .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_at        = data_at,
         .data_in        = zalloc(sizeof(cp_data_t) * cfg->nnode),

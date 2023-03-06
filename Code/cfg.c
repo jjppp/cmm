@@ -84,6 +84,12 @@ block_t *block_alloc(cfg_t *cfg, ir_list instrs) {
     return ptr;
 }
 
+static void block_free(block_t *blk) {
+    ir_list_free(&blk->instrs);
+    // TODO: mem leak
+    zfree(blk);
+}
+
 cfg_t *cfg_build(ir_fun_t *fun) {
     cfg_t *cfg     = zalloc(sizeof(cfg_t));
     *cfg           = (cfg_t){0};
@@ -186,6 +192,21 @@ ir_fun_t *cfg_destruct(cfg_t *cfg) { // TODO: mem leak
         dfs2(blk, instrs);
     }
     return fun;
+}
+
+void cfg_remove_mark(cfg_t *cfg) {
+    LIST_ITER(cfg->blocks, blk) {
+        while (blk->next && blk->next->mark) {
+            block_t *next = blk->next;
+            blk->next     = next->next;
+            block_free(next);
+        }
+    }
+    if (cfg->blocks && cfg->blocks->mark) {
+        block_t *next = cfg->blocks;
+        cfg->blocks   = next->next;
+        block_free(next);
+    }
 }
 
 void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfgs) {

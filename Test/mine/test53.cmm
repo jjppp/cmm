@@ -1,0 +1,10 @@
+int main() {
+    int x;
+    if (2 > 3) {
+        return 0;
+        x = read();
+        x = x + 5;
+        return x;
+    }
+    return 0;
+}

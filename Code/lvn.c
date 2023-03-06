@@ -1,17 +1,12 @@
-#include "ast.h"
-#include "cfg.h"
-#include "common.h"
-#include "ir.h"
 #include "visitor.h"
 #include "symtab.h"
+#include "opt.h"
 #include <stdio.h>
 #include <string.h>
 
 #define RET_TYPE va_list
 #define ARG ap
 VISITOR_DEF(IR, lvn, RET_TYPE);
-
-#define MAX_VAL 65536 // should be enough
 
 typedef uptr          val_t;
 typedef struct cvar_t cvar_t;

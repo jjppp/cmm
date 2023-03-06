@@ -1,16 +1,12 @@
-#include "ast.h"
-#include "cfg.h"
 #include "common.h"
 #include "dataflow.h"
-#include "ir.h"
 #include "visitor.h"
-#include "symtab.h"
+#include "opt.h"
 #include <stdio.h>
 #include <string.h>
 
 typedef struct live_data_t live_data_t;
-#define MAX_VARID 8192 // should be enough
-#define LIVE_DATA_MAGIC 0x114514
+#define MAGIC 0x114514
 #define RET_TYPE live_data_t *
 #define ARG out
 VISITOR_DEF(IR, live, RET_TYPE);
@@ -25,12 +21,12 @@ static void dead_check(IR_t *node, data_t *data) {
 }
 
 static void data_init(live_data_t *data) {
-    data->super.magic = LIVE_DATA_MAGIC;
+    data->super.magic = MAGIC;
     memset(data->used, 0, sizeof(data->used));
 }
 
 static void merge(live_data_t *into, const live_data_t *rhs) {
-    ASSERT(rhs->super.magic == LIVE_DATA_MAGIC, "rhs magic");
+    ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     for (u32 i = 0; i < MAX_VARID; i++) {
         into->used[i] |= rhs->used[i];
     }
@@ -59,7 +55,7 @@ void do_live(cfg_t *cfg) {
         .transfer_instr = dead_check,
         .transfer_block = NULL,
         .DSIZE          = sizeof(live_data_t),
-        .DMAGIC         = LIVE_DATA_MAGIC,
+        .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_at        = data_at,
         .data_in        = zalloc(sizeof(live_data_t) * cfg->nnode),

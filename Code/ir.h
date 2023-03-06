@@ -128,6 +128,8 @@ IR(IR_EXTEND);
 
 void ir_fun_print(FILE *file, ir_fun_t *fun);
 
+void ir_list_free(ir_list *list);
+
 void ir_print(FILE *file, IR_t *ir);
 
 IR_t *ir_alloc(ir_kind_t kind, ...);

@@ -99,6 +99,20 @@ void chain_resolve(chain_t **chain, IR_t *ir) {
 #define ARG ap
 VISITOR_DEF(IR, new, RET_TYPE);
 
+void ir_list_free(ir_list *list) {
+    chain_resolve(&list->tru, list->head);
+    chain_resolve(&list->fls, list->head);
+    LIST_ITER(list->head, it) {
+        if (it->next) {
+            zfree(it->next);
+        }
+    }
+    zfree(list->head);
+    list->head = NULL;
+    list->tail = NULL;
+    list->size = 0;
+}
+
 IR_t *ir_alloc(ir_kind_t kind, ...) {
     static u32 cnt = 0;
 

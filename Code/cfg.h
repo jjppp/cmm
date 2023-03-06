@@ -56,3 +56,5 @@ cfg_t *cfg_build(ir_fun_t *fun);
 ir_fun_t *cfg_destruct(cfg_t *cfg);
 
 void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfg);
+
+void cfg_remove_mark(cfg_t *cfg);
