@@ -35,6 +35,20 @@ static void lvn_init() { // TODO: mem leak
     memset(holding, 0, sizeof(cvar));
 }
 
+static void cvar_free(cvar_t *cv) {
+    if (!cv) {
+        return;
+    }
+    cvar_free(cv->next);
+    free(cv);
+}
+
+static void lvn_fini() {
+    for (u32 i = 0; i < MAX_VAL; i++) {
+        cvar_free(cvar[i]);
+    }
+}
+
 void do_lvn(cfg_t *cfg) {
     LIST_ITER(cfg->blocks, blk) {
         LIST_ITER(blk->instrs.head, instr) {
@@ -42,6 +56,7 @@ void do_lvn(cfg_t *cfg) {
             LIST_ITER(instr, it) {
                 VISITOR_DISPATCH(IR, lvn, it, NULL);
             }
+            lvn_fini();
         }
     }
 }

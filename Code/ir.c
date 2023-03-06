@@ -214,22 +214,22 @@ void ir_remove_mark(ir_list *list) {
     ir_validate(list);
     LIST_ITER(list->head, it) {
         while (it->next && it->next->mark) {
-            // void *ptr = it->next;
+            void *ptr = it->next;
             if (it->next->next) {
                 it->next->next->prev = it;
             }
             it->next = it->next->next;
-            // zfree(ptr);
+            zfree(ptr);
             list->size--;
         }
     }
     if (list->head && list->head->mark) {
-        // void *ptr = list->head;
+        void *ptr = list->head;
         if (list->head->next) {
             list->head->next->prev = NULL;
         }
         list->head = list->head->next;
-        // zfree(ptr);
+        zfree(ptr);
         list->size--;
     }
     for (list->tail = list->head; list->tail && list->tail->next;) {
