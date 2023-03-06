@@ -138,6 +138,8 @@ oprd_t var_alloc(const char *name, u32 lineno);
 
 oprd_t lit_alloc(u32 value);
 
+void ir_fun_free(ir_fun_t *fun);
+
 char *oprd_to_str(oprd_t oprd);
 
 ir_list ast_gen(AST_t *node);

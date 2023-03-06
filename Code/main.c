@@ -115,7 +115,8 @@ void gen(const char *sfname) {
         cfg_fprint(file, sfname, cfgs);
     }
 
-    prog = NULL; // TODO: mem leak
+    ir_fun_free(prog);
+    prog = NULL;
     LIST_ITER(cfgs, cfg) {
         ir_fun_t *fun = cfg_destruct(cfg);
         LIST_APPEND(prog, fun);

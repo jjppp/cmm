@@ -54,6 +54,14 @@ char *oprd_to_str(oprd_t oprd) {
     return buf;
 }
 
+void ir_fun_free(ir_fun_t *fun) {
+    if (!fun) {
+        return;
+    }
+    ir_fun_free(fun->next);
+    zfree(fun);
+}
+
 oprd_t lit_alloc(u32 value) {
     return (oprd_t){
         .kind = OPRD_LIT,
@@ -71,10 +79,19 @@ void chain_insert(chain_t **chain, IR_t *ir) {
     chain_merge(chain, node);
 }
 
+static void chain_free(chain_t *chain) {
+    if (!chain) {
+        return;
+    }
+    chain_free(chain->next);
+    zfree(chain);
+}
+
 void chain_resolve(chain_t **chain, IR_t *ir) {
     LIST_ITER(*chain, it) {
         it->ir->jmpto = ir;
     }
+    chain_free(*chain);
     *chain = NULL; // TODO: mem leak
 }
 
