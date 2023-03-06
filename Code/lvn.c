@@ -11,7 +11,7 @@
 #define ARG ap
 VISITOR_DEF(IR, lvn, RET_TYPE);
 
-#define MAX_VAL 8192 // should be enough
+#define MAX_VAL 65536 // should be enough
 
 typedef uptr          val_t;
 typedef struct cvar_t cvar_t;
@@ -47,6 +47,7 @@ void do_lvn(cfg_t *cfg) {
 }
 
 static void cvar_insert(val_t val, oprd_t var) {
+    ASSERT(val < MAX_VAL, "cvar overflow");
     cvar_t *cp = zalloc(sizeof(cvar_t));
     LIST_APPEND(cvar[val], cp);
     *cp = (cvar_t){

@@ -1,0 +1,9 @@
+int main() {
+    int x = 2, y = 5;
+    int n = read(), m = 0;
+    if (x < y) {
+        int z = x * y;
+        write(z); // should be 10
+    }
+    return n * m;
+}

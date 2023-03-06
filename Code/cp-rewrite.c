@@ -6,6 +6,7 @@
 VISITOR_DEF(IR, cp_rewrite, RET_TYPE);
 
 void cp_rewrite(IR_t *ir, cp_data_t *out) {
+    ASSERT(out->super.magic == CP_DATA_MAGIC, "data magic");
     VISITOR_DISPATCH(IR, cp_rewrite, ir, out);
 }
 
@@ -23,16 +24,16 @@ VISIT(IR_BINARY) {
 }
 
 VISIT(IR_BRANCH) {
-    if (IS_CONST(lhs)) {
+    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
         node->lhs = lit_alloc(FACT_TAR(lhs).val);
     }
-    if (IS_CONST(rhs)) {
+    if (node->rhs.kind == OPRD_VAR && IS_CONST(rhs)) {
         node->rhs = lit_alloc(FACT_TAR(rhs).val);
     }
 }
 
 VISIT(IR_RETURN) {
-    if (IS_CONST(lhs)) {
+    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
         node->lhs = lit_alloc(FACT_TAR(lhs).val);
     }
 }

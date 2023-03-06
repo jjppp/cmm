@@ -48,6 +48,7 @@ static void kill(live_data_t *data, oprd_t oprd) {
 }
 
 static void *data_at(void *ptr, u32 index) {
+    ASSERT(index < MAX_VARID, "data overflow");
     return &(((live_data_t *) ptr)[index]);
 }
 
