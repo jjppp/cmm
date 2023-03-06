@@ -4,7 +4,8 @@
 
 #define LOCAL_OPT(F) \
     F(lvn)           \
-    F(live)
+    F(live)          \
+    F(cp)
 
 #define OPT_REGISTER(OPT) extern void do_##OPT(cfg_t *cfg);
 #define OPT_EXECUTE(OPT) do_##OPT(cfg);
