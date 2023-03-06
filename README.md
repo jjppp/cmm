@@ -40,21 +40,24 @@ Executable target file.
 
 ## Analyses
 
-- [ ] Live Variables
+- [X] Live Variables
+- [X] Dominators
 
 ## AST Opt
 
-- [ ] 
+- [ ] Constant Folding
 
 ## Local Opt
 
-- [ ] Local Value Numbering
+- [X] Local Value Numbering
 
 ## Global Opt
 
-- [ ] Dead Code Elimination
+- [X] Dead Code Elimination
+- [X] Constant Propagation
 
 ## Miscellaneous
 
+- [ ] Generic Set Container
 - [ ] Better Comments
 - [ ] Better Tests
