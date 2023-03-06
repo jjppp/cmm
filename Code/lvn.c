@@ -236,10 +236,16 @@ VISIT(IR_WRITE) {
     oprd_holds(node->tar, expr);
 }
 
+VISIT(IR_ARG) {
+    val_t expr = oprd_to_val(node->lhs);
+    if (cvar[expr] != NULL) {
+        node->lhs = cvar[expr]->var;
+    }
+}
+
 VISIT_UNDEF(IR_NULL);
 
 VISIT_EMPTY(IR_GOTO);
 VISIT_EMPTY(IR_DEC);
-VISIT_EMPTY(IR_ARG);
 VISIT_EMPTY(IR_PARAM);
 VISIT_EMPTY(IR_LABEL);
