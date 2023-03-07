@@ -38,16 +38,31 @@ VISIT(IR_RETURN) {
     }
 }
 
+VISIT(IR_ARG) {
+    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
+        node->lhs = lit_alloc(FACT_TAR(lhs).val);
+    }
+}
+
+VISIT(IR_WRITE) {
+    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
+        node->lhs = lit_alloc(FACT_TAR(lhs).val);
+    }
+}
+
+VISIT(IR_STORE) {
+    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
+        node->lhs = lit_alloc(FACT_TAR(lhs).val);
+    }
+}
+
 VISIT_UNDEF(IR_NULL);
 
 VISIT_EMPTY(IR_DREF);
 VISIT_EMPTY(IR_LOAD);
 VISIT_EMPTY(IR_CALL);
 VISIT_EMPTY(IR_READ);
-VISIT_EMPTY(IR_WRITE);
 VISIT_EMPTY(IR_DEC);
 VISIT_EMPTY(IR_PARAM);
 VISIT_EMPTY(IR_GOTO);
 VISIT_EMPTY(IR_LABEL);
-VISIT_EMPTY(IR_STORE);
-VISIT_EMPTY(IR_ARG);
