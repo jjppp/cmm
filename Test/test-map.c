@@ -38,18 +38,32 @@ static void test_as_array() {
     map_insert(&map, (void *) 4, (void *) 1);
     ASSERT(map_find(&map, (void *) 4) == (void *) 1, "insert failed");
 
-    map_iter_t iter;
-    map_iter_init(&map, &iter);
-    for (mapent_t it = map_iter_next(&iter);
-         it.val != NULL;
-         it = map_iter_next(&iter)) {
+    map_iter(&map, it) {
         printf("%lu", (uptr) it.val);
     }
+    puts("");
+}
+
+static void test_set() {
+    set_t set;
+    set_init(&set, cmp);
+
+    set_insert(&set, (void *) 1);
+    set_iter(&set, it) printf("%lu ", (uptr) it.val);
+    puts("");
+    set_insert(&set, (void *) 4);
+    set_iter(&set, it) printf("%lu ", (uptr) it.val);
+    puts("");
+    set_insert(&set, (void *) 2);
+
+    ASSERT(set_contains(&set, (void *) 2), "missing 2");
+    set_iter(&set, it) printf("%lu ", (uptr) it.val);
     puts("");
 }
 
 int main() {
     test_insert();
     test_as_array();
+    test_set();
     puts("PASSED");
 }

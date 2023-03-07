@@ -20,6 +20,9 @@ struct dataflow {
     void (*solve)(cfg_t *cfg);
     void (*data_init)(data_t *data);
     void *(*data_at)(void *base, u32 index);
+    bool (*data_eq)(data_t *lhs, data_t *rhs);
+    void (*data_mov)(data_t *lhs, data_t *rhs);
+    void (*data_cpy)(data_t *lhs, data_t *rhs);
     void    *data_in, *data_out;
     df_dir_t dir;
     u32      DSIZE, DMAGIC;

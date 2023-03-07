@@ -1,5 +1,6 @@
 #include "common.h"
 #include "dataflow.h"
+#include "map.h"
 #include "visitor.h"
 #include "opt.h"
 #include <stdio.h>
@@ -13,7 +14,7 @@ VISITOR_DEF(IR, live, RET_TYPE);
 
 struct live_data_t {
     EXTENDS(data_t);
-    bool used[MAX_VARID];
+    set_t used;
 };
 
 static void dead_check(IR_t *node, data_t *data) {
@@ -22,30 +23,41 @@ static void dead_check(IR_t *node, data_t *data) {
 
 static void data_init(live_data_t *data) {
     data->super.magic = MAGIC;
-    memset(data->used, 0, sizeof(data->used));
+    set_init(&data->used, oprd_cmp);
 }
 
 static void merge(live_data_t *into, const live_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
-    for (u32 i = 0; i < MAX_VARID; i++) {
-        into->used[i] |= rhs->used[i];
-    }
+    set_merge(&into->used, &rhs->used);
 }
 
 static void gen(live_data_t *data, oprd_t oprd) {
     if (oprd.kind == OPRD_VAR) {
-        data->used[oprd.id] = true;
+        set_insert(&data->used, (void *) oprd.id);
     }
 }
 
 static void kill(live_data_t *data, oprd_t oprd) {
     ASSERT(oprd.kind == OPRD_VAR, "killed OPRD_LIT");
-    data->used[oprd.id] = false;
+    set_remove(&data->used, (void *) oprd.id);
 }
 
 static void *data_at(void *ptr, u32 index) {
-    ASSERT(index < MAX_VARID, "data overflow");
     return &(((live_data_t *) ptr)[index]);
+}
+
+static bool data_eq(data_t *lhs, data_t *rhs) {
+    return set_eq(
+        &((live_data_t *) lhs)->used,
+        &((live_data_t *) rhs)->used);
+}
+
+static void data_cpy(data_t *dst, data_t *src) {
+    set_cpy(&((live_data_t *) dst)->used, &((live_data_t *) src)->used);
+}
+
+static void data_mov(data_t *dst, data_t *src) {
+    data_cpy(dst, src);
 }
 
 void do_live(cfg_t *cfg) {
@@ -58,6 +70,9 @@ void do_live(cfg_t *cfg) {
         .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_at        = data_at,
+        .data_eq        = data_eq,
+        .data_mov       = data_mov,
+        .data_cpy       = data_cpy,
         .data_in        = zalloc(sizeof(live_data_t) * cfg->nnode),
         .data_out       = zalloc(sizeof(live_data_t) * cfg->nnode)};
     LIST_ITER(cfg->blocks, blk) {
@@ -72,7 +87,7 @@ void do_live(cfg_t *cfg) {
         LIST_REV_ITER(blk->instrs.tail, ir) {
             switch (ir->kind) {
                 IR_PURE(CASE) {
-                    if (!pd->used[ir->tar.id]) {
+                    if (!set_contains(&pd->used, (void *) ir->tar.id)) {
                         ir->mark = true;
                     }
                     break;

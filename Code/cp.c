@@ -1,5 +1,8 @@
 #include "cfg.h"
+#include "common.h"
 #include "cp.h"
+#include "ir.h"
+#include "map.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -16,7 +19,7 @@ static void const_prop(IR_t *node, data_t *data) {
 
 static void data_init(cp_data_t *data) {
     data->super.magic = MAGIC;
-    memset(data->fact, 0, sizeof(data->fact));
+    map_init(&data->facts, oprd_cmp);
 }
 
 static fact_t const_alloc(u32 val) {
@@ -50,16 +53,37 @@ static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
     UNREACHABLE;
 }
 
+// This is really ugly, but hopefully it works...
 static void merge(cp_data_t *into, const cp_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
-    for (u32 i = 0; i < MAX_VARID; i++) {
-        into->fact[i] = fact_merge(into->fact[i], rhs->fact[i]);
+    map_iter(&rhs->facts, it) {
+        void *rep = map_find(&into->facts, it.key);
+        if (!rep) {
+            map_insert(&into->facts, it.key, it.val);
+        } else {
+            fact_t fact = (fact_t){.rep = (uptr) rep};
+            map_insert(&into->facts, it.key, (void *) fact_merge(fact, (fact_t){.rep = (uptr) it.val}).rep);
+        }
     }
 }
 
 static void *data_at(void *ptr, u32 index) {
     ASSERT(index < MAX_VARID, "data overflow");
     return &(((cp_data_t *) ptr)[index]);
+}
+
+static bool data_eq(data_t *lhs, data_t *rhs) {
+    return map_eq(
+        &((cp_data_t *) lhs)->facts,
+        &((cp_data_t *) rhs)->facts);
+}
+
+static void data_cpy(data_t *dst, data_t *src) {
+    map_cpy(&((cp_data_t *) dst)->facts, &((cp_data_t *) src)->facts);
+}
+
+static void data_mov(data_t *dst, data_t *src) {
+    data_cpy(dst, src);
 }
 
 void do_cp(cfg_t *cfg) {
@@ -72,6 +96,9 @@ void do_cp(cfg_t *cfg) {
         .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_at        = data_at,
+        .data_eq        = data_eq,
+        .data_cpy       = data_cpy,
+        .data_mov       = data_mov,
         .data_in        = zalloc(sizeof(cp_data_t) * cfg->nnode),
         .data_out       = zalloc(sizeof(cp_data_t) * cfg->nnode)};
     LIST_ITER(cfg->blocks, blk) {
@@ -93,40 +120,52 @@ void do_cp(cfg_t *cfg) {
     zfree(df.data_out);
 }
 
+void fact_insert(cp_data_t *out, oprd_t oprd, fact_t fact) {
+    map_insert(&out->facts, (void *) oprd.id, (void *) fact.rep);
+}
+
+fact_t fact_get(cp_data_t *out, oprd_t oprd) {
+    return (fact_t){.rep = (uptr) map_find(&out->facts, (void *) oprd.id)};
+}
+
 VISIT(IR_ASSIGN) {
-    FACT_TAR(tar) = FACT(lhs);
+    fact_insert(out, node->tar, fact_get(out, node->lhs));
 }
 
 VISIT(IR_BINARY) {
-    FACT_TAR(tar) = fact_compute(node->op, FACT(lhs), FACT(rhs));
+    fact_insert(out, node->tar,
+                fact_compute(
+                    node->op,
+                    fact_get(out, node->lhs),
+                    fact_get(out, node->rhs)));
 }
 
 VISIT(IR_DREF) {
-    FACT_TAR(tar) = NAC;
+    fact_insert(out, node->tar, NAC);
 }
 
 VISIT(IR_LOAD) {
-    FACT_TAR(tar) = NAC;
+    fact_insert(out, node->tar, NAC);
 }
 
 VISIT(IR_CALL) {
-    FACT_TAR(tar) = NAC;
+    fact_insert(out, node->tar, NAC);
 }
 
 VISIT(IR_READ) {
-    FACT_TAR(tar) = NAC;
+    fact_insert(out, node->tar, NAC);
 }
 
 VISIT(IR_WRITE) {
-    FACT_TAR(tar) = const_alloc(0);
+    fact_insert(out, node->tar, const_alloc(0));
 }
 
 VISIT(IR_DEC) {
-    FACT_TAR(tar) = NAC;
+    fact_insert(out, node->tar, NAC);
 }
 
 VISIT(IR_PARAM) { // intra-procedural, safe
-    FACT_TAR(lhs) = NAC;
+    fact_insert(out, node->lhs, NAC);
 }
 
 VISIT_UNDEF(IR_NULL);

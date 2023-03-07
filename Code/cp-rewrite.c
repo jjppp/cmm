@@ -11,48 +11,56 @@ void cp_rewrite(IR_t *ir, cp_data_t *out) {
 }
 
 VISIT(IR_ASSIGN) {
-    if (FACT_TAR(tar).kind == FACT_CONST) {
-        node->lhs = lit_alloc(FACT_TAR(tar).val);
+    fact_t fact = fact_get(out, node->tar);
+    if (fact.kind == FACT_CONST) {
+        node->lhs = lit_alloc(fact.val);
     }
 }
 
 VISIT(IR_BINARY) {
-    if (FACT_TAR(tar).kind == FACT_CONST) {
+    fact_t fact = fact_get(out, node->tar);
+    if (fact.kind == FACT_CONST) {
         node->kind = IR_ASSIGN;
-        node->lhs  = lit_alloc(FACT_TAR(tar).val);
+        node->lhs  = lit_alloc(fact.val);
     }
 }
 
 VISIT(IR_BRANCH) {
-    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
-        node->lhs = lit_alloc(FACT_TAR(lhs).val);
+    fact_t lhs_fact = fact_get(out, node->lhs);
+    fact_t rhs_fact = fact_get(out, node->rhs);
+    if (node->lhs.kind == OPRD_VAR && lhs_fact.kind == FACT_CONST) {
+        node->lhs = lit_alloc(lhs_fact.val);
     }
-    if (node->rhs.kind == OPRD_VAR && IS_CONST(rhs)) {
-        node->rhs = lit_alloc(FACT_TAR(rhs).val);
+    if (node->rhs.kind == OPRD_VAR && rhs_fact.kind == FACT_CONST) {
+        node->rhs = lit_alloc(rhs_fact.val);
     }
 }
 
 VISIT(IR_RETURN) {
-    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
-        node->lhs = lit_alloc(FACT_TAR(lhs).val);
+    fact_t fact = fact_get(out, node->lhs);
+    if (node->lhs.kind == OPRD_VAR && fact.kind == FACT_CONST) {
+        node->lhs = lit_alloc(fact.val);
     }
 }
 
 VISIT(IR_ARG) {
-    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
-        node->lhs = lit_alloc(FACT_TAR(lhs).val);
+    fact_t fact = fact_get(out, node->lhs);
+    if (node->lhs.kind == OPRD_VAR && fact.kind == FACT_CONST) {
+        node->lhs = lit_alloc(fact.val);
     }
 }
 
 VISIT(IR_WRITE) {
-    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
-        node->lhs = lit_alloc(FACT_TAR(lhs).val);
+    fact_t fact = fact_get(out, node->lhs);
+    if (node->lhs.kind == OPRD_VAR && fact.kind == FACT_CONST) {
+        node->lhs = lit_alloc(fact.val);
     }
 }
 
 VISIT(IR_STORE) {
-    if (node->lhs.kind == OPRD_VAR && IS_CONST(lhs)) {
-        node->lhs = lit_alloc(FACT_TAR(lhs).val);
+    fact_t fact = fact_get(out, node->lhs);
+    if (node->lhs.kind == OPRD_VAR && fact.kind == FACT_CONST) {
+        node->lhs = lit_alloc(fact.val);
     }
 }
 

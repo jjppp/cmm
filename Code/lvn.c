@@ -38,17 +38,6 @@ static i32 val_cmp(const void *lhs, const void *rhs) {
     return 0;
 }
 
-static i32 oprd_cmp(const void *lhs, const void *rhs) {
-    uptr lv = (uptr) lhs;
-    uptr rv = (uptr) rhs;
-    if (lv > rv) {
-        return 1;
-    } else if (lv < rv) {
-        return -1;
-    }
-    return 0;
-}
-
 static void lvn_init() { // TODO: mem leak
     memset(&hashtab, 0, sizeof(hashtab));
     valcnt = 1;
@@ -65,11 +54,7 @@ static void cvar_free(cvar_t *cv) {
 }
 
 static void lvn_fini() {
-    map_iter_t iter;
-    map_iter_init(&cvar_map, &iter);
-    for (mapent_t it = map_iter_next(&iter);
-         it.key != NULL;
-         it = map_iter_next(&iter)) {
+    map_iter(&cvar_map, it) {
         cvar_free(it.val);
     }
 }

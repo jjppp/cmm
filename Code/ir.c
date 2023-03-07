@@ -28,7 +28,7 @@ void IR_visitor_dispatch(const struct IR_visitor visitor, IR_t *node, void *p) {
 }
 
 oprd_t var_alloc(const char *name, u32 lineno) {
-    static u32 cnt = 0;
+    static u32 cnt = 1;
     return (oprd_t){
         .kind   = OPRD_VAR,
         .name   = name,
@@ -52,6 +52,17 @@ char *oprd_to_str(oprd_t oprd) {
         default: UNREACHABLE;
     }
     return buf;
+}
+
+i32 oprd_cmp(const void *lhs, const void *rhs) {
+    uptr lv = (uptr) lhs;
+    uptr rv = (uptr) rhs;
+    if (lv > rv) {
+        return 1;
+    } else if (lv < rv) {
+        return -1;
+    }
+    return 0;
 }
 
 void ir_fun_free(ir_fun_t *fun) {

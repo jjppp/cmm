@@ -9,19 +9,27 @@ typedef struct mapent_t   mapent_t;
 typedef struct map_t      set_t;
 typedef struct map_iter_t set_iter_t;
 
+#define map_iter(MAP, IT)                      \
+    for (map_iter_t IT = map_iter_init((MAP)); \
+         !(IT).done;                           \
+         map_iter_next(&(IT)))
+
+#define set_iter(MAP, IT)                      \
+    for (set_iter_t IT = set_iter_init((MAP)); \
+         !(IT).done;                           \
+         set_iter_next(&(IT)))
+
 struct map_t {
     i32 (*cmp)(const void *lhs, const void *rhs);
     node_t *root;
     u32     size;
 };
 
-struct mapent_t {
+struct map_iter_t {
     const void *key;
     void       *val;
-};
-
-struct map_iter_t {
-    node_t *node;
+    node_t     *node;
+    bool        done;
 };
 
 struct node_t {
@@ -40,13 +48,23 @@ void *map_find(map_t *map, const void *key);
 
 void map_insert(map_t *map, const void *key, void *val);
 
-void map_iter_init(map_t *map, map_iter_t *iter);
+void map_remove(map_t *map, const void *key);
 
-mapent_t map_iter_next(map_iter_t *iter);
+void map_merge(map_t *into, const map_t *rhs);
+
+bool map_eq(map_t *lhs, map_t *rhs);
+
+void map_cpy(map_t *dst, map_t *src);
+
+map_iter_t map_iter_init(const map_t *map);
+
+void map_iter_next(map_iter_t *iter);
 
 void set_init(set_t *set, i32 (*cmp)(const void *lhs, const void *rhs));
 
 void set_fini(set_t *set);
+
+void set_insert(set_t *set, void *elem);
 
 bool set_contains(set_t *set, const void *elem);
 
@@ -54,6 +72,10 @@ void set_remove(set_t *set, const void *elem);
 
 void set_merge(set_t *into, const set_t *rhs);
 
-void set_iter_init(set_t *set, set_iter_t *iter);
+set_iter_t set_iter_init(const set_t *set);
 
-void *set_iter_next(set_iter_t *iter);
+bool set_eq(set_t *lhs, set_t *rhs);
+
+void set_cpy(set_t *dst, set_t *src);
+
+void set_iter_next(set_iter_t *iter);

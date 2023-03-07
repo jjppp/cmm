@@ -136,6 +136,8 @@ IR_t *ir_alloc(ir_kind_t kind, ...);
 
 void ir_check(ir_list *list);
 
+i32 oprd_cmp(const void *lhs, const void *rhs);
+
 oprd_t var_alloc(const char *name, u32 lineno);
 
 oprd_t lit_alloc(u32 value);

@@ -30,6 +30,18 @@ static void *data_at(void *ptr, u32 index) {
     return &(((dce_data_t *) ptr)[index]);
 }
 
+static bool data_eq(data_t *lhs, data_t *rhs) {
+    return ((dce_data_t *) lhs)->reachable == ((dce_data_t *) rhs)->reachable;
+}
+
+static void data_cpy(data_t *dst, data_t *src) {
+    ((dce_data_t *) dst)->reachable = ((dce_data_t *) src)->reachable;
+}
+
+static void data_mov(data_t *dst, data_t *src) {
+    data_cpy(dst, src);
+}
+
 void do_dce(cfg_t *cfg) {
     dataflow df = (dataflow){
         .dir            = DF_FORWARD,
@@ -40,6 +52,9 @@ void do_dce(cfg_t *cfg) {
         .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_at        = data_at,
+        .data_eq        = data_eq,
+        .data_cpy       = data_cpy,
+        .data_mov       = data_mov,
         .data_in        = zalloc(sizeof(dce_data_t) * cfg->nnode),
         .data_out       = zalloc(sizeof(dce_data_t) * cfg->nnode)};
     LIST_ITER(cfg->blocks, blk) {

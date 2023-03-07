@@ -60,21 +60,20 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
         queue_push(&que, blk);
     }
     data_t *newd = zalloc(df->DSIZE);
-    newd->magic  = df->DMAGIC;
+    df->data_init(newd);
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
         if (blk->fedge) {
-            df->data_init(newd);
+            df->data_init(df->data_at(df->data_in, blk->id));
             succ_iter(blk, e) {
-                df->merge(newd, df->data_at(df->data_out, e->to->id));
-                data_validate(newd);
+                df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
             }
         }
-        memcpy(df->data_at(df->data_in, blk->id), newd, df->DSIZE);
+        df->data_cpy(newd, df->data_at(df->data_in, blk->id));
         df->transfer_block(blk, newd);
-        if (memcmp(df->data_at(df->data_out, blk->id), newd, df->DSIZE)) {
-            memcpy(df->data_at(df->data_out, blk->id), newd, df->DSIZE);
+        if (!df->data_eq(df->data_at(df->data_out, blk->id), newd)) {
+            df->data_mov(df->data_at(df->data_out, blk->id), newd);
             pred_iter(blk, it) {
                 queue_push(&que, it->to);
             }
@@ -88,7 +87,7 @@ static void dataflow_fsolve(cfg_t *cfg) { // forward
         queue_push(&que, blk);
     }
     data_t *newd = zalloc(df->DSIZE);
-    newd->magic  = df->DMAGIC;
+    df->data_init(newd);
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
@@ -98,10 +97,10 @@ static void dataflow_fsolve(cfg_t *cfg) { // forward
                 df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
             }
         }
-        memcpy(newd, df->data_at(df->data_in, blk->id), df->DSIZE);
+        df->data_cpy(newd, df->data_at(df->data_in, blk->id));
         df->transfer_block(blk, newd);
-        if (memcmp(df->data_at(df->data_out, blk->id), newd, df->DSIZE)) {
-            memmove(df->data_at(df->data_out, blk->id), newd, df->DSIZE);
+        if (!df->data_eq(df->data_at(df->data_out, blk->id), newd)) {
+            df->data_mov(df->data_at(df->data_out, blk->id), newd);
             succ_iter(blk, it) {
                 queue_push(&que, it->to);
             }
