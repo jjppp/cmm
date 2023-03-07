@@ -2,7 +2,6 @@
 #include "cfg.h"
 #include "ir.h"
 
-#define MAX_VAL 65536
 #define MAX_VARID 65536
 
 #define LOCAL_OPT(F) \

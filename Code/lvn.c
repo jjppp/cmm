@@ -28,11 +28,25 @@ static map_t cvar_map;
 static map_t holding_map;
 
 static i32 val_cmp(const void *lhs, const void *rhs) {
-    return ((val_t) lhs) - ((val_t) rhs);
+    val_t lv = (val_t) lhs;
+    val_t rv = (val_t) rhs;
+    if (lv > rv) {
+        return 1;
+    } else if (lv < rv) {
+        return -1;
+    }
+    return 0;
 }
 
 static i32 oprd_cmp(const void *lhs, const void *rhs) {
-    return ((uptr) lhs) - ((uptr) rhs);
+    uptr lv = (uptr) lhs;
+    uptr rv = (uptr) rhs;
+    if (lv > rv) {
+        return 1;
+    } else if (lv < rv) {
+        return -1;
+    }
+    return 0;
 }
 
 static void lvn_init() { // TODO: mem leak
@@ -62,18 +76,15 @@ static void lvn_fini() {
 
 void do_lvn(cfg_t *cfg) {
     LIST_ITER(cfg->blocks, blk) {
+        lvn_init();
         LIST_ITER(blk->instrs.head, instr) {
-            lvn_init();
-            LIST_ITER(instr, it) {
-                VISITOR_DISPATCH(IR, lvn, it, NULL);
-            }
-            lvn_fini();
+            VISITOR_DISPATCH(IR, lvn, instr, NULL);
         }
+        lvn_fini();
     }
 }
 
 static void cvar_insert(val_t val, oprd_t var) {
-    ASSERT(val < MAX_VAL, "cvar overflow");
     cvar_t *cp = zalloc(sizeof(cvar_t));
 
     cvar_t *cvar = map_find(&cvar_map, (void *) val);
@@ -97,7 +108,7 @@ static void cvar_remove(val_t val, oprd_t var) {
         goto done;
     }
     LIST_ITER(cvar, it) {
-        if (it->next->var.id == var.id) {
+        if (it->next && it->next->var.id == var.id) {
             cp       = it->next;
             it->next = cp->next;
             goto done;
