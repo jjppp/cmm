@@ -65,6 +65,12 @@ typedef int8_t    i8;
         (X)                 = (Y);     \
         (Y)                 = __tmp_x; \
     } while (0)
+#define max(X, Y)                                    \
+    ({                                               \
+        __auto_type __tmp_x = (X);                   \
+        __auto_type __tmp_y = (Y);                   \
+        (__tmp_x > __tmp_y) ? (__tmp_x) : (__tmp_y); \
+    })
 #define FOPEN(FNAME, F, MODE) \
     for (FILE *F = fopen(FNAME, MODE); F != NULL; fclose(F), F = NULL)
 

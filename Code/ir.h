@@ -64,8 +64,8 @@ struct oprd_t {
     const char *name;
     oprd_kind_t kind;
     union {
-        u32 val;
-        u32 id;
+        u32  val;
+        uptr id;
     };
     u32 lineno;
 };

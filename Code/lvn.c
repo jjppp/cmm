@@ -1,3 +1,6 @@
+#include "common.h"
+#include "ir.h"
+#include "map.h"
 #include "visitor.h"
 #include "symtab.h"
 #include "opt.h"
@@ -12,22 +15,31 @@ typedef uptr          val_t;
 typedef struct cvar_t cvar_t;
 
 static hashtab_t hashtab;
-static val_t     valcnt = 1;
+static val_t     valcnt;
 
 struct cvar_t {
     oprd_t         var;
     struct cvar_t *next;
 };
 
-// canonical variable
-static cvar_t *cvar[MAX_VAL];
-// what oprd is holding
-static val_t holding[MAX_VAL];
+// canonical variable, val_t => cvar_t*
+static map_t cvar_map;
+// what oprd is holding, oprd_t.id => val_t
+static map_t holding_map;
+
+static i32 val_cmp(const void *lhs, const void *rhs) {
+    return ((val_t) lhs) - ((val_t) rhs);
+}
+
+static i32 oprd_cmp(const void *lhs, const void *rhs) {
+    return ((uptr) lhs) - ((uptr) rhs);
+}
 
 static void lvn_init() { // TODO: mem leak
     memset(&hashtab, 0, sizeof(hashtab));
-    memset(cvar, 0, sizeof(cvar));
-    memset(holding, 0, sizeof(cvar));
+    valcnt = 1;
+    map_init(&cvar_map, val_cmp);
+    map_init(&holding_map, oprd_cmp);
 }
 
 static void cvar_free(cvar_t *cv) {
@@ -39,8 +51,12 @@ static void cvar_free(cvar_t *cv) {
 }
 
 static void lvn_fini() {
-    for (u32 i = 0; i < MAX_VAL; i++) {
-        cvar_free(cvar[i]);
+    map_iter_t iter;
+    map_iter_init(&cvar_map, &iter);
+    for (mapent_t it = map_iter_next(&iter);
+         it.key != NULL;
+         it = map_iter_next(&iter)) {
+        cvar_free(it.val);
     }
 }
 
@@ -59,20 +75,28 @@ void do_lvn(cfg_t *cfg) {
 static void cvar_insert(val_t val, oprd_t var) {
     ASSERT(val < MAX_VAL, "cvar overflow");
     cvar_t *cp = zalloc(sizeof(cvar_t));
-    LIST_APPEND(cvar[val], cp);
+
+    cvar_t *cvar = map_find(&cvar_map, (void *) val);
+    if (cvar == NULL) {
+        map_insert(&cvar_map, (void *) val, cp);
+    } else {
+        LIST_APPEND(cvar, cp);
+    }
     *cp = (cvar_t){
         .var  = var,
         .next = NULL};
 }
 
 static void cvar_remove(val_t val, oprd_t var) {
-    cvar_t *cp = NULL;
-    if (cvar[val]->var.id == var.id) {
-        cp        = cvar[val];
-        cvar[val] = cvar[val]->next;
+    cvar_t *cp   = NULL;
+    cvar_t *cvar = map_find(&cvar_map, (void *) val);
+
+    if (cvar && cvar->var.id == var.id) {
+        cp = cvar;
+        map_insert(&cvar_map, (void *) val, cvar->next);
         goto done;
     }
-    LIST_ITER(cvar[val], it) {
+    LIST_ITER(cvar, it) {
         if (it->next->var.id == var.id) {
             cp       = it->next;
             it->next = cp->next;
@@ -131,10 +155,12 @@ static val_t bintab_lookup(op_kind_t op, val_t lhs, val_t rhs) {
 }
 
 static val_t oprd_to_val(oprd_t oprd) {
+    val_t holding = 0;
     switch (oprd.kind) {
         case OPRD_VAR:
-            if (holding[oprd.id]) {
-                return holding[oprd.id];
+            holding = (val_t) map_find(&holding_map, (void *) oprd.id);
+            if (holding) {
+                return holding;
             }
         case OPRD_LIT: {
             val_t val = unrtab_lookup(oprd);
@@ -149,19 +175,25 @@ static val_t oprd_to_val(oprd_t oprd) {
 }
 
 static void oprd_holds(oprd_t oprd, val_t val) { // oprd = val
-    if (holding[oprd.id]) {                      // kill oprd
-        cvar_remove(holding[oprd.id], oprd);
-        holding[oprd.id] = 0;
+    val_t holding = (val_t) map_find(&holding_map, (void *) oprd.id);
+    if (holding) { // kill oprd
+        cvar_remove(holding, oprd);
+        map_insert(&holding_map, (void *) oprd.id, NULL);
     }
     cvar_insert(val, oprd);
-    holding[oprd.id] = val;
+    map_insert(&holding_map, (void *) oprd.id, (void *) val);
+}
+
+static void oprd_rewrite(oprd_t *oprd, val_t val) {
+    cvar_t *cvar = map_find(&cvar_map, (void *) val);
+    if (cvar != NULL) {
+        *oprd = cvar->var;
+    }
 }
 
 VISIT(IR_ASSIGN) { // tar = lhs
     val_t expr = oprd_to_val(node->lhs);
-    if (cvar[expr] != NULL) {
-        node->lhs = cvar[expr]->var;
-    }
+    oprd_rewrite(&node->lhs, expr);
     oprd_holds(node->tar, expr);
 }
 
@@ -172,66 +204,49 @@ VISIT(IR_BINARY) {
     if (!expr) {
         expr = bintab_insert(node->op, lhs, rhs);
     }
-    if (cvar[expr] != NULL) {
-        node->lhs  = cvar[expr]->var;
+    cvar_t *cvar = map_find(&cvar_map, (void *) expr);
+    if (cvar != NULL) {
+        node->lhs  = cvar->var;
         node->kind = IR_ASSIGN;
     } else {
-        if (cvar[lhs] != NULL) {
-            node->lhs = cvar[lhs]->var;
-        }
-        if (cvar[rhs] != NULL) {
-            node->rhs = cvar[rhs]->var;
-        }
+        oprd_rewrite(&node->lhs, lhs);
+        oprd_rewrite(&node->rhs, rhs);
     }
     oprd_holds(node->tar, expr);
 }
 
 VISIT(IR_DREF) {
     val_t lhs = oprd_to_val(node->lhs);
-    if (cvar[lhs] != NULL) {
-        node->lhs = cvar[lhs]->var;
-    }
+    oprd_rewrite(&node->lhs, lhs);
     oprd_holds(node->tar, unrtab_insert(node->tar));
 }
 
 VISIT(IR_LOAD) {
     val_t lhs = oprd_to_val(node->lhs);
-    if (cvar[lhs] != NULL) {
-        node->lhs = cvar[lhs]->var;
-    }
+    oprd_rewrite(&node->lhs, lhs);
     oprd_holds(node->tar, unrtab_insert(node->tar));
 }
 
 VISIT(IR_STORE) {
     val_t lhs = oprd_to_val(node->lhs);
-    if (cvar[lhs] != NULL) {
-        node->lhs = cvar[lhs]->var;
-    }
+    oprd_rewrite(&node->lhs, lhs);
 }
 
 VISIT(IR_BRANCH) {
     val_t lhs = oprd_to_val(node->lhs);
     val_t rhs = oprd_to_val(node->rhs);
-    if (cvar[lhs] != NULL) {
-        node->lhs = cvar[lhs]->var;
-    }
-    if (cvar[rhs] != NULL) {
-        node->rhs = cvar[rhs]->var;
-    }
+    oprd_rewrite(&node->lhs, lhs);
+    oprd_rewrite(&node->rhs, rhs);
 }
 
 VISIT(IR_RETURN) {
     val_t expr = oprd_to_val(node->lhs);
-    if (cvar[expr] != NULL) {
-        node->lhs = cvar[expr]->var;
-    }
+    oprd_rewrite(&node->lhs, expr);
 }
 
 VISIT(IR_CALL) {
     val_t expr = oprd_to_val(node->lhs);
-    if (cvar[expr] != NULL) {
-        node->lhs = cvar[expr]->var;
-    }
+    oprd_rewrite(&node->lhs, expr);
     oprd_holds(node->tar, unrtab_insert(node->tar));
 }
 
@@ -241,17 +256,13 @@ VISIT(IR_READ) {
 
 VISIT(IR_WRITE) {
     val_t expr = oprd_to_val(node->lhs);
-    if (cvar[expr] != NULL) {
-        node->lhs = cvar[expr]->var;
-    }
+    oprd_rewrite(&node->lhs, expr);
     oprd_holds(node->tar, expr);
 }
 
 VISIT(IR_ARG) {
     val_t expr = oprd_to_val(node->lhs);
-    if (cvar[expr] != NULL) {
-        node->lhs = cvar[expr]->var;
-    }
+    oprd_rewrite(&node->lhs, expr);
 }
 
 VISIT_UNDEF(IR_NULL);
