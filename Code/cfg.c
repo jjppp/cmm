@@ -195,17 +195,28 @@ ir_fun_t *cfg_destruct(cfg_t *cfg) { // TODO: mem leak
 }
 
 void cfg_remove_mark(cfg_t *cfg) {
+#define EDGE_MARK(EDGE) (((EDGE)->to->mark) || ((EDGE)->from->mark))
+
     LIST_ITER(cfg->blocks, blk) {
-        while (blk->next && blk->next->mark) {
-            block_t *next = blk->next;
-            blk->next     = next->next;
-            block_free(next);
-        }
+        LIST_REMOVE(blk->fedge, zfree, EDGE_MARK);
+        LIST_REMOVE(blk->bedge, zfree, EDGE_MARK);
     }
-    if (cfg->blocks && cfg->blocks->mark) {
-        block_t *next = cfg->blocks;
-        cfg->blocks   = next->next;
-        block_free(next);
+    LIST_REMOVE(cfg->blocks, block_free, MARKED);
+
+    LIST_ITER(cfg->blocks, blk) {
+        if (blk->mark) {
+            abort();
+        }
+        succ_iter(blk, e) {
+            if (e->to->mark) {
+                abort();
+            }
+        }
+        pred_iter(blk, e) {
+            if (e->to->mark) {
+                abort();
+            }
+        }
     }
 }
 

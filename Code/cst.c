@@ -45,7 +45,7 @@ void cst_free(cst_t *node) {
         p = it;
     }
     cst_free(p);
-    free(node);
+    zfree(node);
 }
 
 void cst_print(cst_t *node, i32 dep) {

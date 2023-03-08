@@ -136,6 +136,22 @@ struct shared {
     for (__auto_type(IT) = (LIST); \
          (IT) != (void *) NULL;    \
          (IT) = (IT)->next)
+#define LIST_REMOVE(LIST, FREE, PRED)                \
+    do {                                             \
+        LIST_ITER((LIST), __it) {                    \
+            while (__it->next && PRED(__it->next)) { \
+                __auto_type __ptr = __it->next;      \
+                __it->next        = __ptr->next;     \
+                FREE(__ptr);                         \
+            }                                        \
+        }                                            \
+        if ((LIST) && PRED((LIST))) {                \
+            __auto_type __ptr = (LIST);              \
+            (LIST)            = __ptr->next;         \
+            FREE(__ptr);                             \
+        }                                            \
+    } while (0)
+#define MARKED(NODE) ((NODE)->mark)
 #define LIST_FOREACH(LIST, FUN) \
     LIST_ITER(LIST, __it)       \
     FUN(__it);

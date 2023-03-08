@@ -50,7 +50,7 @@ static void cvar_free(cvar_t *cv) {
         return;
     }
     cvar_free(cv->next);
-    free(cv);
+    zfree(cv);
 }
 
 static void lvn_fini() {
@@ -101,7 +101,7 @@ static void cvar_remove(val_t val, oprd_t var) {
     }
     UNREACHABLE;
 done:
-    free(cp);
+    zfree(cp);
 }
 
 static val_t unrtab_insert(oprd_t oprd) {

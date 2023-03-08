@@ -1,3 +1,4 @@
+#include "common.h"
 #include "dataflow.h"
 #include "opt.h"
 #include <stdio.h>

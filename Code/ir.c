@@ -111,14 +111,12 @@ void chain_resolve(chain_t **chain, IR_t *ir) {
 VISITOR_DEF(IR, new, RET_TYPE);
 
 void ir_list_free(ir_list *list) {
+#define FORALL(NODE) (true)
+
     chain_resolve(&list->tru, list->head);
     chain_resolve(&list->fls, list->head);
-    LIST_ITER(list->head, it) {
-        if (it->next) {
-            zfree(it->next);
-        }
-    }
-    zfree(list->head);
+    LIST_REMOVE(list->head, zfree, FORALL);
+
     list->head = NULL;
     list->tail = NULL;
     list->size = 0;
@@ -237,29 +235,19 @@ void ir_validate(const ir_list *list) {
 
 void ir_remove_mark(ir_list *list) {
     ir_validate(list);
-    LIST_ITER(list->head, it) {
-        while (it->next && it->next->mark) {
-            void *ptr = it->next;
-            if (it->next->next) {
-                it->next->next->prev = it;
-            }
-            it->next = it->next->next;
-            zfree(ptr);
-            list->size--;
-        }
-    }
-    if (list->head && list->head->mark) {
-        void *ptr = list->head;
-        if (list->head->next) {
-            list->head->next->prev = NULL;
-        }
-        list->head = list->head->next;
-        zfree(ptr);
-        list->size--;
+    LIST_REMOVE(list->head, zfree, MARKED);
+    if (list->head) {
+        list->head->prev = NULL;
     }
     for (list->tail = list->head; list->tail && list->tail->next;) {
-        list->tail = list->tail->next;
+        IR_t *prev       = list->tail;
+        list->tail       = list->tail->next;
+        list->tail->prev = prev;
     }
+    if (list->tail) {
+        list->tail->next = NULL;
+    }
+    list->size = LIST_LENGTH(list->head);
     ir_validate(list);
 }
 
