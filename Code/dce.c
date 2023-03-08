@@ -21,6 +21,9 @@ static void data_init(dce_data_t *data) {
     data->reachable   = false;
 }
 
+static void data_fini(dce_data_t *data) {
+}
+
 static void merge(dce_data_t *into, const dce_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     into->reachable |= rhs->reachable;
@@ -52,6 +55,7 @@ void do_dce(cfg_t *cfg) {
         .DSIZE          = sizeof(dce_data_t),
         .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
+        .data_fini      = (void *) data_fini,
         .data_at        = data_at,
         .data_eq        = data_eq,
         .data_cpy       = data_cpy,

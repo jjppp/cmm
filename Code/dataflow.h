@@ -19,6 +19,7 @@ struct dataflow {
     void (*merge)(data_t *into, const data_t *other);
     void (*solve)(cfg_t *cfg);
     void (*data_init)(data_t *data);
+    void (*data_fini)(data_t *data);
     void *(*data_at)(void *base, u32 index);
     bool (*data_eq)(data_t *lhs, data_t *rhs);
     void (*data_mov)(data_t *lhs, data_t *rhs);

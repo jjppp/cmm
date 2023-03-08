@@ -26,6 +26,11 @@ static void data_init(live_data_t *data) {
     set_init(&data->used, oprd_cmp);
 }
 
+static void data_fini(live_data_t *data) {
+    data->super.magic = MAGIC;
+    set_fini(&data->used);
+}
+
 static void merge(live_data_t *into, const live_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     set_merge(&into->used, &rhs->used);
@@ -53,6 +58,7 @@ static bool data_eq(data_t *lhs, data_t *rhs) {
 }
 
 static void data_cpy(data_t *dst, data_t *src) {
+    set_fini(&((live_data_t *) dst)->used);
     set_cpy(&((live_data_t *) dst)->used, &((live_data_t *) src)->used);
 }
 
@@ -69,6 +75,7 @@ void do_live(cfg_t *cfg) {
         .DSIZE          = sizeof(live_data_t),
         .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
+        .data_fini      = (void *) data_fini,
         .data_at        = data_at,
         .data_eq        = data_eq,
         .data_mov       = data_mov,
@@ -102,6 +109,10 @@ void do_live(cfg_t *cfg) {
             df.transfer_instr(ir, (data_t *) pd);
         }
         ir_remove_mark(&blk->instrs);
+    }
+    for (u32 id = 0; id < cfg->nnode; id++) {
+        data_fini(df.data_at(df.data_in, id));
+        data_fini(df.data_at(df.data_out, id));
     }
     zfree(df.data_in);
     zfree(df.data_out);

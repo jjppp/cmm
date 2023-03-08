@@ -22,6 +22,11 @@ static void data_init(cp_data_t *data) {
     map_init(&data->facts, oprd_cmp);
 }
 
+static void data_fini(cp_data_t *data) {
+    data->super.magic = MAGIC;
+    map_fini(&data->facts);
+}
+
 static fact_t const_alloc(u32 val) {
     return (fact_t){.kind = FACT_CONST, .val = val};
 }
@@ -79,6 +84,7 @@ static bool data_eq(data_t *lhs, data_t *rhs) {
 }
 
 static void data_cpy(data_t *dst, data_t *src) {
+    map_fini(&((cp_data_t *) dst)->facts);
     map_cpy(&((cp_data_t *) dst)->facts, &((cp_data_t *) src)->facts);
 }
 
@@ -95,6 +101,7 @@ void do_cp(cfg_t *cfg) {
         .DSIZE          = sizeof(cp_data_t),
         .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
+        .data_fini      = (void *) data_fini,
         .data_at        = data_at,
         .data_eq        = data_eq,
         .data_cpy       = data_cpy,

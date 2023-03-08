@@ -14,7 +14,10 @@ static void test_insert() {
     ASSERT(map_find(&map, "ABC") == str_arr[0], "ABC should be present");
     map_insert(&map, "ABC", test_insert);
     ASSERT(map_find(&map, "ABC") == test_insert, "ABC should be modified");
+    map_remove(&map, "ABC");
+    ASSERT(map_find(&map, "ABC") == NULL, "ABC should be deleted");
     ASSERT(map_find(&map, "114514") == NULL, "114514 should not be found");
+    map_fini(&map);
 }
 
 static i32 cmp(const void *lhs, const void *rhs) {
@@ -42,6 +45,7 @@ static void test_as_array() {
         printf("%lu", (uptr) it.val);
     }
     puts("");
+    map_fini(&map);
 }
 
 static void test_set() {
@@ -59,6 +63,7 @@ static void test_set() {
     ASSERT(set_contains(&set, (void *) 2), "missing 2");
     set_iter(&set, it) printf("%lu ", (uptr) it.val);
     puts("");
+    set_fini(&set);
 }
 
 int main() {

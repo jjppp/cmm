@@ -65,6 +65,7 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
         if (blk->fedge) {
+            df->data_fini(df->data_at(df->data_in, blk->id));
             df->data_init(df->data_at(df->data_in, blk->id));
             succ_iter(blk, e) {
                 df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
@@ -79,6 +80,7 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
             }
         }
     }
+    df->data_fini(newd);
     zfree(newd);
 }
 
@@ -106,5 +108,6 @@ static void dataflow_fsolve(cfg_t *cfg) { // forward
             }
         }
     }
+    df->data_fini(newd);
     zfree(newd);
 }

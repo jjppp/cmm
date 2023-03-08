@@ -1,4 +1,5 @@
 #include "map.h"
+#include "common.h"
 
 static node_t *node_alloc(const void *key, void *val) {
     node_t *node = zalloc(sizeof(node_t));
@@ -15,9 +16,16 @@ void map_init(map_t *map, i32 (*cmp)(const void *lhs, const void *rhs)) {
     map->root = NULL;
 }
 
+static void map_fini_helper(map_t *map, map_iter_t iter) {
+    if (iter.done) return;
+    node_t *node = iter.node;
+    map_iter_next(&iter);
+    map_fini_helper(map, iter);
+    zfree(node);
+}
+
 void map_fini(map_t *map) {
-    // TODO: mem leak
-    TODO("map_fini");
+    map_fini_helper(map, map_iter_init(map));
 }
 
 static node_t *map_find_helper(map_t *map, node_t *node, const void *key) {
@@ -139,8 +147,50 @@ void map_insert(map_t *map, const void *key, void *val) {
     node_validate(map->root);
 }
 
+static node_t *get_succ(node_t *node) {
+    ASSERT(node->rhs, "node->rhs");
+    node = node->rhs;
+    while (node->lhs) {
+        node = node->lhs;
+    }
+    return node;
+}
+
+static void map_remove_helper(map_t *map, node_t **pnode, const void *key) {
+    node_t *node = *pnode;
+    if (!node) return; // remove failed
+    i32 cmp_val = map->cmp(key, node->key);
+    if (!cmp_val) {
+        if (node->h == 1) { // leaf
+            zfree(node);
+            *pnode = NULL;
+            return;
+        } else if (node->lhs == NULL) {
+            swap(node->key, node->rhs->key);
+            swap(node->val, node->rhs->val);
+            map_remove_helper(map, &node->rhs, key);
+        } else if (node->rhs == NULL) {
+            swap(node->key, node->lhs->key);
+            swap(node->val, node->lhs->val);
+            map_remove_helper(map, &node->lhs, key);
+        } else {
+            node_t *succ = get_succ(node);
+            swap(node->key, succ->key);
+            swap(node->val, succ->val);
+            map_remove_helper(map, &node->rhs, key);
+        }
+    } else if (cmp_val > 0) {
+        map_remove_helper(map, &node->rhs, key);
+    } else {
+        map_remove_helper(map, &node->lhs, key);
+    }
+    if (node->lhs) node->lhs = rebalance(node->lhs);
+    if (node->rhs) node->rhs = rebalance(node->rhs);
+    calc_height(node);
+}
+
 void map_remove(map_t *map, const void *key) {
-    map_insert(map, key, NULL);
+    map_remove_helper(map, &map->root, key);
 }
 
 void set_init(set_t *set, i32 (*cmp)(const void *lhs, const void *rhs)) {
@@ -148,7 +198,7 @@ void set_init(set_t *set, i32 (*cmp)(const void *lhs, const void *rhs)) {
 }
 
 void set_fini(set_t *set) {
-    TODO("set_fini");
+    map_fini(set);
 }
 
 void set_insert(set_t *set, void *elem) {
@@ -229,22 +279,15 @@ map_iter_t map_iter_init(const map_t *map) {
         iter.done = true;
     } else {
         map->root->next = NULL;
-        if (!iter.val) { // skip initial NULLs
-            map_iter_next(&iter);
-        }
+        iter.key        = iter.node->key;
+        iter.val        = iter.node->val;
     }
     return iter;
 }
 
 void map_iter_next(map_iter_t *iter) {
     node_t *front = iter->node;
-    if (!front) {
-        iter->key  = NULL;
-        iter->val  = NULL;
-        iter->done = true;
-        return;
-    }
-    iter->node = front->next;
+    iter->node    = front->next;
     if (front->lhs) {
         front->lhs->next = iter->node;
         iter->node       = front->lhs;
@@ -253,12 +296,14 @@ void map_iter_next(map_iter_t *iter) {
         front->rhs->next = iter->node;
         iter->node       = front->rhs;
     }
-    if (front->val) {
-        iter->key = front->key;
-        iter->val = front->val;
-    } else {
-        map_iter_next(iter);
+    if (!iter->node) {
+        iter->key  = NULL;
+        iter->val  = NULL;
+        iter->done = true;
+        return;
     }
+    iter->key = iter->node->key;
+    iter->val = iter->node->val;
 }
 
 set_iter_t set_iter_init(const set_t *set) {

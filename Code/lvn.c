@@ -57,6 +57,8 @@ static void lvn_fini() {
     map_iter(&cvar_map, it) {
         cvar_free(it.val);
     }
+    map_fini(&cvar_map);
+    map_fini(&holding_map);
 }
 
 void do_lvn(cfg_t *cfg) {
@@ -89,7 +91,11 @@ static void cvar_remove(val_t val, oprd_t var) {
 
     if (cvar && cvar->var.id == var.id) {
         cp = cvar;
-        map_insert(&cvar_map, (void *) val, cvar->next);
+        if (cvar->next) {
+            map_insert(&cvar_map, (void *) val, cvar->next);
+        } else {
+            map_remove(&cvar_map, (void *) val);
+        }
         goto done;
     }
     LIST_ITER(cvar, it) {
@@ -174,7 +180,7 @@ static void oprd_holds(oprd_t oprd, val_t val) { // oprd = val
     val_t holding = (val_t) map_find(&holding_map, (void *) oprd.id);
     if (holding) { // kill oprd
         cvar_remove(holding, oprd);
-        map_insert(&holding_map, (void *) oprd.id, NULL);
+        map_remove(&holding_map, (void *) oprd.id);
     }
     cvar_insert(val, oprd);
     map_insert(&holding_map, (void *) oprd.id, (void *) val);
