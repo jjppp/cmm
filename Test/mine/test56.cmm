@@ -1,0 +1,7 @@
+int fun(int x) {
+    return write(x);
+}
+
+int main() { // eval order
+    return fun(1) + fun(2);
+}

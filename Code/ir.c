@@ -103,7 +103,7 @@ void chain_resolve(chain_t **chain, IR_t *ir) {
         it->ir->jmpto = ir;
     }
     chain_free(*chain);
-    *chain = NULL; // TODO: mem leak
+    *chain = NULL;
 }
 
 #define RET_TYPE va_list

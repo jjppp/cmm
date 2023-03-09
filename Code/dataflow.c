@@ -29,7 +29,7 @@ static void transfer_bblock(block_t *blk, data_t *data_in) { // backward
     }
 }
 
-void dataflow_init(dataflow *df_init) { // TODO: mem leak
+void dataflow_init(dataflow *df_init) {
     queue_init(&que);
     head = 0;
     tail = 0;

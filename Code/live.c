@@ -109,10 +109,8 @@ void do_live(cfg_t *cfg) {
             df.transfer_instr(ir, (data_t *) pd);
         }
         ir_remove_mark(&blk->instrs);
-    }
-    for (u32 id = 0; id < cfg->nnode; id++) {
-        data_fini(df.data_at(df.data_in, id));
-        data_fini(df.data_at(df.data_out, id));
+        data_fini(df.data_at(df.data_in, blk->id));
+        data_fini(df.data_at(df.data_out, blk->id));
     }
     zfree(df.data_in);
     zfree(df.data_out);

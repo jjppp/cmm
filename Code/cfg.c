@@ -86,7 +86,6 @@ block_t *block_alloc(cfg_t *cfg, ir_list instrs) {
 
 static void block_free(block_t *blk) {
     ir_list_free(&blk->instrs);
-    // TODO: mem leak
     zfree(blk);
 }
 

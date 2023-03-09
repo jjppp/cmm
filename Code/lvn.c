@@ -38,7 +38,7 @@ static i32 val_cmp(const void *lhs, const void *rhs) {
     return 0;
 }
 
-static void lvn_init() { // TODO: mem leak
+static void lvn_init() {
     memset(&hashtab, 0, sizeof(hashtab));
     valcnt = 1;
     map_init(&cvar_map, val_cmp);

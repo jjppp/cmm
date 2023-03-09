@@ -240,7 +240,6 @@ bool map_eq(map_t *lhs, map_t *rhs) {
 }
 
 void set_cpy(set_t *dst, set_t *src) {
-    // TODO: mem leak
     set_init(dst, dst->cmp);
     set_iter(src, it) {
         set_insert(dst, it.val);
@@ -248,7 +247,6 @@ void set_cpy(set_t *dst, set_t *src) {
 }
 
 void map_cpy(map_t *dst, map_t *src) {
-    // TODO: mem leak
     map_init(dst, dst->cmp);
     map_iter(src, it) {
         map_insert(dst, it.key, it.val);
