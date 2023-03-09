@@ -59,6 +59,7 @@ static bool data_eq(data_t *lhs, data_t *rhs) {
 
 static void data_cpy(data_t *dst, data_t *src) {
     set_fini(&((live_data_t *) dst)->used);
+    set_init(&((live_data_t *) dst)->used, ((live_data_t *) dst)->used.cmp);
     set_cpy(&((live_data_t *) dst)->used, &((live_data_t *) src)->used);
 }
 
@@ -108,7 +109,7 @@ void do_live(cfg_t *cfg) {
             }
             df.transfer_instr(ir, (data_t *) pd);
         }
-        ir_remove_mark(&blk->instrs);
+        // ir_remove_mark(&blk->instrs);
         data_fini(df.data_at(df.data_in, blk->id));
         data_fini(df.data_at(df.data_out, blk->id));
     }

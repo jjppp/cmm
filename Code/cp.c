@@ -85,6 +85,7 @@ static bool data_eq(data_t *lhs, data_t *rhs) {
 
 static void data_cpy(data_t *dst, data_t *src) {
     map_fini(&((cp_data_t *) dst)->facts);
+    map_init(&((cp_data_t *) dst)->facts, ((cp_data_t *) dst)->facts.cmp);
     map_cpy(&((cp_data_t *) dst)->facts, &((cp_data_t *) src)->facts);
 }
 

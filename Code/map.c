@@ -14,6 +14,7 @@ void map_init(map_t *map, i32 (*cmp)(const void *lhs, const void *rhs)) {
     ASSERT(cmp != NULL, "cmp NULL");
     map->cmp  = cmp;
     map->root = NULL;
+    map->size = 0;
 }
 
 static void map_fini_helper(map_t *map, map_iter_t iter) {
@@ -115,14 +116,16 @@ static node_t *map_insert_helper(map_t *map, node_t *node, const void *key) {
     node_t *new = NULL;
     if (cmp_val > 0) {
         if (!node->rhs) {
-            new       = node_alloc(key, NULL);
+            new = node_alloc(key, NULL);
+            map->size++;
             node->rhs = new;
         } else {
             new = map_insert_helper(map, node->rhs, key);
         }
     } else {
         if (!node->lhs) {
-            new       = node_alloc(key, NULL);
+            new = node_alloc(key, NULL);
+            map->size++;
             node->lhs = new;
         } else {
             new = map_insert_helper(map, node->lhs, key);
@@ -138,6 +141,7 @@ void map_insert(map_t *map, const void *key, void *val) {
     ASSERT(key != NULL, "insert key NULL");
     if (!map->root) {
         map->root = node_alloc(key, val);
+        map->size++;
     } else {
         node_t *node = map_insert_helper(map, map->root, key);
         ASSERT(node != NULL, "insert NULL");
@@ -164,6 +168,7 @@ static void map_remove_helper(map_t *map, node_t **pnode, const void *key) {
         if (node->h == 1) { // leaf
             zfree(node);
             *pnode = NULL;
+            map->size--;
             return;
         } else if (node->lhs == NULL) {
             swap(node->key, node->rhs->key);
