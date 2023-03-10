@@ -35,7 +35,7 @@ VISIT(IR_BINARY) {
 VISIT(IR_BRANCH) {
     rewrite(&node->lhs, fact_get(out, node->lhs));
     rewrite(&node->rhs, fact_get(out, node->rhs));
-
+    return;
     if (node->lhs.kind == OPRD_LIT && node->rhs.kind == OPRD_LIT) {
         i32 lhs_val = node->lhs.val;
         i32 rhs_val = node->rhs.val;
@@ -71,6 +71,7 @@ VISIT(IR_BRANCH) {
         node->jmpto = jmpto;
 #define DEAD_JMP(EDGE) ((EDGE)->to != jmpto->parent)
         LIST_REMOVE(node->parent->fedge, zfree, DEAD_JMP);
+        LIST_REMOVE(node->parent->bedge, zfree, DEAD_JMP);
     }
 }
 
