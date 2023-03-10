@@ -1,3 +1,4 @@
+#include "common.h"
 #include "cp.h"
 #include "ir.h"
 
@@ -10,11 +11,14 @@ void cp_rewrite(IR_t *ir, cp_data_t *out) {
     VISITOR_DISPATCH(IR, cp_rewrite, ir, out);
 }
 
-VISIT(IR_ASSIGN) {
-    fact_t fact = fact_get(out, node->tar);
+static void rewrite(oprd_t *oprd, fact_t fact) {
     if (fact.kind == FACT_CONST) {
-        node->lhs = lit_alloc(fact.val);
+        *oprd = lit_alloc(fact.val);
     }
+}
+
+VISIT(IR_ASSIGN) {
+    rewrite(&node->lhs, fact_get(out, node->tar));
 }
 
 VISIT(IR_BINARY) {
@@ -23,54 +27,67 @@ VISIT(IR_BINARY) {
         node->kind = IR_ASSIGN;
         node->lhs  = lit_alloc(fact.val);
     } else {
-        fact_t lhs_fact = fact_get(out, node->lhs);
-        fact_t rhs_fact = fact_get(out, node->rhs);
-        if (lhs_fact.kind == FACT_CONST) {
-            node->lhs = lit_alloc(lhs_fact.val);
-        }
-        if (rhs_fact.kind == FACT_CONST) {
-            node->rhs = lit_alloc(rhs_fact.val);
-        }
+        rewrite(&node->lhs, fact_get(out, node->lhs));
+        rewrite(&node->rhs, fact_get(out, node->rhs));
     }
 }
 
 VISIT(IR_BRANCH) {
-    fact_t lhs_fact = fact_get(out, node->lhs);
-    fact_t rhs_fact = fact_get(out, node->rhs);
-    if (node->lhs.kind == OPRD_VAR && lhs_fact.kind == FACT_CONST) {
-        node->lhs = lit_alloc(lhs_fact.val);
-    }
-    if (node->rhs.kind == OPRD_VAR && rhs_fact.kind == FACT_CONST) {
-        node->rhs = lit_alloc(rhs_fact.val);
+    rewrite(&node->lhs, fact_get(out, node->lhs));
+    rewrite(&node->rhs, fact_get(out, node->rhs));
+
+    if (node->lhs.kind == OPRD_LIT && node->rhs.kind == OPRD_LIT) {
+        i32 lhs_val = node->lhs.val;
+        i32 rhs_val = node->rhs.val;
+        node->kind  = IR_GOTO;
+        IR_t *jmpto = NULL;
+        switch (node->op) {
+            case OP_LE: {
+                jmpto = (lhs_val <= rhs_val) ? node->jmpto : node->next;
+                break;
+            }
+            case OP_LT: {
+                jmpto = (lhs_val < rhs_val) ? node->jmpto : node->next;
+                break;
+            }
+            case OP_GE: {
+                jmpto = (lhs_val >= rhs_val) ? node->jmpto : node->next;
+                break;
+            }
+            case OP_GT: {
+                jmpto = (lhs_val > rhs_val) ? node->jmpto : node->next;
+                break;
+            }
+            case OP_EQ: {
+                jmpto = (lhs_val == rhs_val) ? node->jmpto : node->next;
+                break;
+            }
+            case OP_NE: {
+                jmpto = (lhs_val != rhs_val) ? node->jmpto : node->next;
+                break;
+            }
+            default: UNREACHABLE;
+        }
+        node->jmpto = jmpto;
+#define DEAD_JMP(EDGE) ((EDGE)->to != jmpto->parent)
+        LIST_REMOVE(node->parent->fedge, zfree, DEAD_JMP);
     }
 }
 
 VISIT(IR_RETURN) {
-    fact_t fact = fact_get(out, node->lhs);
-    if (node->lhs.kind == OPRD_VAR && fact.kind == FACT_CONST) {
-        node->lhs = lit_alloc(fact.val);
-    }
+    rewrite(&node->lhs, fact_get(out, node->lhs));
 }
 
 VISIT(IR_ARG) {
-    fact_t fact = fact_get(out, node->lhs);
-    if (node->lhs.kind == OPRD_VAR && fact.kind == FACT_CONST) {
-        node->lhs = lit_alloc(fact.val);
-    }
+    rewrite(&node->lhs, fact_get(out, node->lhs));
 }
 
 VISIT(IR_WRITE) {
-    fact_t fact = fact_get(out, node->lhs);
-    if (node->lhs.kind == OPRD_VAR && fact.kind == FACT_CONST) {
-        node->lhs = lit_alloc(fact.val);
-    }
+    rewrite(&node->lhs, fact_get(out, node->lhs));
 }
 
 VISIT(IR_STORE) {
-    fact_t fact = fact_get(out, node->lhs);
-    if (node->lhs.kind == OPRD_VAR && fact.kind == FACT_CONST) {
-        node->lhs = lit_alloc(fact.val);
-    }
+    rewrite(&node->lhs, fact_get(out, node->lhs));
 }
 
 VISIT_UNDEF(IR_NULL);
