@@ -22,6 +22,15 @@ VISIT(IR_BINARY) {
     if (fact.kind == FACT_CONST) {
         node->kind = IR_ASSIGN;
         node->lhs  = lit_alloc(fact.val);
+    } else {
+        fact_t lhs_fact = fact_get(out, node->lhs);
+        fact_t rhs_fact = fact_get(out, node->rhs);
+        if (lhs_fact.kind == FACT_CONST) {
+            node->lhs = lit_alloc(lhs_fact.val);
+        }
+        if (rhs_fact.kind == FACT_CONST) {
+            node->rhs = lit_alloc(rhs_fact.val);
+        }
     }
 }
 

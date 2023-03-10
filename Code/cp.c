@@ -135,7 +135,11 @@ void fact_insert(cp_data_t *out, oprd_t oprd, fact_t fact) {
 }
 
 fact_t fact_get(cp_data_t *out, oprd_t oprd) {
-    return (fact_t){.rep = (uptr) map_find(&out->facts, (void *) oprd.id)};
+    switch (oprd.kind) {
+        case OPRD_VAR: return (fact_t){.rep = (uptr) map_find(&out->facts, (void *) oprd.id)};
+        case OPRD_LIT: return const_alloc(oprd.val);
+    }
+    UNREACHABLE;
 }
 
 VISIT(IR_ASSIGN) {
