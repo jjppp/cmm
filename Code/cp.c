@@ -45,14 +45,37 @@ static fact_t fact_merge(const fact_t lhs, const fact_t rhs) {
 }
 
 static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
-    if (lhs.kind == FACT_NAC || rhs.kind == FACT_NAC) return NAC;
     if (lhs.kind == FACT_UNDEF) return rhs;
     if (rhs.kind == FACT_UNDEF) return lhs;
+    if (lhs.kind == FACT_NAC && rhs.kind == FACT_NAC) return NAC;
+    if (lhs.kind == FACT_CONST && rhs.kind == FACT_CONST) {
+        switch (op) {
+            case OP_ADD: return const_alloc(lhs.val + rhs.val);
+            case OP_SUB: return const_alloc(lhs.val - rhs.val);
+            case OP_MUL: return const_alloc(lhs.val * rhs.val);
+            case OP_DIV: return const_alloc(lhs.val / rhs.val);
+            default: UNREACHABLE;
+        }
+    }
+#define IS_CONST(FACT, VAL) (((FACT).kind == FACT_CONST) && ((FACT).val == (VAL)))
     switch (op) {
-        case OP_ADD: return const_alloc(lhs.val + rhs.val);
-        case OP_SUB: return const_alloc(lhs.val - rhs.val);
-        case OP_MUL: return const_alloc(lhs.val * rhs.val);
-        case OP_DIV: return const_alloc(lhs.val / rhs.val);
+        case OP_ADD: {
+            if (IS_CONST(lhs, 0)) return rhs;
+            if (IS_CONST(rhs, 0)) return lhs;
+            return NAC;
+        }
+        case OP_SUB: {
+            if (IS_CONST(rhs, 0)) return lhs;
+            return NAC;
+        }
+        case OP_MUL: {
+            if (IS_CONST(lhs, 0) || IS_CONST(rhs, 0)) return const_alloc(0);
+            return NAC;
+        }
+        case OP_DIV: {
+            if (IS_CONST(rhs, 1)) return lhs;
+            return NAC;
+        }
         default: UNREACHABLE;
     }
     UNREACHABLE;
