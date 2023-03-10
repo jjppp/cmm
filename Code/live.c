@@ -109,7 +109,7 @@ void do_live(cfg_t *cfg) {
             }
             df.transfer_instr(ir, (data_t *) pd);
         }
-        // ir_remove_mark(&blk->instrs);
+        ir_remove_mark(&blk->instrs);
         data_fini(df.data_at(df.data_in, blk->id));
         data_fini(df.data_at(df.data_out, blk->id));
     }

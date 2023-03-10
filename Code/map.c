@@ -92,6 +92,7 @@ static node_t *rotate_L(node_t *const node) {
 }
 
 static node_t *rebalance(node_t *node) {
+    if (!node) return NULL;
     calc_height(node);
     i32 b = get_balance(node);
     if (b == 2) {
@@ -196,6 +197,7 @@ static void map_remove_helper(map_t *map, node_t **pnode, const void *key) {
 
 void map_remove(map_t *map, const void *key) {
     map_remove_helper(map, &map->root, key);
+    map->root = rebalance(map->root);
 }
 
 void set_init(set_t *set, i32 (*cmp)(const void *lhs, const void *rhs)) {

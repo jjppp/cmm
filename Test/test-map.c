@@ -66,9 +66,63 @@ static void test_set() {
     set_fini(&set);
 }
 
+static void test_merge() {
+    set_t lhs, rhs;
+    set_init(&lhs, cmp);
+    set_init(&rhs, cmp);
+
+    set_insert(&lhs, (void *) 1);
+    set_insert(&lhs, (void *) 2);
+    set_insert(&lhs, (void *) 3);
+
+    set_insert(&rhs, (void *) 2);
+    set_insert(&rhs, (void *) 4);
+    set_insert(&rhs, (void *) 3);
+
+    set_merge(&lhs, &rhs);
+
+    set_iter(&lhs, it) {
+        printf("%lu\n", (uptr) it.val);
+    }
+    ASSERT(lhs.size == 4, "lhs size err");
+}
+
+static void print_seq(node_t *node) {
+    if (!node) return;
+    print_seq(node->lhs);
+    printf("%lu ", (uptr) node->key);
+    print_seq(node->rhs);
+}
+
+static void test_seq() {
+    set_t set;
+    set_init(&set, cmp);
+
+    set_insert(&set, (void *) 5);
+    print_seq(set.root);
+    puts("");
+    set_insert(&set, (void *) 4);
+    print_seq(set.root);
+    puts("");
+    set_insert(&set, (void *) 2);
+    print_seq(set.root);
+    puts("");
+    set_insert(&set, (void *) 3);
+    print_seq(set.root);
+    puts("");
+    set_remove(&set, (void *) 5);
+    print_seq(set.root);
+    puts("");
+    set_remove(&set, (void *) 4);
+    print_seq(set.root);
+    puts("");
+}
+
 int main() {
     test_insert();
     test_as_array();
     test_set();
+    test_merge();
+    test_seq();
     puts("PASSED");
 }
