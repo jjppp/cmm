@@ -5,7 +5,6 @@
 #include <string.h>
 
 static queue_t   que;
-static u32       head, tail;
 static dataflow *df;
 
 static void data_validate(const data_t *data) {
@@ -30,10 +29,7 @@ static void transfer_bblock(block_t *blk, data_t *data_in) { // backward
 }
 
 void dataflow_init(dataflow *df_init) {
-    queue_init(&que);
-    head = 0;
-    tail = 0;
-    df   = df_init;
+    df = df_init;
     ASSERT(df->DSIZE > sizeof(data_t), "df->data_size(%u) <= sizeof(data_t)", df->DSIZE);
     ASSERT(df->DMAGIC != 0, "df->DMAGIC == 0");
     switch (df->dir) {
@@ -56,6 +52,7 @@ void dataflow_init(dataflow *df_init) {
 }
 
 static void dataflow_bsolve(cfg_t *cfg) { // backward
+    queue_init(&que, cfg->nnode);
     LIST_ITER(cfg->blocks, blk) {
         queue_push(&que, blk);
     }
@@ -80,11 +77,13 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
             }
         }
     }
+    queue_fini(&que);
     df->data_fini(newd);
     zfree(newd);
 }
 
 static void dataflow_fsolve(cfg_t *cfg) { // forward
+    queue_init(&que, cfg->nnode);
     LIST_ITER(cfg->blocks, blk) {
         queue_push(&que, blk);
     }
@@ -108,6 +107,7 @@ static void dataflow_fsolve(cfg_t *cfg) { // forward
             }
         }
     }
+    queue_fini(&que);
     df->data_fini(newd);
     zfree(newd);
 }

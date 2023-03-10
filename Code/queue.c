@@ -1,13 +1,24 @@
 #include "queue.h"
 #include "cfg.h"
 
-void queue_init(queue_t *q) {
+void queue_init(queue_t *q, u32 bound) {
     q->head = NULL;
     q->tail = NULL;
     q->size = 0;
+    q->inq  = zalloc(bound * sizeof(bool));
+}
+
+void queue_fini(queue_t *q) {
+    q->head = NULL;
+    q->tail = NULL;
+    q->size = 0;
+    zfree(q->inq);
 }
 
 void queue_push(queue_t *q, block_t *blk) {
+    if (q->inq[blk->id]) {
+        return;
+    }
     queue_elem_t *elem = zalloc(sizeof(queue_elem_t));
 
     elem->blk = blk;
@@ -18,6 +29,7 @@ void queue_push(queue_t *q, block_t *blk) {
     }
     q->tail = elem;
     q->size++;
+    q->inq[blk->id] = true;
 }
 
 block_t *queue_pop(queue_t *q) {
@@ -28,6 +40,7 @@ block_t *queue_pop(queue_t *q) {
     if (queue_empty(q)) {
         q->tail = NULL;
     }
+    q->inq[blk->id] = false;
     zfree(ptr);
     return blk;
 }

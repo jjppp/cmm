@@ -12,10 +12,13 @@ struct queue_elem_t {
 
 struct queue_t {
     queue_elem_t *head, *tail;
+    bool         *inq;
     u32           size;
 };
 
-void queue_init(queue_t *q);
+void queue_init(queue_t *q, u32 bound);
+
+void queue_fini(queue_t *q);
 
 void queue_push(queue_t *q, block_t *blk);
 

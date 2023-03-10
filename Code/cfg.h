@@ -35,7 +35,7 @@ typedef enum {
 } edge_kind_t;
 
 struct edge_t {
-    char        str[MAX_SYM_LEN];
+    bool        mark;
     edge_kind_t kind;
     block_t    *from, *to;
     edge_t     *next, *rev;
