@@ -233,12 +233,8 @@ bool set_eq(set_t *lhs, set_t *rhs) {
 
 bool map_eq(map_t *lhs, map_t *rhs) {
     if (lhs == rhs) return true;
+    if (lhs->size != rhs->size) return false;
     map_iter(lhs, it) {
-        if (it.val && !map_find(rhs, it.key)) {
-            return false;
-        }
-    }
-    map_iter(rhs, it) {
         if (it.val && !map_find(rhs, it.key)) {
             return false;
         }
