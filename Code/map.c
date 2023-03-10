@@ -65,12 +65,14 @@ static void calc_height(node_t *node) {
 }
 
 static void node_validate(node_t *node) {
+#ifndef NDEBUG
     if (!node) return;
     node_validate(node->lhs);
     node_validate(node->rhs);
     u32 h = node->h;
     calc_height(node);
     ASSERT(h == node->h, "height");
+#endif
 }
 
 static node_t *rotate_R(node_t *const node) {
@@ -109,8 +111,9 @@ static node_t *rebalance(node_t *node) {
     return node;
 }
 
-static node_t *map_insert_helper(map_t *map, node_t *node, const void *key) {
-    i32 cmp_val = map->cmp(key, node->key);
+static node_t *map_insert_helper(map_t *map, node_t **pnode, const void *key) {
+    node_t *node    = *pnode;
+    i32     cmp_val = map->cmp(key, node->key);
     if (!cmp_val) {
         return node;
     }
@@ -121,7 +124,7 @@ static node_t *map_insert_helper(map_t *map, node_t *node, const void *key) {
             map->size++;
             node->rhs = new;
         } else {
-            new = map_insert_helper(map, node->rhs, key);
+            new = map_insert_helper(map, &node->rhs, key);
         }
     } else {
         if (!node->lhs) {
@@ -129,22 +132,25 @@ static node_t *map_insert_helper(map_t *map, node_t *node, const void *key) {
             map->size++;
             node->lhs = new;
         } else {
-            new = map_insert_helper(map, node->lhs, key);
+            new = map_insert_helper(map, &node->lhs, key);
         }
     }
-    if (node->lhs) node->lhs = rebalance(node->lhs);
-    if (node->rhs) node->rhs = rebalance(node->rhs);
+    *pnode = rebalance(node);
     calc_height(node);
     return new;
 }
 
 void map_insert(map_t *map, const void *key, void *val) {
     ASSERT(key != NULL, "insert key NULL");
+    if (val == NULL) {
+        map_remove(map, key);
+        return;
+    }
     if (!map->root) {
         map->root = node_alloc(key, val);
         map->size++;
     } else {
-        node_t *node = map_insert_helper(map, map->root, key);
+        node_t *node = map_insert_helper(map, &map->root, key);
         ASSERT(node != NULL, "insert NULL");
         node->val = val;
     }
@@ -235,7 +241,7 @@ bool map_eq(map_t *lhs, map_t *rhs) {
     if (lhs == rhs) return true;
     if (lhs->size != rhs->size) return false;
     map_iter(lhs, it) {
-        if (it.val && !map_find(rhs, it.key)) {
+        if (it.val && it.val != map_find(rhs, it.key)) {
             return false;
         }
     }

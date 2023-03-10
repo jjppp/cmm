@@ -10,7 +10,8 @@
 #define ARG out
 VISITOR_DEF(IR, cp, RET_TYPE);
 
-static fact_t NAC = (fact_t){.kind = FACT_NAC};
+static fact_t NAC   = (fact_t){.kind = FACT_NAC};
+static fact_t UNDEF = (fact_t){.kind = FACT_UNDEF};
 
 static void const_prop(IR_t *node, data_t *data) {
     ASSERT(data->magic == MAGIC, "data magic");
@@ -45,8 +46,7 @@ static fact_t fact_merge(const fact_t lhs, const fact_t rhs) {
 }
 
 static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
-    if (lhs.kind == FACT_UNDEF) return rhs;
-    if (rhs.kind == FACT_UNDEF) return lhs;
+    if (lhs.kind == FACT_UNDEF || rhs.kind == FACT_UNDEF) return UNDEF;
     if (lhs.kind == FACT_NAC && rhs.kind == FACT_NAC) return NAC;
     if (lhs.kind == FACT_CONST && rhs.kind == FACT_CONST) {
         switch (op) {
