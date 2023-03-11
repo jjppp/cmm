@@ -35,7 +35,7 @@ void map_fini(map_t *map) {
     map_fini_helper(map, map_iter_init(map));
 }
 
-static node_t *map_find_helper(map_t *map, node_t *node, const void *key) {
+static node_t *map_find_helper(const map_t *map, node_t *node, const void *key) {
     if (!node) {
         return NULL;
     }
@@ -49,7 +49,7 @@ static node_t *map_find_helper(map_t *map, node_t *node, const void *key) {
     }
 }
 
-void *map_find(map_t *map, const void *key) {
+void *map_find(const map_t *map, const void *key) {
     node_t *node = map_find_helper(map, map->root, key);
     if (!node) {
         return NULL;
@@ -224,7 +224,7 @@ void set_insert(set_t *set, void *elem) {
     map_insert(set, elem, elem);
 }
 
-bool set_contains(set_t *set, const void *elem) {
+bool set_contains(const set_t *set, const void *elem) {
     return map_find(set, elem) != NULL;
 }
 
@@ -286,6 +286,19 @@ void map_merge(map_t *into, const map_t *rhs) {
     map_iter(rhs, it) {
         map_insert(into, it.key, it.val);
     }
+}
+
+void map_intersect(map_t *into, const map_t *rhs) {
+    map_t result;
+    map_init(&result, into->cmp);
+    map_iter(into, it) {
+        void *val = map_find(rhs, it.key);
+        if (val == it.val) {
+            map_insert(&result, it.key, it.val);
+        }
+    }
+    map_fini(into);
+    map_cpy(into, &result);
 }
 
 map_iter_t map_iter_init(const map_t *map) {

@@ -44,13 +44,15 @@ void map_init(map_t *map, i32 (*cmp)(const void *lhs, const void *rhs));
 
 void map_fini(map_t *map);
 
-void *map_find(map_t *map, const void *key);
+void *map_find(const map_t *map, const void *key);
 
 void map_insert(map_t *map, const void *key, void *val);
 
 void map_remove(map_t *map, const void *key);
 
 void map_merge(map_t *into, const map_t *rhs);
+
+void map_intersect(map_t *into, const map_t *rhs);
 
 bool map_eq(map_t *lhs, map_t *rhs);
 
@@ -66,7 +68,7 @@ void set_fini(set_t *set);
 
 void set_insert(set_t *set, void *elem);
 
-bool set_contains(set_t *set, const void *elem);
+bool set_contains(const set_t *set, const void *elem);
 
 void set_remove(set_t *set, const void *elem);
 
