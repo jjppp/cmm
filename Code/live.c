@@ -64,7 +64,7 @@ static void data_cpy(data_t *dst, data_t *src) {
 }
 
 static void data_mov(data_t *dst, data_t *src) {
-    data_cpy(dst, src);
+    swap(((live_data_t *) dst)->used, ((live_data_t *) src)->used);
 }
 
 void do_live(cfg_t *cfg) {

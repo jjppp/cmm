@@ -86,13 +86,12 @@ static bool merge(cp_data_t *into, const cp_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     bool changed = false;
 
-    mapent_t *entries_into = zalloc(into->facts.size * sizeof(mapent_t));
-    mapent_t *entries_rhs  = zalloc(rhs->facts.size * sizeof(mapent_t));
+    static mapent_t entries_into[32768];
+    static mapent_t entries_rhs[32768];
+    static mapent_t entries[65536];
 
     u32 len_into = map_to_array(&into->facts, entries_into);
     u32 len_rhs  = map_to_array(&rhs->facts, entries_rhs);
-
-    mapent_t *entries = zalloc((len_into + len_rhs) * sizeof(mapent_t));
 
     u32 i = 0, j = 0, len = 0;
     while (i < len_into && j < len_rhs) {
@@ -104,10 +103,15 @@ static bool merge(cp_data_t *into, const cp_data_t *rhs) {
         } else if ((uptr) ent_into.key > (uptr) ent_rhs.key) {
             entries[len++] = ent_rhs;
             j++;
+            changed = true;
         } else {
+            fact_t fact = fact_merge((fact_t){.rep = (uptr) ent_into.val}, (fact_t){.rep = (uptr) ent_rhs.val});
+            if (fact.rep != (uptr) ent_into.key) {
+                changed = true;
+            }
             entries[len++] = (mapent_t){
                 .key = ent_into.key,
-                .val = (void *) fact_merge((fact_t){.rep = (uptr) ent_into.val}, (fact_t){.rep = (uptr) ent_rhs.val}).rep};
+                .val = (void *) fact.rep};
             i++;
             j++;
         }
@@ -117,11 +121,9 @@ static bool merge(cp_data_t *into, const cp_data_t *rhs) {
     }
     while (j < len_rhs) {
         entries[len++] = entries_rhs[j++];
+        changed        = true;
     }
     map_from_array(&into->facts, len, entries);
-    zfree(entries_rhs);
-    zfree(entries_into);
-    zfree(entries);
     return changed;
 }
 

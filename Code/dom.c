@@ -53,7 +53,7 @@ static void data_cpy(data_t *dst, data_t *src) {
 }
 
 static void data_mov(data_t *dst, data_t *src) {
-    data_cpy(dst, src);
+    swap(((dom_data_t *) dst)->dom, ((dom_data_t *) src)->dom);
 }
 
 void do_dom(cfg_t *cfg) {
