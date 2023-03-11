@@ -28,7 +28,7 @@ static void data_fini(cp_data_t *data) {
     map_fini(&data->facts);
 }
 
-static fact_t const_alloc(u32 val) {
+static fact_t const_alloc(i64 val) {
     return (fact_t){.kind = FACT_CONST, .val = val};
 }
 
@@ -50,10 +50,10 @@ static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
     if (lhs.kind == FACT_NAC && rhs.kind == FACT_NAC) return NAC;
     if (lhs.kind == FACT_CONST && rhs.kind == FACT_CONST) {
         switch (op) {
-            case OP_ADD: return const_alloc(lhs.val + rhs.val);
-            case OP_SUB: return const_alloc(lhs.val - rhs.val);
-            case OP_MUL: return const_alloc(lhs.val * rhs.val);
-            case OP_DIV: return const_alloc(lhs.val / rhs.val);
+            case OP_ADD: return const_alloc((i64) lhs.val + (i64) rhs.val);
+            case OP_SUB: return const_alloc((i64) lhs.val - (i64) rhs.val);
+            case OP_MUL: return const_alloc((i64) lhs.val * (i64) rhs.val);
+            case OP_DIV: return const_alloc((i64) lhs.val / (i64) rhs.val);
             default: UNREACHABLE;
         }
     }
@@ -124,6 +124,9 @@ static bool merge(cp_data_t *into, const cp_data_t *rhs) {
         changed        = true;
     }
     map_from_array(&into->facts, len, entries);
+    ASSERT(i <= sizeof(entries_into), "entries_into overflow");
+    ASSERT(j <= sizeof(entries_rhs), "entries_rhs overflow");
+    ASSERT(len <= sizeof(entries), "entries overflow");
     return changed;
 }
 

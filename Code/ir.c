@@ -40,13 +40,13 @@ char *oprd_to_str(oprd_t oprd) {
     static char buf[BUFSIZ];
     switch (oprd.kind) {
         case OPRD_LIT:
-            snprintf(buf, sizeof(buf), "#%d", oprd.val);
+            snprintf(buf, sizeof(buf), "#%ld", oprd.val);
             break;
         case OPRD_VAR:
             if (oprd.name != NULL) {
-                snprintf(buf, sizeof(buf), "%s%u", oprd.name, oprd.val);
+                snprintf(buf, sizeof(buf), "%s%lu", oprd.name, oprd.val);
             } else {
-                snprintf(buf, sizeof(buf), "t_%u_at_%u_", oprd.val, oprd.lineno);
+                snprintf(buf, sizeof(buf), "t_%lu_at_%u_", oprd.val, oprd.lineno);
             }
             break;
         default: UNREACHABLE;
@@ -73,7 +73,7 @@ void ir_fun_free(ir_fun_t *fun) {
     zfree(fun);
 }
 
-oprd_t lit_alloc(u32 value) {
+oprd_t lit_alloc(i64 value) {
     return (oprd_t){
         .kind = OPRD_LIT,
         .val  = value};

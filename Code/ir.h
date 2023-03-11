@@ -64,7 +64,7 @@ struct oprd_t {
     const char *name;
     oprd_kind_t kind;
     union {
-        u32  val;
+        i64  val;
         uptr id;
     };
     u32 lineno;
@@ -140,7 +140,7 @@ i32 oprd_cmp(const void *lhs, const void *rhs);
 
 oprd_t var_alloc(const char *name, u32 lineno);
 
-oprd_t lit_alloc(u32 value);
+oprd_t lit_alloc(i64 value);
 
 void ir_fun_free(ir_fun_t *fun);
 

@@ -18,7 +18,7 @@ struct fact_t {
                 FACT_CONST,
                 FACT_NAC,
             } kind;
-            u32 val;
+            i32 val;
         };
         uptr rep;
     };
