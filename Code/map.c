@@ -267,8 +267,9 @@ static node_t *map_cpy_helper(node_t *node) {
 }
 
 void map_cpy(map_t *dst, map_t *src) {
-    map_init(dst, dst->cmp);
+    map_init(dst, src->cmp);
     dst->root = map_cpy_helper(src->root);
+    dst->size = src->size;
 }
 
 void set_remove(set_t *set, const void *elem) {
