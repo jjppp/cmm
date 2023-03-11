@@ -96,7 +96,6 @@ static void merge(cp_data_t *into, const cp_data_t *rhs) {
 }
 
 static void *data_at(void *ptr, u32 index) {
-    ASSERT(index < MAX_VARID, "data overflow");
     return &(((cp_data_t *) ptr)[index]);
 }
 

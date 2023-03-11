@@ -30,7 +30,6 @@ static void merge(dce_data_t *into, const dce_data_t *rhs) {
 }
 
 static void *data_at(void *ptr, u32 index) {
-    ASSERT(index < MAX_VARID, "data overflow");
     return &(((dce_data_t *) ptr)[index]);
 }
 

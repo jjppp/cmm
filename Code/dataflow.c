@@ -61,10 +61,8 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
-        if (blk->fedge) {
-            succ_iter(blk, e) {
-                df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
-            }
+        succ_iter(blk, e) {
+            df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
         }
         df->data_cpy(newd, df->data_at(df->data_in, blk->id));
         df->transfer_block(blk, newd);
@@ -90,10 +88,8 @@ static void dataflow_fsolve(cfg_t *cfg) { // forward
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
-        if (blk->bedge) {
-            pred_iter(blk, e) {
-                df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
-            }
+        pred_iter(blk, e) {
+            df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
         }
         df->data_cpy(newd, df->data_at(df->data_in, blk->id));
         df->transfer_block(blk, newd);
