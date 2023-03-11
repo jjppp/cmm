@@ -21,17 +21,6 @@ static void transfer(block_t *blk, data_t *data) {
     set_insert(&((dom_data_t *) data)->dom, blk);
 }
 
-static i32 uptr_cmp(const void *lhs, const void *rhs) {
-    uptr lv = (uptr) lhs;
-    uptr rv = (uptr) rhs;
-    if (lv > rv) {
-        return 1;
-    } else if (lv < rv) {
-        return -1;
-    }
-    return 0;
-}
-
 static void data_init(dom_data_t *data) {
     data->super.magic = MAGIC;
     set_cpy(&data->dom, &UNIVERSE);
@@ -84,13 +73,13 @@ void do_dom(cfg_t *cfg) {
         .data_in        = zalloc(sizeof(dom_data_t) * cfg->nnode),
         .data_out       = zalloc(sizeof(dom_data_t) * cfg->nnode)};
 
-    set_init(&UNIVERSE, uptr_cmp);
+    set_init(&UNIVERSE);
     LIST_ITER(cfg->blocks, blk) {
         set_insert(&UNIVERSE, blk);
     }
     LIST_ITER(cfg->blocks, blk) {
         if (blk == cfg->entry) {
-            set_init(&((dom_data_t *) df.data_at(df.data_in, cfg->entry->id))->dom, uptr_cmp);
+            set_init(&((dom_data_t *) df.data_at(df.data_in, cfg->entry->id))->dom);
             set_insert(&((dom_data_t *) df.data_at(df.data_in, cfg->entry->id))->dom, cfg->entry);
         } else {
             df.data_init(df.data_at(df.data_in, blk->id));
@@ -102,11 +91,10 @@ void do_dom(cfg_t *cfg) {
 
     LIST_ITER(cfg->blocks, blk) {
         dom_data_t *pd = (dom_data_t *) df.data_at(df.data_in, blk->id);
-        printf("blk %u is dominated by:\n", blk->id);
+        LOG("blk %u is dominated by:", blk->id);
         set_iter(&pd->dom, it) {
-            printf("%u, ", ((block_t *) it.val)->id);
+            LOG("%u, ", ((block_t *) it.val)->id);
         }
-        puts("");
         data_fini(df.data_at(df.data_in, blk->id));
         data_fini(df.data_at(df.data_out, blk->id));
     }

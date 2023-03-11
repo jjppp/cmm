@@ -15,10 +15,54 @@ static node_t *node_cpy(node_t *from) {
     return node;
 }
 
-void map_init(map_t *map, i32 (*cmp)(const void *lhs, const void *rhs)) {
+static i32 get_height(node_t *node) {
+    return node ? node->h : 0;
+}
+
+static i32 get_balance(node_t *node) {
+    ASSERT(node, "get_balance NULL");
+    return get_height(node->lhs) - get_height(node->rhs);
+}
+
+static void calc_height(node_t *node) {
+    node->h = max(get_height(node->lhs), get_height(node->rhs)) + 1;
+}
+
+static void map_to_array_helper(node_t *node, mapent_t *entries, u32 *index) {
+    if (!node) return;
+    map_to_array_helper(node->lhs, entries, index);
+    entries[*index] = (mapent_t){
+        .key = node->key,
+        .val = node->val};
+    *index = *index + 1;
+    map_to_array_helper(node->rhs, entries, index);
+}
+
+u32 map_to_array(const map_t *map, mapent_t *entries) {
+    u32 len = 0;
+    map_to_array_helper(map->root, entries, &len);
+    return len;
+}
+
+static node_t *map_from_array_helper(u32 len, mapent_t *entries) {
+    if (len == 0) return NULL;
+    if (len == 1) return node_alloc(entries->key, entries->val);
+    node_t *node = node_alloc(entries[len / 2].key, entries[len / 2].val);
+
+    node->lhs = map_from_array_helper(len / 2, entries);
+    node->rhs = map_from_array_helper(len - len / 2 - 1, &entries[len / 2 + 1]);
+    calc_height(node);
+    return node;
+}
+
+void map_from_array(map_t *map, u32 len, mapent_t *entries) {
+    *map = (map_t){
+        .root = map_from_array_helper(len, entries),
+        .size = len};
+}
+
+void map_init(map_t *map) {
     ASSERT(map != NULL, "map NULL");
-    ASSERT(cmp != NULL, "cmp NULL");
-    map->cmp  = cmp;
     map->root = NULL;
     map->size = 0;
 }
@@ -35,11 +79,20 @@ void map_fini(map_t *map) {
     map_fini_helper(map, map_iter_init(map));
 }
 
+static i32 cmp(const void *lhs, const void *rhs) {
+    if ((uptr) lhs < (uptr) rhs) {
+        return -1;
+    } else if ((uptr) lhs > (uptr) rhs) {
+        return 1;
+    }
+    return 0;
+}
+
 static node_t *map_find_helper(const map_t *map, node_t *node, const void *key) {
     if (!node) {
         return NULL;
     }
-    i32 cmp_val = map->cmp(key, node->key);
+    i32 cmp_val = cmp(key, node->key);
     if (!cmp_val) {
         return node;
     } else if (cmp_val > 0) {
@@ -55,19 +108,6 @@ void *map_find(const map_t *map, const void *key) {
         return NULL;
     }
     return node->val;
-}
-
-static i32 get_height(node_t *node) {
-    return node ? node->h : 0;
-}
-
-static i32 get_balance(node_t *node) {
-    ASSERT(node, "get_balance NULL");
-    return get_height(node->lhs) - get_height(node->rhs);
-}
-
-static void calc_height(node_t *node) {
-    node->h = max(get_height(node->lhs), get_height(node->rhs)) + 1;
 }
 
 static void node_validate(node_t *node) {
@@ -119,7 +159,7 @@ static node_t *rebalance(node_t *node) {
 
 static node_t *map_insert_helper(map_t *map, node_t **pnode, const void *key) {
     node_t *node    = *pnode;
-    i32     cmp_val = map->cmp(key, node->key);
+    i32     cmp_val = cmp(key, node->key);
     if (!cmp_val) {
         return node;
     }
@@ -176,7 +216,7 @@ static node_t *get_succ(node_t *node) {
 static void map_remove_helper(map_t *map, node_t **pnode, const void *key) {
     node_t *node = *pnode;
     if (!node) return; // remove failed
-    i32 cmp_val = map->cmp(key, node->key);
+    i32 cmp_val = cmp(key, node->key);
     if (!cmp_val) {
         if (node->h == 1) { // leaf
             zfree(node);
@@ -212,8 +252,8 @@ void map_remove(map_t *map, const void *key) {
     map->root = rebalance(map->root);
 }
 
-void set_init(set_t *set, i32 (*cmp)(const void *lhs, const void *rhs)) {
-    map_init(set, cmp);
+void set_init(set_t *set) {
+    map_init(set);
 }
 
 void set_fini(set_t *set) {
@@ -267,7 +307,7 @@ static node_t *map_cpy_helper(node_t *node) {
 }
 
 void map_cpy(map_t *dst, map_t *src) {
-    map_init(dst, src->cmp);
+    map_init(dst);
     dst->root = map_cpy_helper(src->root);
     dst->size = src->size;
 }
@@ -290,7 +330,7 @@ void map_merge(map_t *into, const map_t *rhs) {
 
 void map_intersect(map_t *into, const map_t *rhs) {
     map_t result;
-    map_init(&result, into->cmp);
+    map_init(&result);
     map_iter(into, it) {
         void *val = map_find(rhs, it.key);
         if (val == it.val) {

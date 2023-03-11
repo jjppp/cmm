@@ -220,6 +220,7 @@ ir_list ir_split(ir_list *list, IR_t *it) {
 }
 
 void ir_validate(const ir_list *list) {
+#ifndef NDEBUG
     ASSERT(LIST_LENGTH(list->head) == list->size, "%u != %u", LIST_LENGTH(list->head), list->size);
     IR_t *last = NULL;
     LIST_ITER(list->head, it) {
@@ -231,6 +232,7 @@ void ir_validate(const ir_list *list) {
         last = it;
     }
     ASSERT(last == list->head, "head unreachable");
+#endif
 }
 
 void ir_remove_mark(ir_list *list) {

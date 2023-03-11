@@ -31,6 +31,4 @@ struct cp_data_t {
 
 void cp_rewrite(IR_t *ir, cp_data_t *out);
 
-void fact_insert(cp_data_t *out, oprd_t oprd, fact_t fact);
-
 fact_t fact_get(cp_data_t *out, oprd_t oprd);

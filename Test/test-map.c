@@ -2,31 +2,9 @@
 #include "map.h"
 #include <string.h>
 
-static void test_insert() {
-    static char *str_arr[] = {
-        "ABC", "123", "__009"};
-    map_t map;
-    map_init(&map, (void *) strcmp);
-
-    for (i32 i = 0; i < ARR_LEN(str_arr); i++) {
-        map_insert(&map, str_arr[i], str_arr[i]);
-    }
-    ASSERT(map_find(&map, "ABC") == str_arr[0], "ABC should be present");
-    map_insert(&map, "ABC", test_insert);
-    ASSERT(map_find(&map, "ABC") == test_insert, "ABC should be modified");
-    map_remove(&map, "ABC");
-    ASSERT(map_find(&map, "ABC") == NULL, "ABC should be deleted");
-    ASSERT(map_find(&map, "114514") == NULL, "114514 should not be found");
-    map_fini(&map);
-}
-
-static i32 cmp(const void *lhs, const void *rhs) {
-    return ((uptr) lhs) - ((uptr) rhs);
-}
-
 static void test_as_array() {
     map_t map;
-    map_init(&map, cmp);
+    map_init(&map);
 
     map_insert(&map, (void *) 1, (void *) 1);
     ASSERT(map_find(&map, (void *) 1) == (void *) 1, "insert failed");
@@ -50,7 +28,7 @@ static void test_as_array() {
 
 static void test_set() {
     set_t set;
-    set_init(&set, cmp);
+    set_init(&set);
 
     set_insert(&set, (void *) 1);
     set_iter(&set, it) printf("%lu ", (uptr) it.val);
@@ -68,8 +46,8 @@ static void test_set() {
 
 static void test_merge() {
     set_t lhs, rhs;
-    set_init(&lhs, cmp);
-    set_init(&rhs, cmp);
+    set_init(&lhs);
+    set_init(&rhs);
 
     set_insert(&lhs, (void *) 1);
     set_insert(&lhs, (void *) 2);
@@ -96,7 +74,7 @@ static void print_seq(node_t *node) {
 
 static void test_seq() {
     set_t set;
-    set_init(&set, cmp);
+    set_init(&set);
 
     set_insert(&set, (void *) 5);
     print_seq(set.root);
@@ -118,11 +96,33 @@ static void test_seq() {
     puts("");
 }
 
+static void test_to_array() {
+    map_t map;
+    map_init(&map);
+    map_insert(&map, (void *) 1, (void *) 1);
+    map_insert(&map, (void *) 1, (void *) 9);
+    map_insert(&map, (void *) 4, (void *) 1);
+    map_insert(&map, (void *) 5, (void *) 9);
+    map_insert(&map, (void *) 1, (void *) 8);
+    map_insert(&map, (void *) 4, (void *) 1);
+    map_insert(&map, (void *) 6, (void *) 22);
+    map_insert(&map, (void *) 2, (void *) 3);
+    map_insert(&map, (void *) 9, (void *) 7);
+    map_insert(&map, (void *) 34, (void *) 21);
+
+    mapent_t *entries = zalloc(map.size * sizeof(mapent_t));
+    map_to_array(&map, entries);
+    map_t new_map;
+    map_from_array(&new_map, map.size, entries);
+    ASSERT(map_eq(&map, &new_map), "map not EQUAL");
+    zfree(entries);
+}
+
 int main() {
-    test_insert();
     test_as_array();
     test_set();
     test_merge();
     test_seq();
+    test_to_array();
     puts("PASSED");
 }

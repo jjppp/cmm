@@ -20,7 +20,7 @@ static void const_prop(IR_t *node, data_t *data) {
 
 static void data_init(cp_data_t *data) {
     data->super.magic = MAGIC;
-    map_init(&data->facts, oprd_cmp);
+    map_init(&data->facts);
 }
 
 static void data_fini(cp_data_t *data) {
@@ -85,19 +85,43 @@ static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
 static bool merge(cp_data_t *into, const cp_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     bool changed = false;
-    map_iter(&rhs->facts, it) {
-        void *rep = map_find(&into->facts, it.key);
-        if (!rep) {
-            map_insert(&into->facts, it.key, it.val);
-            changed = true;
+
+    mapent_t *entries_into = zalloc(into->facts.size * sizeof(mapent_t));
+    mapent_t *entries_rhs  = zalloc(rhs->facts.size * sizeof(mapent_t));
+
+    u32 len_into = map_to_array(&into->facts, entries_into);
+    u32 len_rhs  = map_to_array(&rhs->facts, entries_rhs);
+
+    mapent_t *entries = zalloc((len_into + len_rhs) * sizeof(mapent_t));
+
+    u32 i = 0, j = 0, len = 0;
+    while (i < len_into && j < len_rhs) {
+        mapent_t ent_into = entries_into[i];
+        mapent_t ent_rhs  = entries_rhs[j];
+        if ((uptr) ent_into.key < (uptr) ent_rhs.key) {
+            entries[len++] = ent_into;
+            i++;
+        } else if ((uptr) ent_into.key > (uptr) ent_rhs.key) {
+            entries[len++] = ent_rhs;
+            j++;
         } else {
-            fact_t fact = fact_merge((fact_t){.rep = (uptr) rep}, (fact_t){.rep = (uptr) it.val});
-            if (fact.rep != (uptr) rep) {
-                map_insert(&into->facts, it.key, (void *) fact.rep);
-                changed = true;
-            }
+            entries[len++] = (mapent_t){
+                .key = ent_into.key,
+                .val = (void *) fact_merge((fact_t){.rep = (uptr) ent_into.val}, (fact_t){.rep = (uptr) ent_rhs.val}).rep};
+            i++;
+            j++;
         }
     }
+    while (i < len_into) {
+        entries[len++] = entries_into[i++];
+    }
+    while (j < len_rhs) {
+        entries[len++] = entries_rhs[j++];
+    }
+    map_from_array(&into->facts, len, entries);
+    zfree(entries_rhs);
+    zfree(entries_into);
+    zfree(entries);
     return changed;
 }
 
@@ -113,7 +137,6 @@ static bool data_eq(data_t *lhs, data_t *rhs) {
 
 static void data_cpy(data_t *dst, data_t *src) {
     map_fini(&((cp_data_t *) dst)->facts);
-    map_init(&((cp_data_t *) dst)->facts, ((cp_data_t *) dst)->facts.cmp);
     map_cpy(&((cp_data_t *) dst)->facts, &((cp_data_t *) src)->facts);
 }
 

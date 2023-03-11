@@ -20,9 +20,13 @@ typedef struct map_iter_t set_iter_t;
          set_iter_next(&(IT)))
 
 struct map_t {
-    i32 (*cmp)(const void *lhs, const void *rhs);
     node_t *root;
     u32     size;
+};
+
+struct mapent_t {
+    const void *key;
+    void       *val;
 };
 
 struct map_iter_t {
@@ -40,7 +44,7 @@ struct node_t {
     void       *val;
 };
 
-void map_init(map_t *map, i32 (*cmp)(const void *lhs, const void *rhs));
+void map_init(map_t *map);
 
 void map_fini(map_t *map);
 
@@ -62,7 +66,7 @@ map_iter_t map_iter_init(const map_t *map);
 
 void map_iter_next(map_iter_t *iter);
 
-void set_init(set_t *set, i32 (*cmp)(const void *lhs, const void *rhs));
+void set_init(set_t *set);
 
 void set_fini(set_t *set);
 
@@ -81,3 +85,7 @@ bool set_eq(set_t *lhs, set_t *rhs);
 void set_cpy(set_t *dst, set_t *src);
 
 void set_iter_next(set_iter_t *iter);
+
+u32 map_to_array(const map_t *map, mapent_t *entries);
+
+void map_from_array(map_t *map, u32 len, mapent_t *entries);

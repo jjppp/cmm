@@ -23,7 +23,7 @@ static void dead_check(IR_t *node, data_t *data) {
 
 static void data_init(live_data_t *data) {
     data->super.magic = MAGIC;
-    set_init(&data->used, oprd_cmp);
+    set_init(&data->used);
 }
 
 static void data_fini(live_data_t *data) {
@@ -60,7 +60,6 @@ static bool data_eq(data_t *lhs, data_t *rhs) {
 
 static void data_cpy(data_t *dst, data_t *src) {
     set_fini(&((live_data_t *) dst)->used);
-    set_init(&((live_data_t *) dst)->used, ((live_data_t *) dst)->used.cmp);
     set_cpy(&((live_data_t *) dst)->used, &((live_data_t *) src)->used);
 }
 

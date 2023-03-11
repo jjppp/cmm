@@ -27,22 +27,11 @@ static map_t cvar_map;
 // what oprd is holding, oprd_t.id => val_t
 static map_t holding_map;
 
-static i32 val_cmp(const void *lhs, const void *rhs) {
-    val_t lv = (val_t) lhs;
-    val_t rv = (val_t) rhs;
-    if (lv > rv) {
-        return 1;
-    } else if (lv < rv) {
-        return -1;
-    }
-    return 0;
-}
-
 static void lvn_init() {
     memset(&hashtab, 0, sizeof(hashtab));
     valcnt = 1;
-    map_init(&cvar_map, val_cmp);
-    map_init(&holding_map, oprd_cmp);
+    map_init(&cvar_map);
+    map_init(&holding_map);
 }
 
 static void cvar_free(cvar_t *cv) {
