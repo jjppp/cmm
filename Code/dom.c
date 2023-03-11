@@ -42,9 +42,10 @@ static void data_fini(dom_data_t *data) {
     set_fini(&data->dom);
 }
 
-static void merge(dom_data_t *into, const dom_data_t *rhs) {
+static bool merge(dom_data_t *into, const dom_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     map_intersect(&into->dom, &rhs->dom);
+    return true;
 }
 
 static void *data_at(void *ptr, u32 index) {

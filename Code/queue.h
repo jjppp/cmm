@@ -20,6 +20,8 @@ void queue_init(queue_t *q, u32 bound);
 
 void queue_fini(queue_t *q);
 
+void queue_push_front(queue_t *q, block_t *blk);
+
 void queue_push(queue_t *q, block_t *blk);
 
 block_t *queue_pop(queue_t *q);

@@ -24,9 +24,10 @@ static void data_init(dce_data_t *data) {
 static void data_fini(dce_data_t *data) {
 }
 
-static void merge(dce_data_t *into, const dce_data_t *rhs) {
+static bool merge(dce_data_t *into, const dce_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     into->reachable |= rhs->reachable;
+    return true;
 }
 
 static void *data_at(void *ptr, u32 index) {

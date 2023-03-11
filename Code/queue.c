@@ -32,6 +32,22 @@ void queue_push(queue_t *q, block_t *blk) {
     q->inq[blk->id] = true;
 }
 
+void queue_push_front(queue_t *q, block_t *blk) {
+    if (q->inq[blk->id]) {
+        return;
+    }
+    queue_elem_t *elem = zalloc(sizeof(queue_elem_t));
+
+    elem->blk = blk;
+    if (q->size == 0) {
+        q->tail = elem;
+    }
+    elem->next = q->head;
+    q->head    = elem;
+    q->size++;
+    q->inq[blk->id] = true;
+}
+
 block_t *queue_pop(queue_t *q) {
     block_t *blk = q->head->blk;
     void    *ptr = q->head;

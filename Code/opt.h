@@ -2,8 +2,6 @@
 #include "cfg.h"
 #include "ir.h"
 
-#define MAX_VARID 65536
-
 #define LOCAL_OPT(F) \
     F(lvn)           \
     F(live)          \

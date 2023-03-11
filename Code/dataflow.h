@@ -16,7 +16,7 @@ struct data_t {
 struct dataflow {
     void (*transfer_instr)(IR_t *ir, data_t *data_in);
     void (*transfer_block)(block_t *blk, data_t *data_in);
-    void (*merge)(data_t *into, const data_t *other);
+    bool (*merge)(data_t *into, const data_t *other);
     void (*solve)(cfg_t *cfg);
     void (*data_init)(data_t *data);
     void (*data_fini)(data_t *data);

@@ -31,9 +31,10 @@ static void data_fini(live_data_t *data) {
     set_fini(&data->used);
 }
 
-static void merge(live_data_t *into, const live_data_t *rhs) {
+static bool merge(live_data_t *into, const live_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     set_merge(&into->used, &rhs->used);
+    return true;
 }
 
 static void gen(live_data_t *data, oprd_t oprd) {

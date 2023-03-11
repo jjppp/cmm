@@ -82,17 +82,23 @@ static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
 }
 
 // This is really ugly, but hopefully it works...
-static void merge(cp_data_t *into, const cp_data_t *rhs) {
+static bool merge(cp_data_t *into, const cp_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
+    bool changed = false;
     map_iter(&rhs->facts, it) {
         void *rep = map_find(&into->facts, it.key);
         if (!rep) {
             map_insert(&into->facts, it.key, it.val);
+            changed = true;
         } else {
-            fact_t fact = (fact_t){.rep = (uptr) rep};
-            map_insert(&into->facts, it.key, (void *) fact_merge(fact, (fact_t){.rep = (uptr) it.val}).rep);
+            fact_t fact = fact_merge((fact_t){.rep = (uptr) rep}, (fact_t){.rep = (uptr) it.val});
+            if (fact.rep != (uptr) rep) {
+                map_insert(&into->facts, it.key, (void *) fact.rep);
+                changed = true;
+            }
         }
     }
+    return changed;
 }
 
 static void *data_at(void *ptr, u32 index) {
@@ -112,7 +118,7 @@ static void data_cpy(data_t *dst, data_t *src) {
 }
 
 static void data_mov(data_t *dst, data_t *src) {
-    data_cpy(dst, src);
+    swap(((cp_data_t *) dst)->facts, ((cp_data_t *) src)->facts);
 }
 
 void do_cp(cfg_t *cfg) {

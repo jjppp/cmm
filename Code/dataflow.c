@@ -54,6 +54,8 @@ void dataflow_init(dataflow *df_init) {
 static void dataflow_bsolve(cfg_t *cfg) { // backward
     queue_init(&que, cfg->nnode);
     LIST_ITER(cfg->blocks, blk) {
+        df->data_cpy(df->data_at(df->data_out, blk->id), df->data_at(df->data_in, blk->id));
+        df->transfer_block(blk, df->data_at(df->data_out, blk->id));
         queue_push(&que, blk);
     }
     data_t *newd = zalloc(df->DSIZE);
@@ -61,9 +63,11 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
+        bool changed = false;
         succ_iter(blk, e) {
-            df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
+            changed |= df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
         }
+        if (!changed) continue;
         df->data_cpy(newd, df->data_at(df->data_in, blk->id));
         df->transfer_block(blk, newd);
         if (!df->data_eq(df->data_at(df->data_out, blk->id), newd)) {
@@ -81,16 +85,20 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
 static void dataflow_fsolve(cfg_t *cfg) { // forward
     queue_init(&que, cfg->nnode);
     LIST_ITER(cfg->blocks, blk) {
-        queue_push(&que, blk);
+        df->data_cpy(df->data_at(df->data_out, blk->id), df->data_at(df->data_in, blk->id));
+        df->transfer_block(blk, df->data_at(df->data_out, blk->id));
+        queue_push_front(&que, blk);
     }
     data_t *newd = zalloc(df->DSIZE);
     df->data_init(newd);
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
         LOG("%u\n", blk->id);
+        bool changed = false;
         pred_iter(blk, e) {
-            df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
+            changed |= df->merge(df->data_at(df->data_in, blk->id), df->data_at(df->data_out, e->to->id));
         }
+        if (!changed) continue;
         df->data_cpy(newd, df->data_at(df->data_in, blk->id));
         df->transfer_block(blk, newd);
         if (!df->data_eq(df->data_at(df->data_out, blk->id), newd)) {
