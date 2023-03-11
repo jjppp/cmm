@@ -9,6 +9,12 @@ static node_t *node_alloc(const void *key, void *val) {
     return node;
 }
 
+static node_t *node_cpy(node_t *from) {
+    node_t *node = zalloc(sizeof(node_t));
+    *node        = *from;
+    return node;
+}
+
 void map_init(map_t *map, i32 (*cmp)(const void *lhs, const void *rhs)) {
     ASSERT(map != NULL, "map NULL");
     ASSERT(cmp != NULL, "cmp NULL");
@@ -249,17 +255,20 @@ bool map_eq(map_t *lhs, map_t *rhs) {
 }
 
 void set_cpy(set_t *dst, set_t *src) {
-    set_init(dst, dst->cmp);
-    set_iter(src, it) {
-        set_insert(dst, it.val);
-    }
+    map_cpy(dst, src);
+}
+
+static node_t *map_cpy_helper(node_t *node) {
+    if (!node) return NULL;
+    node_t *new_node = node_cpy(node);
+    new_node->lhs    = map_cpy_helper(node->lhs);
+    new_node->rhs    = map_cpy_helper(node->rhs);
+    return new_node;
 }
 
 void map_cpy(map_t *dst, map_t *src) {
     map_init(dst, dst->cmp);
-    map_iter(src, it) {
-        map_insert(dst, it.key, it.val);
-    }
+    dst->root = map_cpy_helper(src->root);
 }
 
 void set_remove(set_t *set, const void *elem) {
