@@ -53,7 +53,10 @@ static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
             case OP_ADD: return const_alloc((i64) lhs.val + (i64) rhs.val);
             case OP_SUB: return const_alloc((i64) lhs.val - (i64) rhs.val);
             case OP_MUL: return const_alloc((i64) lhs.val * (i64) rhs.val);
-            case OP_DIV: return const_alloc((i64) lhs.val / (i64) rhs.val);
+            case OP_DIV: {
+                if (rhs.val == 0) return UNDEF;
+                return const_alloc((i64) lhs.val / (i64) rhs.val);
+            }
             default: UNREACHABLE;
         }
     }
@@ -74,6 +77,7 @@ static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
         }
         case OP_DIV: {
             if (IS_CONST(rhs, 1)) return lhs;
+            if (IS_CONST(rhs, 0)) return UNDEF;
             return NAC;
         }
         default: UNREACHABLE;
