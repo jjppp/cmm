@@ -127,6 +127,7 @@ static bool merge(cp_data_t *into, const cp_data_t *rhs) {
         entries[len++] = entries_rhs[j++];
         changed        = true;
     }
+    map_fini(&into->facts);
     map_from_array(&into->facts, len, entries);
     ASSERT(i <= sizeof(entries_into), "entries_into overflow");
     ASSERT(j <= sizeof(entries_rhs), "entries_rhs overflow");
