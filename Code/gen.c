@@ -114,15 +114,19 @@ VISIT(STMT_WHLE) {
     ir_list cond2  = cond_gen(node->cond);
     ir_list body   = ast_gen(node->body);
     ir_list result = {0};
-    IR_t   *loop   = ir_alloc(IR_LABEL);
-    IR_t   *done   = ir_alloc(IR_LABEL);
 
-    chain_resolve(&cond1.tru, loop);
+    IR_t *pre_hdr = ir_alloc(IR_LABEL);
+    IR_t *loop    = ir_alloc(IR_LABEL);
+    IR_t *done    = ir_alloc(IR_LABEL);
+
+    chain_resolve(&cond1.tru, pre_hdr);
     chain_resolve(&cond1.fls, done);
     chain_resolve(&cond2.tru, loop);
     chain_resolve(&cond2.fls, done);
 
     ir_concat(&result, cond1);
+    ir_append(&result, pre_hdr);
+    ir_append(&result, ir_alloc(IR_GOTO, loop));
     ir_append(&result, loop);
     ir_concat(&result, body);
     ir_concat(&result, cond2);
