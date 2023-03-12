@@ -1,0 +1,10 @@
+int main() {
+    int i = 0;
+    int x = read(), y = read();
+    while (i < 100) {
+        i = i + 1;
+        write(x + y);
+    }
+    write(i);
+    return 0;
+}

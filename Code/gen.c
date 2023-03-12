@@ -126,7 +126,6 @@ VISIT(STMT_WHLE) {
 
     ir_concat(&result, cond1);
     ir_append(&result, pre_hdr);
-    ir_append(&result, ir_alloc(IR_GOTO, loop));
     ir_append(&result, loop);
     ir_concat(&result, body);
     ir_concat(&result, cond2);

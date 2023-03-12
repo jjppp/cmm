@@ -1,0 +1,4 @@
+int main() {
+    write(-2147483648);
+    return 0;
+}

@@ -134,6 +134,8 @@ void ir_print(FILE *file, IR_t *ir);
 
 IR_t *ir_alloc(ir_kind_t kind, ...);
 
+IR_t *ir_dup(IR_t *ir);
+
 void ir_check(ir_list *list);
 
 i32 oprd_cmp(const void *lhs, const void *rhs);

@@ -234,8 +234,8 @@ void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfgs) {
         fprintf(fout, "  subgraph cluster_%s {\n", cfg->str);
         fprintf(fout, "    label=\"%s\";\n", cfg->str);
         LIST_ITER(cfg->blocks, block) {
-            fprintf(fout, "    %u [shape=box, xlabel=\"%u\", label=\"",
-                    pid[block->id], pid[block->id]);
+            fprintf(fout, "    %u [color=%s, shape=box, xlabel=\"%u\", label=\"",
+                    pid[block->id], block->mark ? "red" : "black", pid[block->id]);
             LIST_ITER(block->instrs.head, it) {
                 ir_print(fout, it);
             }

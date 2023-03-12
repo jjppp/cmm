@@ -13,11 +13,6 @@
 #define ARG out
 VISITOR_DEF(IR, def, RET_TYPE);
 
-typedef struct def_t {
-    struct def_t *next;
-    IR_t         *ir;
-} def_t;
-
 static void def_check(IR_t *node, data_t *data) {
     VISITOR_DISPATCH(IR, def, node, data);
 }
@@ -82,73 +77,65 @@ dataflow do_def(void *data_in, void *data_out, cfg_t *cfg) {
     return df;
 }
 
-static void def_free(def_t *def) {
-    if (!def) return;
-    def_free(def->next);
-    zfree(def);
-}
-
 static void kill(oprd_t oprd, set_t *defs) {
-    def_t *d = map_find(defs, (void *) oprd.id);
-    def_free(d);
-    map_remove(defs, (void *) oprd.id);
+    static mapent_t entries[65536];
+    map_to_array(defs, entries);
+
+    for (u32 i = 0; i < defs->size; i++) {
+        IR_t *ir = entries[i].val;
+        if (ir->tar.id == oprd.id) {
+            set_remove(defs, ir);
+        }
+    }
 }
 
-static void gen(oprd_t oprd, set_t *defs, IR_t *ir) {
-    def_t *d = zalloc(sizeof(def_t));
-    d->ir    = ir;
-
-    def_t *def_chain = map_find(defs, (void *) oprd.id);
-    if (!def_chain) {
-        map_insert(defs, (void *) oprd.id, d);
-    } else {
-        LIST_APPEND(def_chain, d);
-    }
+static void gen(set_t *defs, IR_t *ir) {
+    set_insert(defs, ir);
 }
 
 VISIT(IR_ASSIGN) {
     kill(node->tar, &out->defs);
-    gen(node->tar, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT(IR_BINARY) {
     kill(node->tar, &out->defs);
-    gen(node->tar, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT(IR_DREF) {
     kill(node->tar, &out->defs);
-    gen(node->tar, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT(IR_LOAD) {
     kill(node->tar, &out->defs);
-    gen(node->tar, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT(IR_CALL) {
     kill(node->tar, &out->defs);
-    gen(node->tar, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT(IR_READ) {
     kill(node->tar, &out->defs);
-    gen(node->tar, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT(IR_WRITE) {
     kill(node->tar, &out->defs);
-    gen(node->tar, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT(IR_DEC) {
     kill(node->tar, &out->defs);
-    gen(node->tar, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT(IR_PARAM) {
     kill(node->lhs, &out->defs);
-    gen(node->lhs, &out->defs, node);
+    gen(&out->defs, node);
 }
 
 VISIT_UNDEF(IR_NULL);

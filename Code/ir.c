@@ -137,6 +137,13 @@ IR_t *ir_alloc(ir_kind_t kind, ...) {
     return ir;
 }
 
+IR_t *ir_dup(IR_t *ir) {
+    IR_t *ptr = zalloc(sizeof(IR_t));
+
+    *ptr = *ir;
+    return ptr;
+}
+
 void ir_append(ir_list *list, IR_t *ir) {
     ir_validate(list);
     if (list->size == 0) {
