@@ -228,7 +228,7 @@ VISIT(IR_DEC) {
 }
 
 VISIT(IR_PARAM) { // intra-procedural, safe
-    fact_insert(out, node->lhs, NAC);
+    fact_insert(out, node->tar, NAC);
 }
 
 VISIT_UNDEF(IR_NULL);

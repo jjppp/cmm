@@ -143,7 +143,7 @@ VISIT(IR_ARG) {
 }
 
 VISIT(IR_PARAM) {
-    kill(out, node->lhs);
+    kill(out, node->tar);
 }
 
 VISIT_UNDEF(IR_NULL);

@@ -319,7 +319,7 @@ VISIT(IR_ARG) {
 }
 
 VISIT(IR_PARAM) {
-    node->lhs = va_arg(ap, oprd_t);
+    node->tar = va_arg(ap, oprd_t);
 }
 
 VISIT(IR_CALL) {

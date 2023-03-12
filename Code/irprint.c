@@ -103,7 +103,7 @@ VISIT(IR_ARG) {
 }
 
 VISIT(IR_PARAM) {
-    fprintf(fout, "PARAM %s\n", oprd_to_str(node->lhs));
+    fprintf(fout, "PARAM %s\n", oprd_to_str(node->tar));
 }
 
 VISIT(IR_CALL) {
