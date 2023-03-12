@@ -1,19 +1,12 @@
 #include "cfg.h"
 #include "common.h"
-#include "dataflow.h"
-#include "map.h"
 #include "visitor.h"
 #include "opt.h"
+#include "dom.h"
 #include <stdio.h>
 #include <string.h>
 
-typedef struct dom_data_t dom_data_t;
 #define MAGIC 0x20020308
-
-struct dom_data_t {
-    EXTENDS(data_t);
-    set_t dom;
-};
 
 static set_t UNIVERSE;
 
@@ -56,7 +49,7 @@ static void data_mov(data_t *dst, data_t *src) {
     swap(((dom_data_t *) dst)->dom, ((dom_data_t *) src)->dom);
 }
 
-void do_dom(cfg_t *cfg) {
+dataflow do_dom(void *data_in, void *data_out, cfg_t *cfg) {
     dataflow df = (dataflow){
         .dir            = DF_FORWARD,
         .merge          = (void *) merge,
@@ -70,8 +63,8 @@ void do_dom(cfg_t *cfg) {
         .data_eq        = data_eq,
         .data_mov       = data_mov,
         .data_cpy       = data_cpy,
-        .data_in        = zalloc(sizeof(dom_data_t) * cfg->nnode),
-        .data_out       = zalloc(sizeof(dom_data_t) * cfg->nnode)};
+        .data_in        = data_in,
+        .data_out       = data_out};
 
     set_init(&UNIVERSE);
     LIST_ITER(cfg->blocks, blk) {
@@ -88,16 +81,5 @@ void do_dom(cfg_t *cfg) {
     }
     dataflow_init(&df);
     df.solve(cfg);
-
-    LIST_ITER(cfg->blocks, blk) {
-        dom_data_t *pd = (dom_data_t *) df.data_at(df.data_in, blk->id);
-        LOG("blk %u is dominated by:", blk->id);
-        set_iter(&pd->dom, it) {
-            LOG("%u, ", ((block_t *) it.val)->id);
-        }
-        data_fini(df.data_at(df.data_in, blk->id));
-        data_fini(df.data_at(df.data_out, blk->id));
-    }
-    zfree(df.data_in);
-    zfree(df.data_out);
+    return df;
 }

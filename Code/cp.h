@@ -1,5 +1,4 @@
 #pragma once
-
 #include "common.h"
 #include "dataflow.h"
 #include "map.h"
@@ -29,6 +28,6 @@ struct cp_data_t {
     map_t facts;
 };
 
-void cp_rewrite(IR_t *ir, cp_data_t *out);
+dataflow do_cp(void *data_in, void *data_out, cfg_t *cfg);
 
 fact_t fact_get(cp_data_t *out, oprd_t oprd);

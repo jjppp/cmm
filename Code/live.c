@@ -1,21 +1,14 @@
 #include "common.h"
-#include "dataflow.h"
-#include "map.h"
+#include "live.h"
 #include "visitor.h"
 #include "opt.h"
 #include <stdio.h>
 #include <string.h>
 
-typedef struct live_data_t live_data_t;
 #define MAGIC 0x114514
 #define RET_TYPE live_data_t *
 #define ARG out
 VISITOR_DEF(IR, live, RET_TYPE);
-
-struct live_data_t {
-    EXTENDS(data_t);
-    set_t used;
-};
 
 static void dead_check(IR_t *node, data_t *data) {
     VISITOR_DISPATCH(IR, live, node, data);
@@ -67,7 +60,7 @@ static void data_mov(data_t *dst, data_t *src) {
     swap(((live_data_t *) dst)->used, ((live_data_t *) src)->used);
 }
 
-void do_live(cfg_t *cfg) {
+dataflow do_live(void *data_in, void *data_out, cfg_t *cfg) {
     dataflow df = (dataflow){
         .dir            = DF_BACKWARD,
         .merge          = (void *) merge,
@@ -81,40 +74,15 @@ void do_live(cfg_t *cfg) {
         .data_eq        = data_eq,
         .data_mov       = data_mov,
         .data_cpy       = data_cpy,
-        .data_in        = zalloc(sizeof(live_data_t) * cfg->nnode),
-        .data_out       = zalloc(sizeof(live_data_t) * cfg->nnode)};
+        .data_in        = data_in,
+        .data_out       = data_out};
     LIST_ITER(cfg->blocks, blk) {
         df.data_init(df.data_at(df.data_in, blk->id));
         df.data_init(df.data_at(df.data_out, blk->id));
     }
     dataflow_init(&df);
     df.solve(cfg);
-
-    LIST_ITER(cfg->blocks, blk) {
-        live_data_t *pd = (live_data_t *) df.data_at(df.data_in, blk->id);
-        LIST_REV_ITER(blk->instrs.tail, ir) {
-            switch (ir->kind) {
-                IR_PURE(CASE) {
-                    if (!set_contains(&pd->used, (void *) ir->tar.id)) {
-                        ir->mark = true;
-                    }
-                    break;
-                }
-                case IR_NULL: {
-                    UNREACHABLE;
-                }
-                default: {
-                    // do nothing ...
-                }
-            }
-            df.transfer_instr(ir, (data_t *) pd);
-        }
-        ir_remove_mark(&blk->instrs);
-        data_fini(df.data_at(df.data_in, blk->id));
-        data_fini(df.data_at(df.data_out, blk->id));
-    }
-    zfree(df.data_in);
-    zfree(df.data_out);
+    return df;
 }
 
 VISIT(IR_ASSIGN) {

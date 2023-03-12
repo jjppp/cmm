@@ -1,4 +1,3 @@
-#include "common.h"
 #include "cp.h"
 #include "ir.h"
 
@@ -6,9 +5,28 @@
 #define ARG out
 VISITOR_DEF(IR, cp_rewrite, RET_TYPE);
 
-void cp_rewrite(IR_t *ir, cp_data_t *out) {
+static void cp_rewrite(IR_t *ir, cp_data_t *out) {
     ASSERT(out->super.magic == MAGIC, "data magic");
     VISITOR_DISPATCH(IR, cp_rewrite, ir, out);
+}
+
+void do_cp_rewrite(cfg_t *cfg) {
+    cp_data_t *data_in  = zalloc(sizeof(cp_data_t) * cfg->nnode);
+    cp_data_t *data_out = zalloc(sizeof(cp_data_t) * cfg->nnode);
+
+    dataflow df = do_cp(data_in, data_out, cfg);
+    LIST_ITER(cfg->blocks, blk) {
+        cp_data_t *pd = (cp_data_t *) df.data_at(df.data_in, blk->id);
+        LIST_ITER(blk->instrs.head, ir) {
+            df.transfer_instr(ir, (data_t *) pd);
+            cp_rewrite(ir, pd);
+        }
+        // ir_remove_mark(&blk->instrs);
+        df.data_fini(df.data_at(df.data_in, blk->id));
+        df.data_fini(df.data_at(df.data_out, blk->id));
+    }
+    zfree(df.data_in);
+    zfree(df.data_out);
 }
 
 static void rewrite(oprd_t *oprd, fact_t fact) {

@@ -153,7 +153,7 @@ static void data_mov(data_t *dst, data_t *src) {
     swap(((cp_data_t *) dst)->facts, ((cp_data_t *) src)->facts);
 }
 
-void do_cp(cfg_t *cfg) {
+dataflow do_cp(void *data_in, void *data_out, cfg_t *cfg) {
     dataflow df = (dataflow){
         .dir            = DF_FORWARD,
         .merge          = (void *) merge,
@@ -167,27 +167,15 @@ void do_cp(cfg_t *cfg) {
         .data_eq        = data_eq,
         .data_cpy       = data_cpy,
         .data_mov       = data_mov,
-        .data_in        = zalloc(sizeof(cp_data_t) * cfg->nnode),
-        .data_out       = zalloc(sizeof(cp_data_t) * cfg->nnode)};
+        .data_in        = data_in,
+        .data_out       = data_out};
     LIST_ITER(cfg->blocks, blk) {
         df.data_init(df.data_at(df.data_in, blk->id));
         df.data_init(df.data_at(df.data_out, blk->id));
     }
     dataflow_init(&df);
     df.solve(cfg);
-
-    LIST_ITER(cfg->blocks, blk) {
-        cp_data_t *pd = (cp_data_t *) df.data_at(df.data_in, blk->id);
-        LIST_ITER(blk->instrs.head, ir) {
-            df.transfer_instr(ir, (data_t *) pd);
-            cp_rewrite(ir, pd);
-        }
-        // ir_remove_mark(&blk->instrs);
-        data_fini(df.data_at(df.data_in, blk->id));
-        data_fini(df.data_at(df.data_out, blk->id));
-    }
-    zfree(df.data_in);
-    zfree(df.data_out);
+    return df;
 }
 
 void fact_insert(cp_data_t *out, oprd_t oprd, fact_t fact) {
