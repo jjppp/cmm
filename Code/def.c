@@ -29,8 +29,7 @@ static void data_fini(def_data_t *data) {
 
 static bool merge(def_data_t *into, const def_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
-    set_merge(&into->defs, &rhs->defs);
-    return true;
+    return set_merge(&into->defs, &rhs->defs);
 }
 
 static void *data_at(void *ptr, u32 index) {

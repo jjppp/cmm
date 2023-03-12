@@ -1,6 +1,10 @@
 #include "map.h"
 #include "common.h"
 
+static mapent_t entries1[65536];
+static mapent_t entries2[65536];
+static mapent_t entries3[65536];
+
 static node_t *node_alloc(const void *key, void *val) {
     node_t *node = zalloc(sizeof(node_t));
     node->key    = key;
@@ -316,10 +320,42 @@ void set_remove(set_t *set, const void *elem) {
     map_remove(set, elem);
 }
 
-void set_merge(set_t *into, const set_t *rhs) {
-    set_iter(rhs, it) {
-        set_insert(into, it.val);
+bool set_merge(set_t *into, const set_t *rhs) {
+    u32  len_into = map_to_array(into, entries1);
+    u32  len_rhs  = map_to_array(rhs, entries2);
+    bool changed  = false;
+
+    u32 i = 0, j = 0, len = 0;
+    while (i < len_into && j < len_rhs) {
+        mapent_t ent_into = entries1[i];
+        mapent_t ent_rhs  = entries2[j];
+        if ((uptr) ent_into.key < (uptr) ent_rhs.key) {
+            entries3[len++] = ent_into;
+            i++;
+        } else if ((uptr) ent_into.key > (uptr) ent_rhs.key) {
+            entries3[len++] = ent_rhs;
+            j++;
+            changed = true;
+        } else {
+            entries3[len++] = (mapent_t){
+                .key = ent_into.key,
+                .val = ent_into.val};
+            i++;
+            j++;
+        }
     }
+    while (i < len_into) {
+        entries3[len++] = entries1[i++];
+    }
+    while (j < len_rhs) {
+        entries3[len++] = entries2[j++];
+        changed         = true;
+    }
+    map_from_array(into, len, entries3);
+    ASSERT(i <= sizeof(entries1), "entries_into overflow");
+    ASSERT(j <= sizeof(entries2), "entries_rhs overflow");
+    ASSERT(len <= sizeof(entries3), "entries overflow");
+    return changed;
 }
 
 void map_merge(map_t *into, const map_t *rhs) {

@@ -76,7 +76,7 @@ bool set_contains(const set_t *set, const void *elem);
 
 void set_remove(set_t *set, const void *elem);
 
-void set_merge(set_t *into, const set_t *rhs);
+bool set_merge(set_t *into, const set_t *rhs);
 
 set_iter_t set_iter_init(const set_t *set);
 
