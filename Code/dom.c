@@ -26,7 +26,7 @@ static void data_fini(dom_data_t *data) {
 
 static bool merge(dom_data_t *into, const dom_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
-    map_intersect(&into->dom, &rhs->dom);
+    set_intersect(&into->dom, &rhs->dom);
     return true;
 }
 

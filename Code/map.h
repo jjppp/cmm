@@ -78,6 +78,8 @@ void set_remove(set_t *set, const void *elem);
 
 bool set_merge(set_t *into, const set_t *rhs);
 
+void set_intersect(set_t *into, const set_t *rhs);
+
 set_iter_t set_iter_init(const set_t *set);
 
 bool set_eq(set_t *lhs, set_t *rhs);

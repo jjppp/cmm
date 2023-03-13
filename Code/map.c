@@ -358,6 +358,10 @@ bool set_merge(set_t *into, const set_t *rhs) {
     return changed;
 }
 
+void set_intersect(set_t *into, const set_t *rhs) {
+    map_intersect(into, rhs);
+}
+
 void map_merge(map_t *into, const map_t *rhs) {
     map_iter(rhs, it) {
         map_insert(into, it.key, it.val);
