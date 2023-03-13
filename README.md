@@ -42,6 +42,7 @@ Executable target file.
 
 - [X] Live Variables
 - [X] Dominators
+- [X] Reaching Definitions
 
 ## AST Opt
 
@@ -55,9 +56,11 @@ Executable target file.
 
 - [X] Dead Code Elimination
 - [X] Constant Propagation
+- [X] Copy Propagation
+- [X] Loop Invariant Code Motion
 
 ## Miscellaneous
 
-- [ ] Generic Set Container
+- [X] Generic Set Container
 - [ ] Better Comments
 - [ ] Better Tests
