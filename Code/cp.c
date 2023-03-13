@@ -2,6 +2,7 @@
 #include "common.h"
 #include "cp.h"
 #include "ir.h"
+#include "live.h"
 #include "map.h"
 #include <stdio.h>
 #include <string.h>
@@ -12,6 +13,8 @@ VISITOR_DEF(IR, cp, RET_TYPE);
 
 static fact_t NAC   = (fact_t){.kind = FACT_NAC};
 static fact_t UNDEF = (fact_t){.kind = FACT_UNDEF};
+
+static dataflow live_df;
 
 static void const_prop(IR_t *node, data_t *data) {
     ASSERT(data->magic == MAGIC, "data magic");
@@ -154,12 +157,35 @@ static void data_mov(data_t *dst, data_t *src) {
     swap(((cp_data_t *) dst)->facts, ((cp_data_t *) src)->facts);
 }
 
+static void transfer_block(block_t *blk, data_t *data_in) {
+    static mapent_t entries[65536];
+
+    LIST_ITER(blk->instrs.head, ir) {
+        const_prop(ir, data_in);
+    }
+    live_data_t *pd = live_df.data_at(live_df.data_in, blk->id);
+
+    map_t *facts = &((cp_data_t *) data_in)->facts;
+    map_to_array(facts, entries);
+    for (u32 i = 0; i < facts->size; i++) {
+        const void *oprd = entries[i].key;
+        if (!set_contains(&pd->used, oprd)) { // remove dead facts
+            map_remove(facts, oprd);
+        }
+    }
+}
+
 dataflow do_cp(void *data_in, void *data_out, cfg_t *cfg) {
+    live_data_t *live_data_in  = zalloc(sizeof(live_data_t) * cfg->nnode);
+    live_data_t *live_data_out = zalloc(sizeof(live_data_t) * cfg->nnode);
+
+    live_df = do_live(live_data_in, live_data_out, cfg);
+
     dataflow df = (dataflow){
         .dir            = DF_FORWARD,
         .merge          = (void *) merge,
         .transfer_instr = const_prop,
-        .transfer_block = NULL,
+        .transfer_block = transfer_block,
         .DSIZE          = sizeof(cp_data_t),
         .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
@@ -176,6 +202,8 @@ dataflow do_cp(void *data_in, void *data_out, cfg_t *cfg) {
     }
     dataflow_init(&df);
     df.solve(cfg);
+    zfree(live_data_in);
+    zfree(live_data_out);
     return df;
 }
 
