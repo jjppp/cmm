@@ -17,9 +17,9 @@ static set_t UNIVERSE;
 
 static void kill(oprd_t oprd, set_t *copy) {
     static mapent_t entries[65536];
-    map_to_array(copy, entries);
 
-    for (u32 i = 0; i < copy->size; i++) {
+    u32 len = map_to_array(copy, entries);
+    for (u32 i = 0; i < len; i++) {
         IR_t *ir = entries[i].val;
         if (ir->tar.id == oprd.id || ir->lhs.id == oprd.id) {
             set_remove(copy, ir);
