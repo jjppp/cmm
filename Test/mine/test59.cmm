@@ -1,0 +1,8 @@
+int main() {
+    int arr[200];
+    int x = 1, c = 114, d = 0;
+    if (x == 2) {
+        arr[x * 14 + 7] = c * d;
+    }
+    return 0;
+}

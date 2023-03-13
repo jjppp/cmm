@@ -1,0 +1,7 @@
+int main() {
+    int a = read();
+    if (a == 42) {
+        a = a + 3;
+        write(a + 3);
+    }
+}
