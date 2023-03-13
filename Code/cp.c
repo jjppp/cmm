@@ -202,6 +202,11 @@ dataflow do_cp(void *data_in, void *data_out, cfg_t *cfg) {
     }
     dataflow_init(&df);
     df.solve(cfg);
+
+    LIST_ITER(cfg->blocks, blk) {
+        live_df.data_fini(live_df.data_at(live_df.data_in, blk->id));
+        live_df.data_fini(live_df.data_at(live_df.data_out, blk->id));
+    }
     zfree(live_data_in);
     zfree(live_data_out);
     return df;

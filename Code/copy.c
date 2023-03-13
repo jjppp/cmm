@@ -101,6 +101,7 @@ dataflow do_copy(void *data_in, void *data_out, cfg_t *cfg) {
     }
     dataflow_init(&df);
     df.solve(cfg);
+    set_fini(&UNIVERSE);
     return df;
 }
 

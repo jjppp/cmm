@@ -274,13 +274,9 @@ bool set_contains(const set_t *set, const void *elem) {
 
 bool set_eq(set_t *lhs, set_t *rhs) {
     if (lhs == rhs) return true;
+    if (lhs->size != rhs->size) return false;
     set_iter(lhs, it) {
         if (it.val && !set_contains(rhs, it.val)) {
-            return false;
-        }
-    }
-    set_iter(rhs, it) {
-        if (it.val && !set_contains(lhs, it.val)) {
             return false;
         }
     }
@@ -351,6 +347,7 @@ bool set_merge(set_t *into, const set_t *rhs) {
         entries3[len++] = entries2[j++];
         changed         = true;
     }
+    set_fini(into);
     map_from_array(into, len, entries3);
     ASSERT(i <= sizeof(entries1), "entries_into overflow");
     ASSERT(j <= sizeof(entries2), "entries_rhs overflow");

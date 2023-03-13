@@ -47,6 +47,10 @@ static void loop_init(loop_t *loop, block_t *hdr) {
     loop->pre_hdr = NULL;
 }
 
+static void loop_fini(loop_t *loop) {
+    set_fini(&loop->blocks);
+}
+
 static void set_pre_hdr(loop_t *loop) {
     loop->pre_hdr = NULL;
     pred_iter(loop->hdr, e) {
@@ -113,6 +117,7 @@ void do_licm(cfg_t *cfg) {
                 }
                 LOG("");
                 mark_inv(&loop, def_df);
+                loop_fini(&loop);
             }
         }
     }
@@ -127,7 +132,15 @@ void do_licm(cfg_t *cfg) {
     LIST_ITER(cfg->blocks, blk) {
         ir_remove_mark(&blk->instrs);
     }
+    LIST_ITER(cfg->blocks, blk) {
+        def_df.data_fini(def_df.data_at(def_df.data_in, blk->id));
+        def_df.data_fini(def_df.data_at(def_df.data_out, blk->id));
+        dom_df.data_fini(dom_df.data_at(dom_df.data_in, blk->id));
+        dom_df.data_fini(dom_df.data_at(dom_df.data_out, blk->id));
+    }
     zfree(vis);
+    zfree(def_in);
+    zfree(def_out);
     zfree(dom_in);
     zfree(dom_out);
 }

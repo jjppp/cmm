@@ -21,50 +21,59 @@ void do_copy_rewrite(cfg_t *cfg) {
             set_iter(&pd->copy, it) {
                 IR_t *copy = it.val;
                 copy_rewrite(ir, copy);
+                if (ir->mark) {
+                    ir->mark = false;
+                    break;
+                }
             }
             df.transfer_instr(ir, (data_t *) pd);
         }
+    }
+    LIST_ITER(cfg->blocks, blk) {
+        df.data_fini(df.data_at(df.data_in, blk->id));
+        df.data_fini(df.data_at(df.data_out, blk->id));
     }
     zfree(df.data_in);
     zfree(df.data_out);
 }
 
-static void rewrite(oprd_t *oprd, IR_t *copy) {
+static bool rewrite(oprd_t *oprd, IR_t *copy) {
     ASSERT(copy->kind == IR_ASSIGN, "copy is not IR_ASSIGN");
     if (oprd->kind == OPRD_VAR && oprd->id == copy->tar.id) {
         *oprd = copy->lhs;
+        return true;
     }
+    return false;
 }
 
 VISIT(IR_ASSIGN) {
-    rewrite(&node->lhs, copy);
+    node->mark |= rewrite(&node->lhs, copy);
 }
 
 VISIT(IR_BINARY) {
-    rewrite(&node->lhs, copy);
-    rewrite(&node->rhs, copy);
+    node->mark |= rewrite(&node->lhs, copy);
+    node->mark |= rewrite(&node->rhs, copy);
 }
 
 VISIT(IR_BRANCH) {
-    rewrite(&node->lhs, copy);
-    rewrite(&node->rhs, copy);
-    return;
+    node->mark |= rewrite(&node->lhs, copy);
+    node->mark |= rewrite(&node->rhs, copy);
 }
 
 VISIT(IR_RETURN) {
-    rewrite(&node->lhs, copy);
+    node->mark |= rewrite(&node->lhs, copy);
 }
 
 VISIT(IR_ARG) {
-    rewrite(&node->lhs, copy);
+    node->mark |= rewrite(&node->lhs, copy);
 }
 
 VISIT(IR_WRITE) {
-    rewrite(&node->lhs, copy);
+    node->mark |= rewrite(&node->lhs, copy);
 }
 
 VISIT(IR_STORE) {
-    rewrite(&node->lhs, copy);
+    node->mark |= rewrite(&node->lhs, copy);
 }
 
 VISIT_UNDEF(IR_NULL);
