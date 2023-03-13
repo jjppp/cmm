@@ -39,7 +39,6 @@ VISIT(EXPR_DOT) {
 
 VISIT(EXPR_ARR) {
     ir_list arr     = lexpr_gen(node->arr);
-    oprd_t  arr_var = arr.var;
     type_t  arr_typ = {0};
     switch (node->arr->kind) {
         case EXPR_IDEN: {
@@ -61,12 +60,13 @@ VISIT(EXPR_ARR) {
     LIST_ITER(node->ind, it) {
         ir_list ind      = ast_gen(it);
         oprd_t  acc_size = lit_alloc(arr_typ.acc[cnt++]);
+        oprd_t  tmp      = var_alloc(NULL, 0);
         ir_append(&ind,
                   ir_alloc(IR_BINARY,
-                           OP_MUL, ind.var, ind.var, acc_size));
+                           OP_MUL, tmp, ind.var, acc_size));
         ir_append(&ind,
                   ir_alloc(IR_BINARY,
-                           OP_ADD, arr_var, arr_var, ind.var));
+                           OP_ADD, var_alloc(NULL, 0), arr.var, tmp));
         ir_concat(&arr, ind);
     }
     RETURN(arr);
