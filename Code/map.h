@@ -56,7 +56,7 @@ void map_remove(map_t *map, const void *key);
 
 void map_merge(map_t *into, const map_t *rhs);
 
-void map_intersect(map_t *into, const map_t *rhs);
+bool map_intersect(map_t *into, const map_t *rhs);
 
 bool map_eq(map_t *lhs, map_t *rhs);
 
@@ -78,7 +78,7 @@ void set_remove(set_t *set, const void *elem);
 
 bool set_merge(set_t *into, const set_t *rhs);
 
-void set_intersect(set_t *into, const set_t *rhs);
+bool set_intersect(set_t *into, const set_t *rhs);
 
 set_iter_t set_iter_init(const set_t *set);
 

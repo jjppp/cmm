@@ -43,8 +43,7 @@ static void data_fini(copy_data_t *data) {
 
 static bool merge(copy_data_t *into, const copy_data_t *rhs) {
     ASSERT(rhs->super.magic == MAGIC, "rhs magic");
-    set_intersect(&into->copy, &rhs->copy);
-    return true;
+    return set_intersect(&into->copy, &rhs->copy);
 }
 
 static void *data_at(void *ptr, u32 index) {

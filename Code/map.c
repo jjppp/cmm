@@ -355,8 +355,8 @@ bool set_merge(set_t *into, const set_t *rhs) {
     return changed;
 }
 
-void set_intersect(set_t *into, const set_t *rhs) {
-    map_intersect(into, rhs);
+bool set_intersect(set_t *into, const set_t *rhs) {
+    return map_intersect(into, rhs);
 }
 
 void map_merge(map_t *into, const map_t *rhs) {
@@ -365,9 +365,10 @@ void map_merge(map_t *into, const map_t *rhs) {
     }
 }
 
-void map_intersect(map_t *into, const map_t *rhs) {
+bool map_intersect(map_t *into, const map_t *rhs) {
     map_t result;
     map_init(&result);
+    u32 size = into->size;
     map_iter(into, it) {
         void *val = map_find(rhs, it.key);
         if (val == it.val) {
@@ -376,6 +377,7 @@ void map_intersect(map_t *into, const map_t *rhs) {
     }
     map_fini(into);
     map_cpy(into, &result);
+    return into->size != size;
 }
 
 map_iter_t map_iter_init(const map_t *map) {

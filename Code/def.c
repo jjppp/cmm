@@ -78,9 +78,9 @@ dataflow do_def(void *data_in, void *data_out, cfg_t *cfg) {
 
 static void kill(oprd_t oprd, set_t *defs) {
     static mapent_t entries[65536];
-    map_to_array(defs, entries);
 
-    for (u32 i = 0; i < defs->size; i++) {
+    u32 size = map_to_array(defs, entries);
+    for (u32 i = 0; i < size; i++) {
         IR_t *ir = entries[i].val;
         if (ir->tar.id == oprd.id) {
             set_remove(defs, ir);

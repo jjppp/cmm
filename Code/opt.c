@@ -3,12 +3,14 @@
 
 #define NROUND 5
 
+CLEANUP_OPT(OPT_REGISTER)
 LOCAL_OPT(OPT_REGISTER)
-
-extern void do_licm(cfg_t *cfg);
+ONCE_OPT(OPT_REGISTER)
 
 void optimize(cfg_t *cfg) {
     LOCAL_OPT(OPT_EXECUTE)
-    do_licm(cfg);
+    CLEANUP_OPT(OPT_EXECUTE)
+    ONCE_OPT(OPT_EXECUTE)
     LOCAL_OPT(OPT_EXECUTE)
+    CLEANUP_OPT(OPT_EXECUTE)
 }
