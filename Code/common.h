@@ -31,6 +31,25 @@ typedef int8_t    i8;
         fprintf(stderr, "TODO: " FEATURE " in " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
         abort();                                                                        \
     } while (0)
+#define UNREACHABLE                                                                 \
+    do {                                                                            \
+        fprintf(stderr, "should not reach " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
+        abort();                                                                    \
+    } while (0)
+#define LIST(NODE) NODE,
+#define STRING_LIST(NODE) STRINGIFY(NODE),
+#define ARR_LEN(ARR) (sizeof(ARR) / sizeof(ARR[0]))
+#define EXTENDS(SUPER) SUPER super
+#ifndef WJP_DEBUG
+#define LOG(...)
+#define ASSERT(COND, ...) true
+#define NDEBUG
+#else
+#define LOG(...)                      \
+    do {                              \
+        fprintf(stderr, __VA_ARGS__); \
+        fprintf(stderr, "\n");        \
+    } while (0);
 #define ASSERT(COND, ...)                                           \
     ({                                                              \
         __auto_type __cond = (COND);                                \
@@ -42,23 +61,6 @@ typedef int8_t    i8;
         }                                                           \
         1;                                                          \
     })
-#define UNREACHABLE                                                                 \
-    do {                                                                            \
-        fprintf(stderr, "should not reach " __FILE__ ":" STRINGIFY(__LINE__) "\n"); \
-        abort();                                                                    \
-    } while (0)
-#define LIST(NODE) NODE,
-#define STRING_LIST(NODE) STRINGIFY(NODE),
-#define ARR_LEN(ARR) (sizeof(ARR) / sizeof(ARR[0]))
-#define EXTENDS(SUPER) SUPER super
-#ifdef NDEBUG
-#define LOG(...)
-#else
-#define LOG(...)                      \
-    do {                              \
-        fprintf(stderr, __VA_ARGS__); \
-        fprintf(stderr, "\n");        \
-    } while (0);
 #endif
 
 #define swap(X, Y)                     \

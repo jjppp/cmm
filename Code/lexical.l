@@ -54,7 +54,7 @@ DIGITS {DIGIT}+
 DEC_INT ([1-9]{DIGIT}*)|0
 OCT_INT 0[1-7][0-7]*
 HEX_INT 0(x|X)[1-9A-Fa-f][0-9A-Fa-f]*
-PRE_FLOAT ({DIGIT}*\.{DIGIT}+)|({DIGIT}+\.{DIGIT}*)
+PRE_FLOAT {DIGIT}+\.{DIGIT}+
 FLOAT ({DIGIT}*\.{DIGIT}*[Ee][+\-]?{DIGITS})|({PRE_FLOAT})
 LT <
 LE <=

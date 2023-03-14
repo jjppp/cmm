@@ -61,7 +61,9 @@ void cst_print(cst_t *node, i32 dep) {
     } else if (!symcmp(s, "INT")) {
         printf("INT: %s\n", node->str);
     } else if (!symcmp(s, "FLOAT")) {
-        printf("FLOAT: %s\n", node->str);
+        float f;
+        sscanf(node->str, "%f", &f);
+        printf("FLOAT: %f\n", f);
     } else if (!symcmp(s, "TYPE")) {
         printf("TYPE: %s\n", node->str);
     } else if (node->is_tok) {

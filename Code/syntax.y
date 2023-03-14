@@ -268,6 +268,12 @@ FunDec
         $$.ast = ast_alloc(CONS_FUN, @1.first_line, $1.str, NULL);
         yyerrok;
     }
+	| error RP {
+        $$.cst = cst_alloc("FunDec", "", @$.first_line, 1, $2.cst);
+        char *str = malloc(8); str[0] = '\0';
+        $$.ast = ast_alloc(CONS_FUN, @$.first_line, str, NULL);
+        yyerrok;
+    }
 ;
 
 VarList
@@ -302,7 +308,13 @@ CompSt
     : LC DefList StmtList RC {
         $$.cst = cst_alloc("CompSt", "", @1.first_line, 4, $1.cst, $2.cst, $3.cst, $4.cst);
         $$.ast = ast_alloc(STMT_SCOP, @1.first_line, $2.ast, $3.ast);
-    } ;
+    } 
+    | error RC {
+        $$.cst = cst_alloc("CompSt", "", @1.first_line, 1, $2.cst);
+        $$.ast = ast_alloc(STMT_SCOP, @1.first_line, NULL, NULL);
+        yyerrok;
+    }
+;
 
 StmtList
     : Stmt StmtList {
@@ -317,11 +329,6 @@ StmtList
 	| %empty {
         $$.cst = NULL;
         $$.ast = NULL;
-    }
-	| error StmtList {
-        $$.cst = cst_alloc("StmtList", "", @1.first_line, 1, $2.cst);
-        $$.ast = $2.ast;
-        yyerrok;
     }
 ;
 
@@ -418,12 +425,6 @@ DecList
         $$.cst = cst_alloc("DecList", "", @1.first_line, 3, $1.cst, $2.cst, $3.cst);
         $$.ast = $1.ast; $$.ast->next = $3.ast;
     }
-	// | error COMMA Dec {
-    //     $$.cst = cst_alloc("DecList", "", @1.first_line, 2, $2.cst, $3.cst);
-    //     $$.ast = ast_alloc(CONS_ERR, @1.first_line);
-    //     ast_free($3.ast);
-    //     yyerrok;
-    // }
 ;
 
 Dec : VarDec {

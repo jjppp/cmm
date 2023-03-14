@@ -2,8 +2,8 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-GCFLAGS = -std=c99 -Wall -Werror -O2 -I. -DNDEBUG
-CFLAGS = -std=c99 -Wall -Werror -O2 -I. -DNDEBUG
+GCFLAGS = -std=c99 -Wall -Werror -O2 -I.
+CFLAGS = -std=c99 -Wall -Werror -O2 -I.
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")

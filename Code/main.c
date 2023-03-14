@@ -5,6 +5,8 @@
 #include "cst.h"
 #include "opt.h"
 
+#define LAB1
+
 void yyrestart(FILE *input_file);
 i32  yyparse(void);
 
@@ -29,6 +31,11 @@ bool parse(const char *fname) {
         yyparse();
     }
     return (lex_err || syn_err);
+}
+
+void cst_display() {
+    cst_print(croot, 0);
+    cst_free(croot);
 }
 
 void lib_init() {
@@ -73,8 +80,6 @@ bool check() {
 }
 
 void gen(const char *sfname, const char *ofname) {
-    // cst_print(croot, 0);
-    cst_free(croot);
     ast_gen(root);
     ir_check(&prog->instrs);
 
@@ -130,8 +135,16 @@ i32 main(i32 argc, char **argv) {
     if (argc <= 1) {
         return 1;
     }
+#ifdef LAB1
+    parse(argv[1]) andThen cst_display();
+#endif
+#ifdef LAB2
+    parse(argv[1]) andThen check();
+#endif
+#ifdef LAB3
     parse(argv[1]) andThen
         check() andThen
         gen(argv[1], argv[2]);
+#endif
     return 0;
 }
