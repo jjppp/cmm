@@ -356,7 +356,34 @@ bool set_merge(set_t *into, const set_t *rhs) {
 }
 
 bool set_intersect(set_t *into, const set_t *rhs) {
-    return map_intersect(into, rhs);
+    u32  len_into = map_to_array(into, entries1);
+    u32  len_rhs  = map_to_array(rhs, entries2);
+    bool changed  = false;
+
+    u32 i = 0, j = 0, len = 0;
+    while (i < len_into && j < len_rhs) {
+        mapent_t ent_into = entries1[i];
+        mapent_t ent_rhs  = entries2[j];
+        if ((uptr) ent_into.key < (uptr) ent_rhs.key) {
+            i++;
+            changed = true;
+        } else if ((uptr) ent_into.key > (uptr) ent_rhs.key) {
+            j++;
+        } else {
+            entries3[len++] = (mapent_t){
+                .key = ent_into.key,
+                .val = ent_into.val};
+            i++;
+            j++;
+        }
+    }
+    changed |= (i < len_into);
+    set_fini(into);
+    map_from_array(into, len, entries3);
+    ASSERT(i <= sizeof(entries1), "entries_into overflow");
+    ASSERT(j <= sizeof(entries2), "entries_rhs overflow");
+    ASSERT(len <= sizeof(entries3), "entries overflow");
+    return changed;
 }
 
 void map_merge(map_t *into, const map_t *rhs) {
