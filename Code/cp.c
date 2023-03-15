@@ -166,8 +166,8 @@ static void transfer_block(block_t *blk, data_t *data_in) {
     live_data_t *pd = live_df.data_at(live_df.data_in, blk->id);
 
     map_t *facts = &((cp_data_t *) data_in)->facts;
-    map_to_array(facts, entries);
-    for (u32 i = 0; i < facts->size; i++) {
+    u32    size  = map_to_array(facts, entries);
+    for (u32 i = 0; i < size; i++) {
         const void *oprd = entries[i].key;
         if (!set_contains(&pd->used, oprd)) { // remove dead facts
             map_remove(facts, oprd);
