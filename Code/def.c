@@ -5,6 +5,7 @@
 #include "map.h"
 #include "visitor.h"
 #include "opt.h"
+#include "live.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -13,8 +14,27 @@
 #define ARG out
 VISITOR_DEF(IR, def, RET_TYPE);
 
+static mapent_t entries[65536];
+static dataflow live_df;
+
 static void def_check(IR_t *node, data_t *data) {
     VISITOR_DISPATCH(IR, def, node, data);
+}
+
+static void transfer_block(block_t *blk, data_t *data_in) {
+    LIST_ITER(blk->instrs.head, ir) {
+        def_check(ir, data_in);
+    }
+    live_data_t *pd = live_df.data_at(live_df.data_in, blk->id);
+
+    set_t *defs = &((def_data_t *) data_in)->defs;
+    u32    size = map_to_array(defs, entries);
+    for (u32 i = 0; i < size; i++) {
+        const IR_t *ir = entries[i].val;
+        if (!set_contains(&pd->used, (void *) ir->tar.id)) { // remove dead defs
+            set_remove(defs, ir);
+        }
+    }
 }
 
 static void data_init(def_data_t *data) {
@@ -52,11 +72,16 @@ static void data_mov(data_t *dst, data_t *src) {
 }
 
 dataflow do_def(void *data_in, void *data_out, cfg_t *cfg) {
+    live_data_t *live_data_in  = zalloc(sizeof(live_data_t) * cfg->nnode);
+    live_data_t *live_data_out = zalloc(sizeof(live_data_t) * cfg->nnode);
+
+    live_df = do_live(live_data_in, live_data_out, cfg);
+
     dataflow df = (dataflow){
         .dir            = DF_FORWARD,
         .merge          = (void *) merge,
         .transfer_instr = def_check,
-        .transfer_block = NULL,
+        .transfer_block = transfer_block,
         .DSIZE          = sizeof(def_data_t),
         .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
@@ -73,12 +98,17 @@ dataflow do_def(void *data_in, void *data_out, cfg_t *cfg) {
     }
     dataflow_init(&df);
     df.solve(cfg);
+
+    LIST_ITER(cfg->blocks, blk) {
+        live_df.data_fini(live_df.data_at(live_df.data_in, blk->id));
+        live_df.data_fini(live_df.data_at(live_df.data_out, blk->id));
+    }
+    zfree(live_data_in);
+    zfree(live_data_out);
     return df;
 }
 
 static void kill(oprd_t oprd, set_t *defs) {
-    static mapent_t entries[65536];
-
     u32 size = map_to_array(defs, entries);
     for (u32 i = 0; i < size; i++) {
         IR_t *ir = entries[i].val;
