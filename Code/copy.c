@@ -138,7 +138,7 @@ VISIT(IR_DEC) {
 }
 
 VISIT(IR_PARAM) {
-    kill(node->lhs, &out->copy);
+    kill(node->tar, &out->copy);
 }
 
 VISIT_UNDEF(IR_NULL);

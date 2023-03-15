@@ -133,7 +133,7 @@ VISIT(IR_DEC) {
 }
 
 VISIT(IR_PARAM) {
-    kill(node->lhs, &out->defs);
+    kill(node->tar, &out->defs);
     gen(&out->defs, node);
 }
 
