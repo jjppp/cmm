@@ -74,6 +74,7 @@ VISIT(IR_WRITE) {
 
 VISIT(IR_STORE) {
     node->mark |= rewrite(&node->lhs, copy);
+    node->mark |= rewrite(&node->tar, copy);
 }
 
 VISIT_UNDEF(IR_NULL);
