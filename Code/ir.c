@@ -44,7 +44,7 @@ char *oprd_to_str(oprd_t oprd) {
             break;
         case OPRD_VAR:
             if (oprd.name != NULL) {
-                snprintf(buf, sizeof(buf), "%s%lu", oprd.name, oprd.val);
+                snprintf(buf, sizeof(buf), "n_%s%lu", oprd.name, oprd.val);
             } else {
                 snprintf(buf, sizeof(buf), "t_%lu_at_%u_", oprd.val, oprd.lineno);
             }
