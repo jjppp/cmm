@@ -201,22 +201,6 @@ void cfg_remove_mark(cfg_t *cfg) {
         LIST_REMOVE(blk->bedge, zfree, EDGE_MARK);
     }
     LIST_REMOVE(cfg->blocks, block_free, MARKED);
-
-    LIST_ITER(cfg->blocks, blk) {
-        if (blk->mark) {
-            abort();
-        }
-        succ_iter(blk, e) {
-            if (e->to->mark) {
-                abort();
-            }
-        }
-        pred_iter(blk, e) {
-            if (e->to->mark) {
-                abort();
-            }
-        }
-    }
 }
 
 void cfg_fprint(FILE *fout, const char *fname, cfg_t *cfgs) {

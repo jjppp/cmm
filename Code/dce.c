@@ -37,11 +37,14 @@ static void remove_dead(cfg_t *cfg) {
     zfree(df.data_out);
 }
 
-__attribute__((unused)) static void remove_unreachable(cfg_t *cfg) {
+static void remove_unreachable(cfg_t *cfg) {
     reach_data_t *data_in  = zalloc(sizeof(reach_data_t) * cfg->nnode);
     reach_data_t *data_out = zalloc(sizeof(reach_data_t) * cfg->nnode);
 
     dataflow df = do_reach(data_in, data_out, cfg);
+    LIST_ITER(cfg->blocks, blk) {
+        blk->mark = false;
+    }
     LIST_ITER(cfg->blocks, blk) {
         reach_data_t *pd = (reach_data_t *) df.data_at(df.data_in, blk->id);
         if (!pd->reachable) {
@@ -55,5 +58,5 @@ __attribute__((unused)) static void remove_unreachable(cfg_t *cfg) {
 
 void do_dce(cfg_t *cfg) {
     remove_dead(cfg);
-    // remove_unreachable(cfg);
+    remove_unreachable(cfg);
 }

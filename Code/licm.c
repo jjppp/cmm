@@ -98,13 +98,6 @@ void do_licm(cfg_t *cfg) {
     vis             = zalloc(sizeof(bool) * cfg->nnode);
     LIST_ITER(cfg->blocks, blk) {
         dom_data_t *pd = dom_df.data_at(dom_df.data_out, blk->id);
-
-        LOG("%lu is dominated by:", (uptr) blk->id);
-        set_iter(&pd->dom, it) {
-            LOG("%u, ", ((block_t *) it.val)->id);
-        }
-        LOG("");
-
         succ_iter(blk, e) {
             if (set_contains(&pd->dom, e->to)) {
                 loop_t loop;
@@ -112,10 +105,6 @@ void do_licm(cfg_t *cfg) {
                 memset(vis, 0, sizeof(bool) * cfg->nnode);
                 dfs(blk, e->to, &loop);
                 set_pre_hdr(&loop);
-                map_iter(&loop.blocks, it) {
-                    LOG("%u, ", ((block_t *) it.val)->id);
-                }
-                LOG("");
                 mark_inv(&loop, def_df);
                 loop_fini(&loop);
             }
