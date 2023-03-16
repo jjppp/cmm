@@ -53,44 +53,6 @@ VISIT(IR_BINARY) {
 VISIT(IR_BRANCH) {
     rewrite(&node->lhs, fact_get(out, node->lhs));
     rewrite(&node->rhs, fact_get(out, node->rhs));
-    return;
-    if (node->lhs.kind == OPRD_LIT && node->rhs.kind == OPRD_LIT) {
-        i32 lhs_val = node->lhs.val;
-        i32 rhs_val = node->rhs.val;
-        node->kind  = IR_GOTO;
-        IR_t *jmpto = NULL;
-        switch (node->op) {
-            case OP_LE: {
-                jmpto = (lhs_val <= rhs_val) ? node->jmpto : node->next;
-                break;
-            }
-            case OP_LT: {
-                jmpto = (lhs_val < rhs_val) ? node->jmpto : node->next;
-                break;
-            }
-            case OP_GE: {
-                jmpto = (lhs_val >= rhs_val) ? node->jmpto : node->next;
-                break;
-            }
-            case OP_GT: {
-                jmpto = (lhs_val > rhs_val) ? node->jmpto : node->next;
-                break;
-            }
-            case OP_EQ: {
-                jmpto = (lhs_val == rhs_val) ? node->jmpto : node->next;
-                break;
-            }
-            case OP_NE: {
-                jmpto = (lhs_val != rhs_val) ? node->jmpto : node->next;
-                break;
-            }
-            default: UNREACHABLE;
-        }
-        node->jmpto = jmpto;
-#define DEAD_JMP(EDGE) ((EDGE)->to != jmpto->parent)
-        LIST_REMOVE(node->parent->fedge, zfree, DEAD_JMP);
-        LIST_REMOVE(node->parent->bedge, zfree, DEAD_JMP);
-    }
 }
 
 VISIT(IR_RETURN) {

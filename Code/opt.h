@@ -12,7 +12,8 @@
 
 #define ONCE_OPT(F) \
     F(copy_rewrite) \
-    F(licm)
+    F(licm)         \
+    F(simpl)
 
 #define OPT_REGISTER(OPT) extern void do_##OPT(cfg_t *cfg);
 #define OPT_EXECUTE(OPT) do_##OPT(cfg);
