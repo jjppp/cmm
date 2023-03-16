@@ -7,6 +7,7 @@
 
 #define CLEANUP_OPT(F) \
     F(cp_rewrite)      \
+    F(strength)        \
     F(dce)
 
 #define ONCE_OPT(F) \

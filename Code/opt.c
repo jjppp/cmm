@@ -8,6 +8,7 @@ LOCAL_OPT(OPT_REGISTER)
 ONCE_OPT(OPT_REGISTER)
 
 void optimize(cfg_t *cfg) {
+    LOG("optimize %s", cfg->str);
     LOCAL_OPT(OPT_EXECUTE)
     CLEANUP_OPT(OPT_EXECUTE)
     ONCE_OPT(OPT_EXECUTE)
