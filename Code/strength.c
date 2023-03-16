@@ -16,6 +16,7 @@ void do_strength(cfg_t *cfg) {
         LIST_ITER(blk->instrs.head, ir) {
             strength_reduction(ir);
         }
+        ir_remove_mark(&blk->instrs);
     }
 }
 
@@ -67,6 +68,12 @@ VISIT(IR_BINARY) {
     }
 }
 
+VISIT(IR_ASSIGN) {
+    if (node->lhs.id == node->tar.id && node->lhs.kind == node->tar.kind) {
+        node->mark = true;
+    }
+}
+
 VISIT_UNDEF(IR_NULL);
 
 VISIT_EMPTY(IR_BRANCH);
@@ -74,7 +81,6 @@ VISIT_EMPTY(IR_RETURN);
 VISIT_EMPTY(IR_ARG);
 VISIT_EMPTY(IR_WRITE);
 VISIT_EMPTY(IR_STORE);
-VISIT_EMPTY(IR_ASSIGN);
 VISIT_EMPTY(IR_DREF);
 VISIT_EMPTY(IR_LOAD);
 VISIT_EMPTY(IR_CALL);
