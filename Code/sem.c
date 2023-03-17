@@ -32,6 +32,8 @@ type_t ast_check(AST_t *node) {
 
 VISIT(CONS_PROG) {
     LIST_FOREACH(node->decls, ast_check);
+    extern void empty_fun_check(AST_t * node);
+    empty_fun_check((AST_t *) node);
 }
 
 VISIT(STMT_EXPR) {

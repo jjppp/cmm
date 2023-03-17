@@ -1,0 +1,13 @@
+int main() {
+    int x = read();
+    if (x == 3) {
+        return 0;
+    } else {
+        if (x == 2) {
+            return 0;
+        } else {
+            write(x);
+        }
+    }
+    return 0;
+}

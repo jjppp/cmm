@@ -1,0 +1,11 @@
+int main() {
+    int arr[114];
+    int i = 0;
+    int n = read();
+    while (i < n) {
+        arr[0] = read();
+        i      = i + 1;
+        write(arr[0]);
+    }
+    return 0;
+}

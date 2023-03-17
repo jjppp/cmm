@@ -75,7 +75,7 @@ static inline void SEM_ERR(enum err_id id, u32 line, ...) {
     }
 
     sem_err = true;
-    printf("Error type %2d at Line %4d: %s\n", id, line, buf);
+    printf("Error type %d at Line %d: %s\n", id, line, buf);
 
     va_end(ap);
 }
