@@ -18,12 +18,13 @@ void do_copy_rewrite(cfg_t *cfg) {
     LIST_ITER(cfg->blocks, blk) {
         copy_data_t *pd = df.data_at(df.data_in, blk->id);
         LIST_ITER(blk->instrs.head, ir) {
+        retry:
             set_iter(&pd->copy, it) {
                 IR_t *copy = it.val;
                 copy_rewrite(ir, copy);
                 if (ir->mark) {
                     ir->mark = false;
-                    break;
+                    goto retry;
                 }
             }
             df.transfer_instr(ir, (data_t *) pd);
