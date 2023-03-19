@@ -96,7 +96,6 @@ dataflow do_copy(void *data_in, void *data_out, cfg_t *cfg) {
         } else {
             df.data_init(df.data_at(df.data_in, blk->id));
         }
-        df.data_init(df.data_at(df.data_out, blk->id));
     }
     dataflow_init(&df);
     df.solve(cfg);

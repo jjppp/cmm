@@ -198,7 +198,6 @@ dataflow do_cp(void *data_in, void *data_out, cfg_t *cfg) {
         .data_out       = data_out};
     LIST_ITER(cfg->blocks, blk) {
         df.data_init(df.data_at(df.data_in, blk->id));
-        df.data_init(df.data_at(df.data_out, blk->id));
     }
     dataflow_init(&df);
     df.solve(cfg);
