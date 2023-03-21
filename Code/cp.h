@@ -7,7 +7,6 @@
 
 typedef struct cp_data_t cp_data_t;
 typedef struct fact_t    fact_t;
-#define MAGIC 0x19191810
 
 struct fact_t {
     union {
@@ -24,7 +23,6 @@ struct fact_t {
 };
 
 struct cp_data_t {
-    EXTENDS(data_t);
     map_t facts;
 };
 

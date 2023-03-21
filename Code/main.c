@@ -5,7 +5,7 @@
 #include "cst.h"
 #include "opt.h"
 
-#define LAB1
+#define LAB3
 
 void yyrestart(FILE *input_file);
 i32  yyparse(void);
@@ -80,7 +80,7 @@ bool check() {
 }
 
 void gen(const char *sfname, const char *ofname) {
-    ast_gen(root);
+    ast_gen(root, var_alloc(NULL, 0));
     ir_check(&prog->instrs);
 
     FOPEN(ofname, file, "w") {

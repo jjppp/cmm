@@ -82,7 +82,7 @@ static void mark_inv(loop_t *loop, dataflow df) {
             if (inv_check(ir, &pd->defs, loop)) {
                 ir->parent = loop->pre_hdr;
             }
-            df.transfer_instr(ir, (data_t *) pd);
+            df.transfer_instr(ir, pd);
         }
     }
 }

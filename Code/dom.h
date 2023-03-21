@@ -4,7 +4,6 @@
 
 typedef struct dom_data_t dom_data_t;
 struct dom_data_t {
-    EXTENDS(data_t);
     set_t dom;
 };
 

@@ -21,8 +21,8 @@ void do_simpl(cfg_t *cfg) {
 }
 
 static bool take(IR_t *node) {
-    i32 lhs_val = node->lhs.val;
-    i32 rhs_val = node->rhs.val;
+    i64 lhs_val = node->lhs.val;
+    i64 rhs_val = node->rhs.val;
     switch (node->op) {
         case OP_LE: return lhs_val <= rhs_val;
         case OP_LT: return lhs_val < rhs_val;

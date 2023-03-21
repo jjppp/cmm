@@ -18,16 +18,19 @@ void do_copy_rewrite(cfg_t *cfg) {
     LIST_ITER(cfg->blocks, blk) {
         copy_data_t *pd = df.data_at(df.data_in, blk->id);
         LIST_ITER(blk->instrs.head, ir) {
+            u32 cnt = 0;
         retry:
             set_iter(&pd->copy, it) {
                 IR_t *copy = it.val;
                 copy_rewrite(ir, copy);
                 if (ir->mark) {
                     ir->mark = false;
-                    goto retry;
+                    if (cnt++ <= 10) {
+                        goto retry;
+                    }
                 }
             }
-            df.transfer_instr(ir, (data_t *) pd);
+            df.transfer_instr(ir, pd);
         }
     }
     LIST_ITER(cfg->blocks, blk) {
@@ -78,10 +81,13 @@ VISIT(IR_STORE) {
     node->mark |= rewrite(&node->tar, copy);
 }
 
+VISIT(IR_LOAD) {
+    node->mark |= rewrite(&node->lhs, copy);
+}
+
 VISIT_UNDEF(IR_NULL);
 
 VISIT_EMPTY(IR_DREF);
-VISIT_EMPTY(IR_LOAD);
 VISIT_EMPTY(IR_CALL);
 VISIT_EMPTY(IR_READ);
 VISIT_EMPTY(IR_DEC);

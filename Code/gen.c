@@ -9,27 +9,40 @@
 #define ARG list
 VISITOR_DEF(AST, gen, RET_TYPE);
 
-ir_list lexpr_gen(AST_t *node);
+ir_list lexpr_gen(AST_t *node, oprd_t tar);
 ir_list cond_gen(AST_t *node);
 
-ir_list ast_gen(AST_t *node) {
+oprd_t oprd_stack[32768]; // should be enough
+u32    oprd_top = 0;
+
+oprd_t oprd_tar() {
+    return oprd_stack[oprd_top];
+}
+
+void oprd_push(oprd_t oprd) {
+    oprd_stack[++oprd_top] = oprd;
+}
+
+void oprd_pop() {
+    oprd_top--;
+}
+
+ir_list ast_gen(AST_t *node, oprd_t tar) {
+    oprd_push(tar);
     ir_list ARG;
     VISITOR_DISPATCH(AST, gen, node, &ARG);
+    oprd_pop();
     return ARG;
 }
 
 VISIT(EXPR_INT) {
     ir_list lit = {0};
-    oprd_t  var = var_alloc(NULL, node->super.fst_l);
-    ir_append(&lit, ir_alloc(IR_ASSIGN, var, lit_alloc(node->value)));
+    ir_append(&lit, ir_alloc(IR_ASSIGN, oprd_tar(), lit_alloc(node->value)));
     RETURN(lit);
 }
 
 VISIT(EXPR_BIN) {
     ir_list lhs = {0}, rhs = {0};
-    oprd_t  lhs_var = {0}, rhs_var = {0};
-    oprd_t  tar_var = var_alloc(NULL, node->super.fst_l);
-
     switch (node->op) {
         REL_OPS(CASE)
         LOGIC_OPS(CASE) {
@@ -38,24 +51,24 @@ VISIT(EXPR_BIN) {
             IR_t *ltru = ir_alloc(IR_LABEL);
             IR_t *lfls = ir_alloc(IR_LABEL);
             IR_t *done = ir_alloc(IR_LABEL);
-            done->tar  = tar_var;
             chain_resolve(&result.tru, ltru);
             chain_resolve(&result.fls, lfls);
             ir_append(&result, ltru);
-            ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
+            ir_append(&result, ir_alloc(IR_ASSIGN, oprd_tar(), lit_alloc(1)));
             ir_append(&result, ir_alloc(IR_GOTO, done));
             ir_append(&result, lfls);
-            ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
+            ir_append(&result, ir_alloc(IR_ASSIGN, oprd_tar(), lit_alloc(0)));
             ir_append(&result, done);
             RETURN(result);
         }
         ARITH_OPS(CASE) {
-            lhs     = ast_gen(node->lhs);
-            rhs     = ast_gen(node->rhs);
-            lhs_var = lhs.var;
-            rhs_var = rhs.var;
+            oprd_t lhs_var = var_alloc(NULL, node->super.fst_l);
+            oprd_t rhs_var = var_alloc(NULL, node->super.fst_l);
+
+            lhs = ast_gen(node->lhs, lhs_var);
+            rhs = ast_gen(node->rhs, rhs_var);
             ir_concat(&lhs, rhs);
-            ir_append(&lhs, ir_alloc(IR_BINARY, node->op, tar_var, lhs_var, rhs_var));
+            ir_append(&lhs, ir_alloc(IR_BINARY, node->op, oprd_tar(), lhs_var, rhs_var));
             RETURN(lhs);
         }
         default: UNREACHABLE;
@@ -64,7 +77,6 @@ VISIT(EXPR_BIN) {
 }
 
 VISIT(EXPR_UNR) {
-    oprd_t tar_var = var_alloc(NULL, node->super.fst_l);
     switch (node->op) {
         case OP_NOT: {
             ir_list result = cond_gen((AST_t *) node);
@@ -72,20 +84,20 @@ VISIT(EXPR_UNR) {
             IR_t *ltru = ir_alloc(IR_LABEL);
             IR_t *lfls = ir_alloc(IR_LABEL);
             IR_t *done = ir_alloc(IR_LABEL);
-            done->tar  = tar_var;
             chain_resolve(&result.tru, ltru);
             chain_resolve(&result.fls, lfls);
             ir_append(&result, ltru);
-            ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(1)));
+            ir_append(&result, ir_alloc(IR_ASSIGN, oprd_tar(), lit_alloc(1)));
             ir_append(&result, ir_alloc(IR_GOTO, done));
             ir_append(&result, lfls);
-            ir_append(&result, ir_alloc(IR_ASSIGN, tar_var, lit_alloc(0)));
+            ir_append(&result, ir_alloc(IR_ASSIGN, oprd_tar(), lit_alloc(0)));
             ir_append(&result, done);
             RETURN(result);
         }
         case OP_NEG: {
-            ir_list result = ast_gen(node->sub);
-            ir_append(&result, ir_alloc(IR_BINARY, OP_SUB, tar_var, lit_alloc(0), result.var));
+            oprd_t  sub_var = var_alloc(NULL, node->super.fst_l);
+            ir_list result  = ast_gen(node->sub, sub_var);
+            ir_append(&result, ir_alloc(IR_BINARY, OP_SUB, oprd_tar(), lit_alloc(0), sub_var));
             RETURN(result);
         }
         default: UNREACHABLE;
@@ -97,14 +109,14 @@ VISIT(EXPR_IDEN) {
     syment_t *sym  = node->sym;
     ASSERT(sym != NULL, "absent sym");
 
-    ir_append(&iden, ir_alloc(IR_ASSIGN, var_alloc(NULL, node->super.fst_l), sym->var));
+    ir_append(&iden, ir_alloc(IR_ASSIGN, oprd_tar(), sym->var));
     RETURN(iden);
 }
 
 VISIT(STMT_RET) {
-    ir_list expr     = ast_gen(node->expr);
-    oprd_t  expr_var = expr.var;
+    oprd_t expr_var = var_alloc(NULL, node->super.fst_l);
 
+    ir_list expr = ast_gen(node->expr, expr_var);
     ir_append(&expr, ir_alloc(IR_RETURN, expr_var));
     RETURN(expr);
 }
@@ -112,7 +124,7 @@ VISIT(STMT_RET) {
 VISIT(STMT_WHLE) {
     ir_list cond1  = cond_gen(node->cond);
     ir_list cond2  = cond_gen(node->cond);
-    ir_list body   = ast_gen(node->body);
+    ir_list body   = ast_gen(node->body, var_alloc(NULL, node->super.fst_l));
     ir_list result = {0};
 
     IR_t *pre_hdr = ir_alloc(IR_LABEL);
@@ -135,14 +147,14 @@ VISIT(STMT_WHLE) {
 
 VISIT(STMT_IFTE) {
     ir_list cond     = cond_gen(node->cond);
-    ir_list tru_stmt = ast_gen(node->tru_stmt);
+    ir_list tru_stmt = ast_gen(node->tru_stmt, var_alloc(NULL, node->super.fst_l));
 
     IR_t *ltru = ir_alloc(IR_LABEL);
     IR_t *done = ir_alloc(IR_LABEL);
     chain_resolve(&cond.tru, ltru);
 
     if (node->fls_stmt != NULL) {
-        ir_list fls_stmt = ast_gen(node->fls_stmt);
+        ir_list fls_stmt = ast_gen(node->fls_stmt, var_alloc(NULL, node->super.fst_l));
 
         IR_t *lfls = ir_alloc(IR_LABEL);
         chain_resolve(&cond.fls, lfls);
@@ -161,43 +173,45 @@ VISIT(STMT_IFTE) {
 VISIT(STMT_SCOP) {
     ir_list result = {0};
     LIST_ITER(node->decls, it) {
-        ir_concat(&result, ast_gen(it));
+        ir_concat(&result, ast_gen(it, var_alloc(NULL, node->super.fst_l)));
     }
     LIST_ITER(node->stmts, it) {
-        ir_concat(&result, ast_gen(it));
+        ir_concat(&result, ast_gen(it, var_alloc(NULL, node->super.fst_l)));
     }
     RETURN(result);
 }
 
 VISIT(EXPR_DOT) {
-    ir_list expr = lexpr_gen((AST_t *) node);
-    oprd_t  pos  = expr.var;
-    ir_append(&expr, ir_alloc(IR_LOAD, var_alloc(NULL, node->super.fst_l), pos));
+    oprd_t  pos  = var_alloc(NULL, node->super.fst_l);
+    ir_list expr = lexpr_gen((AST_t *) node, pos);
+    ir_append(&expr, ir_alloc(IR_LOAD, oprd_tar(), pos));
     RETURN(expr);
 }
 
 VISIT(EXPR_ASS) {
-    ir_list rhs     = ast_gen(node->rhs);
-    oprd_t  rhs_var = rhs.var;
-
     if (node->lhs->kind == EXPR_IDEN) {
         INSTANCE_OF(node->lhs, EXPR_IDEN) {
-            oprd_t tar_var = cnode->sym->var;
-            ir_append(&rhs, ir_alloc(IR_ASSIGN, tar_var, rhs_var));
+            ir_list rhs = ast_gen(node->rhs, cnode->sym->var);
+            ir_append(&rhs, ir_alloc(IR_ASSIGN, oprd_tar(), cnode->sym->var));
+            RETURN(rhs);
         }
     } else {
-        ir_list lhs     = lexpr_gen(node->lhs);
-        oprd_t  lhs_var = lhs.var;
-
+        oprd_t  lhs_var = var_alloc(NULL, node->super.fst_l);
+        oprd_t  rhs_var = var_alloc(NULL, node->super.fst_l);
+        ir_list lhs     = lexpr_gen(node->lhs, lhs_var);
+        ir_list rhs     = ast_gen(node->rhs, rhs_var);
         ir_concat(&rhs, lhs);
         ir_append(&rhs, ir_alloc(IR_STORE, lhs_var, rhs_var));
-        ir_append(&rhs, ir_alloc(IR_ASSIGN, rhs_var, rhs_var));
+        ir_append(&rhs, ir_alloc(IR_ASSIGN, oprd_tar(), rhs_var));
+        RETURN(rhs);
     }
-    RETURN(rhs);
+    UNREACHABLE;
 }
 
 VISIT(CONS_PROG) {
-    LIST_FOREACH(node->decls, ast_gen);
+    LIST_ITER(node->decls, it) {
+        ast_gen(it, (oprd_t){0});
+    }
 }
 
 VISIT(CONS_FUN) {
@@ -215,7 +229,7 @@ VISIT(CONS_FUN) {
         }
     }
 
-    ir_list body = ast_gen(node->body);
+    ir_list body = ast_gen(node->body, (oprd_t){0});
     ir_concat(&param, body);
     fun->instrs = param;
     fun->next   = prog;
@@ -231,11 +245,8 @@ VISIT(DECL_VAR) {
     switch (sym->typ.kind) {
         case TYPE_PRIM_INT: {
             if (node->expr != NULL) {
-                ir_list expr = ast_gen(node->expr);
-
-                IR_t *ir = ir_alloc(IR_ASSIGN, var, expr.var);
+                ir_list expr = ast_gen(node->expr, var);
                 ir_concat(&decl, expr);
-                ir_append(&decl, ir);
             }
             RETURN(decl);
         }
@@ -251,35 +262,36 @@ VISIT(DECL_VAR) {
 }
 
 VISIT(EXPR_ARR) {
-    ir_list arr = lexpr_gen((AST_t *) node);
-    oprd_t  pos = arr.var;
-    ir_append(&arr, ir_alloc(IR_LOAD, var_alloc(NULL, node->super.fst_l), pos));
+    oprd_t  pos = var_alloc(NULL, node->super.fst_l);
+    ir_list arr = lexpr_gen((AST_t *) node, pos);
+    ir_append(&arr, ir_alloc(IR_LOAD, oprd_tar(), pos));
     RETURN(arr);
 }
 
 VISIT(STMT_EXPR) {
-    RETURN(ast_gen(node->expr));
+    RETURN(ast_gen(node->expr, oprd_tar()));
 }
 
 VISIT(EXPR_CALL) {
-    ir_list call    = {0};
-    oprd_t  tar_var = var_alloc(NULL, node->super.fst_l);
+    ir_list call = {0};
     if (!symcmp(node->str, "read")) {
-        ir_append(&call, ir_alloc(IR_READ, tar_var));
+        ir_append(&call, ir_alloc(IR_READ, oprd_tar()));
     } else if (!symcmp(node->str, "write")) {
-        call = ast_gen(node->expr);
-        ir_append(&call, ir_alloc(IR_WRITE, tar_var, call.var));
+        oprd_t arg_var = var_alloc(NULL, node->super.fst_l);
+        call           = ast_gen(node->expr, arg_var);
+        ir_append(&call, ir_alloc(IR_WRITE, oprd_tar(), arg_var));
     } else {
         ir_list arglist = {0};
         LIST_ITER(node->expr, it) {
-            ir_list arg = ast_gen(it);
-            ir_prepend(&arglist, ir_alloc(IR_ARG, arg.var));
+            oprd_t  arg_var = var_alloc(NULL, node->super.fst_l);
+            ir_list arg     = ast_gen(it, arg_var);
+            ir_prepend(&arglist, ir_alloc(IR_ARG, arg_var));
             // reverse order
             ir_concat(&arg, call);
             call = arg;
         }
         ir_concat(&call, arglist);
-        ir_append(&call, ir_alloc(IR_CALL, tar_var, node->str));
+        ir_append(&call, ir_alloc(IR_CALL, oprd_tar(), node->str));
     }
     RETURN(call);
 }

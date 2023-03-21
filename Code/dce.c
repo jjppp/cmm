@@ -27,7 +27,7 @@ static void remove_dead(cfg_t *cfg) {
                     // do nothing ...
                 }
             }
-            df.transfer_instr(ir, (data_t *) pd);
+            df.transfer_instr(ir, pd);
         }
         ir_remove_mark(&blk->instrs);
         df.data_fini(df.data_at(df.data_in, blk->id));

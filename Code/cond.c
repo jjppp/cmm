@@ -16,8 +16,10 @@ ir_list cond_gen(AST_t *node) {
 }
 
 static ir_list wrapper(AST_t *node) {
-    ir_list result  = ast_gen((AST_t *) node);
-    IR_t   *cmp_tru = ir_alloc(IR_BRANCH, OP_NE, result.var, lit_alloc(0), NULL);
+    oprd_t result_var = var_alloc(NULL, node->fst_l);
+
+    ir_list result  = ast_gen((AST_t *) node, result_var);
+    IR_t   *cmp_tru = ir_alloc(IR_BRANCH, OP_NE, result_var, lit_alloc(0), NULL);
     IR_t   *jmp_fls = ir_alloc(IR_GOTO, NULL);
     ir_append(&result, cmp_tru);
     ir_append(&result, jmp_fls);
@@ -51,8 +53,12 @@ VISIT(EXPR_INT) {
 }
 
 VISIT(EXPR_BIN) { // yields jmp
-    ir_list lhs = {0}, rhs = {0}, result = {0};
-    oprd_t  lhs_var = {0}, rhs_var = {0};
+    ir_list lhs    = {0};
+    ir_list rhs    = {0};
+    ir_list result = {0};
+
+    oprd_t lhs_var = var_alloc(NULL, node->super.fst_l);
+    oprd_t rhs_var = var_alloc(NULL, node->super.fst_l);
     switch (node->op) {
         REL_OPS(CASE) {
             /*
@@ -61,10 +67,8 @@ VISIT(EXPR_BIN) { // yields jmp
              cmp(op, lhs, rhs) -> tru
              goto -> fls
             */
-            lhs     = ast_gen(node->lhs);
-            rhs     = ast_gen(node->rhs);
-            lhs_var = lhs.var;
-            rhs_var = rhs.var;
+            lhs = ast_gen(node->lhs, lhs_var);
+            rhs = ast_gen(node->rhs, rhs_var);
 
             IR_t *cmp_tru = ir_alloc(IR_BRANCH, node->op, lhs_var, rhs_var, NULL);
             IR_t *jmp_fls = ir_alloc(IR_GOTO, NULL);

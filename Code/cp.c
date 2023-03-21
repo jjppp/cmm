@@ -16,18 +16,15 @@ static fact_t UNDEF = (fact_t){.kind = FACT_UNDEF};
 
 static dataflow live_df;
 
-static void const_prop(IR_t *node, data_t *data) {
-    ASSERT(data->magic == MAGIC, "data magic");
+static void const_prop(IR_t *node, void *data) {
     VISITOR_DISPATCH(IR, cp, node, data);
 }
 
 static void data_init(cp_data_t *data) {
-    data->super.magic = MAGIC;
     map_init(&data->facts);
 }
 
 static void data_fini(cp_data_t *data) {
-    data->super.magic = MAGIC;
     map_fini(&data->facts);
 }
 
@@ -90,7 +87,6 @@ static fact_t fact_compute(op_kind_t op, const fact_t lhs, const fact_t rhs) {
 
 // This is really ugly, but hopefully it works...
 static bool merge(cp_data_t *into, const cp_data_t *rhs) {
-    ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     bool changed = false;
 
     static mapent_t entries_into[32768];
@@ -142,22 +138,22 @@ static void *data_at(void *ptr, u32 index) {
     return &(((cp_data_t *) ptr)[index]);
 }
 
-static bool data_eq(data_t *lhs, data_t *rhs) {
+static bool data_eq(void *lhs, void *rhs) {
     return map_eq(
         &((cp_data_t *) lhs)->facts,
         &((cp_data_t *) rhs)->facts);
 }
 
-static void data_cpy(data_t *dst, data_t *src) {
+static void data_cpy(void *dst, void *src) {
     map_fini(&((cp_data_t *) dst)->facts);
     map_cpy(&((cp_data_t *) dst)->facts, &((cp_data_t *) src)->facts);
 }
 
-static void data_mov(data_t *dst, data_t *src) {
+static void data_mov(void *dst, void *src) {
     swap(((cp_data_t *) dst)->facts, ((cp_data_t *) src)->facts);
 }
 
-static void transfer_block(block_t *blk, data_t *data_in) {
+static void transfer_block(block_t *blk, void *data_in) {
     static mapent_t entries[65536];
 
     LIST_ITER(blk->instrs.head, ir) {
@@ -187,7 +183,6 @@ dataflow do_cp(void *data_in, void *data_out, cfg_t *cfg) {
         .transfer_instr = const_prop,
         .transfer_block = transfer_block,
         .DSIZE          = sizeof(cp_data_t),
-        .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_fini      = (void *) data_fini,
         .data_at        = data_at,

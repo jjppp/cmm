@@ -3,7 +3,6 @@
 #include "map.h"
 typedef struct copy_data_t copy_data_t;
 struct copy_data_t {
-    EXTENDS(data_t);
     set_t copy;
 };
 

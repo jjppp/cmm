@@ -5,27 +5,23 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAGIC 0x114514
 #define RET_TYPE live_data_t *
 #define ARG out
 VISITOR_DEF(IR, live, RET_TYPE);
 
-static void dead_check(IR_t *node, data_t *data) {
+static void dead_check(IR_t *node, void *data) {
     VISITOR_DISPATCH(IR, live, node, data);
 }
 
 static void data_init(live_data_t *data) {
-    data->super.magic = MAGIC;
     set_init(&data->used);
 }
 
 static void data_fini(live_data_t *data) {
-    data->super.magic = MAGIC;
     set_fini(&data->used);
 }
 
 static bool merge(live_data_t *into, const live_data_t *rhs) {
-    ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     return set_merge(&into->used, &rhs->used);
 }
 
@@ -44,18 +40,18 @@ static void *data_at(void *ptr, u32 index) {
     return &(((live_data_t *) ptr)[index]);
 }
 
-static bool data_eq(data_t *lhs, data_t *rhs) {
+static bool data_eq(void *lhs, void *rhs) {
     return set_eq(
         &((live_data_t *) lhs)->used,
         &((live_data_t *) rhs)->used);
 }
 
-static void data_cpy(data_t *dst, data_t *src) {
+static void data_cpy(void *dst, void *src) {
     set_fini(&((live_data_t *) dst)->used);
     set_cpy(&((live_data_t *) dst)->used, &((live_data_t *) src)->used);
 }
 
-static void data_mov(data_t *dst, data_t *src) {
+static void data_mov(void *dst, void *src) {
     swap(((live_data_t *) dst)->used, ((live_data_t *) src)->used);
 }
 
@@ -66,7 +62,6 @@ dataflow do_live(void *data_in, void *data_out, cfg_t *cfg) {
         .transfer_instr = dead_check,
         .transfer_block = NULL,
         .DSIZE          = sizeof(live_data_t),
-        .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_fini      = (void *) data_fini,
         .data_at        = data_at,
@@ -77,6 +72,7 @@ dataflow do_live(void *data_in, void *data_out, cfg_t *cfg) {
         .data_out       = data_out};
     LIST_ITER(cfg->blocks, blk) {
         df.data_init(df.data_at(df.data_in, blk->id));
+        df.data_init(df.data_at(df.data_out, blk->id));
     }
     dataflow_init(&df);
     df.solve(cfg);

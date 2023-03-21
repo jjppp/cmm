@@ -1,22 +1,17 @@
 #include "reach.h"
 #include "cfg.h"
 
-#define MAGIC 0x19260817
-
-static void dce_check(block_t *blk, data_t *data) {
-    ASSERT(data->magic == MAGIC, "dce magic");
+static void dce_check(block_t *blk, void *data) {
 }
 
 static void data_init(reach_data_t *data) {
-    data->super.magic = MAGIC;
-    data->reachable   = false;
+    data->reachable = false;
 }
 
 static void data_fini(reach_data_t *data) {
 }
 
 static bool merge(reach_data_t *into, const reach_data_t *rhs) {
-    ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     into->reachable |= rhs->reachable;
     return true;
 }
@@ -25,15 +20,15 @@ static void *data_at(void *ptr, u32 index) {
     return &(((reach_data_t *) ptr)[index]);
 }
 
-static bool data_eq(data_t *lhs, data_t *rhs) {
+static bool data_eq(void *lhs, void *rhs) {
     return ((reach_data_t *) lhs)->reachable == ((reach_data_t *) rhs)->reachable;
 }
 
-static void data_cpy(data_t *dst, data_t *src) {
+static void data_cpy(void *dst, void *src) {
     ((reach_data_t *) dst)->reachable = ((reach_data_t *) src)->reachable;
 }
 
-static void data_mov(data_t *dst, data_t *src) {
+static void data_mov(void *dst, void *src) {
     data_cpy(dst, src);
 }
 
@@ -44,7 +39,6 @@ dataflow do_reach(void *data_in, void *data_out, cfg_t *cfg) {
         .transfer_instr = NULL,
         .transfer_block = dce_check,
         .DSIZE          = sizeof(reach_data_t),
-        .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_fini      = (void *) data_fini,
         .data_at        = data_at,

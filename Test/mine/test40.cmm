@@ -15,4 +15,5 @@ int main() {
         result = 1;
     }
     write(result);
+    return 0;
 }

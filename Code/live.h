@@ -4,7 +4,6 @@
 
 typedef struct live_data_t live_data_t;
 struct live_data_t {
-    EXTENDS(data_t);
     set_t used;
 };
 

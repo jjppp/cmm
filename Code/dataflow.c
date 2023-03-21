@@ -7,22 +7,16 @@
 static queue_t   que;
 static dataflow *df;
 
-static void data_validate(const data_t *data) {
-    ASSERT(data->magic == df->DMAGIC, "not a data");
-}
-
 static void dataflow_bsolve(cfg_t *cfg);
 static void dataflow_fsolve(cfg_t *cfg);
 
-static void transfer_fblock(block_t *blk, data_t *data_in) { // forward
-    data_validate(data_in);
+static void transfer_fblock(block_t *blk, void *data_in) { // forward
     LIST_ITER(blk->instrs.head, it) {
         df->transfer_instr(it, data_in);
     }
 }
 
-static void transfer_bblock(block_t *blk, data_t *data_in) { // backward
-    data_validate(data_in);
+static void transfer_bblock(block_t *blk, void *data_in) { // backward
     LIST_REV_ITER(blk->instrs.tail, it) {
         df->transfer_instr(it, data_in);
     }
@@ -30,8 +24,6 @@ static void transfer_bblock(block_t *blk, data_t *data_in) { // backward
 
 void dataflow_init(dataflow *df_init) {
     df = df_init;
-    ASSERT(df->DSIZE > sizeof(data_t), "df->data_size(%u) <= sizeof(data_t)", df->DSIZE);
-    ASSERT(df->DMAGIC != 0, "df->DMAGIC == 0");
     switch (df->dir) {
         case DF_FORWARD: {
             df->solve = dataflow_fsolve;
@@ -58,7 +50,7 @@ static void dataflow_bsolve(cfg_t *cfg) { // backward
         df->transfer_block(blk, df->data_at(df->data_out, blk->id));
         queue_push(&que, blk);
     }
-    data_t *newd = zalloc(df->DSIZE);
+    void *newd = zalloc(df->DSIZE);
     df->data_init(newd);
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);
@@ -89,7 +81,7 @@ static void dataflow_fsolve(cfg_t *cfg) { // forward
         df->transfer_block(blk, df->data_at(df->data_out, blk->id));
         queue_push_front(&que, blk);
     }
-    data_t *newd = zalloc(df->DSIZE);
+    void *newd = zalloc(df->DSIZE);
     df->data_init(newd);
     while (!queue_empty(&que)) {
         block_t *blk = queue_pop(&que);

@@ -156,7 +156,6 @@ void ir_append(ir_list *list, IR_t *ir) {
         list->tail->next = ir;
         list->tail       = ir;
     }
-    list->var = ir->tar;
     list->size++;
     ir_validate(list);
 }
@@ -168,7 +167,6 @@ void ir_prepend(ir_list *list, IR_t *ir) {
         list->tail = ir;
         ir->prev   = NULL;
         ir->next   = NULL;
-        list->var  = ir->tar;
     } else {
         ir->next = list->head;
         ir->prev = NULL;
@@ -190,7 +188,6 @@ void ir_concat(ir_list *front, const ir_list back) {
         front->size = back.size;
         front->head = back.head;
         front->tail = back.tail;
-        front->var  = back.var;
         return;
     }
     front->tail->next = back.head;
@@ -198,7 +195,6 @@ void ir_concat(ir_list *front, const ir_list back) {
     front->size += back.size;
 
     front->tail = back.tail;
-    front->var  = back.var;
     ir_validate(front);
 }
 
@@ -212,7 +208,6 @@ ir_list ir_split(ir_list *list, IR_t *it) {
         front = (ir_list){
             .head = it,
             .tail = list->tail,
-            .var  = list->var,
             .size = LIST_LENGTH(it)};
         list->tail = it->prev;
         list->size -= front.size;

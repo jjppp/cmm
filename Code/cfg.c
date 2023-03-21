@@ -110,7 +110,7 @@ cfg_t *cfg_build(ir_fun_t *fun) {
     if (instrs.size != 0) {
         block_alloc(cfg, instrs);
     }
-    done->parent = block_alloc(cfg, (ir_list){.head = done, .tail = done, .size = 1, .var = {0}});
+    done->parent = block_alloc(cfg, (ir_list){.head = done, .tail = done, .size = 1});
     cfg->exit    = done->parent;
 
     LIST_ITER(cfg->blocks, it) {

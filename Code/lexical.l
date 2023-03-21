@@ -20,8 +20,9 @@
 		return 1;
 	}
 
-	int atoi_hex(char *num) {
-		int len = strlen(num), res = 0;
+	i64 atol_hex(char *num) {
+		int len = strlen(num);
+        i64 res = 0;
 		for (int i = 2; i < len; ++ i) {
 			char ch = *(num + sizeof(char) * i);
 			int dig = 0;
@@ -37,8 +38,9 @@
 		return res;
 	}
 
-	int atoi_oct(char *num) {
-		int len = strlen(num), res = 0;
+	i64 atol_oct(char *num) {
+		int len = strlen(num);
+        i64 res = 0;
 		for (int i = 1; i < len; ++ i) {
 			int dig = *(num + sizeof(char) * i) - '0';
 			res = res * 8 + dig;
@@ -161,22 +163,22 @@ ID {LETTER}({LETTER}|{DIGIT})*
 }
 {DEC_INT} {
     static char __DEC_INT_buf[64];
-    yylval.type_int.val = atoi(yytext);
-    snprintf(__DEC_INT_buf, 63, "%d", yylval.type_int.val);
+    yylval.type_int.val = atoll(yytext);
+    snprintf(__DEC_INT_buf, 63, "%ld", yylval.type_int.val);
     yylval.type_int.cst = cst_alloc("INT", __DEC_INT_buf, yylineno, 0);
 	return(INT);
 }
 {OCT_INT} {
     static char __OCT_INT_buf[MAX_SYM_LEN];
-    yylval.type_int.val = atoi_oct(yytext);
-    snprintf(__OCT_INT_buf, MAX_SYM_LEN - 1, "%d", yylval.type_int.val);
+    yylval.type_int.val = atol_oct(yytext);
+    snprintf(__OCT_INT_buf, MAX_SYM_LEN - 1, "%ld", yylval.type_int.val);
     yylval.type_int.cst = cst_alloc("INT", __OCT_INT_buf, yylineno, 0);
 	return(INT);
 }
 {HEX_INT} {
     static char __HEX_INT_buf[MAX_SYM_LEN];
-    yylval.type_int.val = atoi_hex(yytext);
-    snprintf(__HEX_INT_buf, MAX_SYM_LEN - 1, "%d", yylval.type_int.val);
+    yylval.type_int.val = atol_hex(yytext);
+    snprintf(__HEX_INT_buf, MAX_SYM_LEN - 1, "%ld", yylval.type_int.val);
     yylval.type_int.cst = cst_alloc("INT", __HEX_INT_buf, yylineno, 0);
 	return(INT);
 }

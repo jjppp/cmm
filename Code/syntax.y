@@ -34,7 +34,7 @@ void yyerror(const char *s) {
         cst_t *cst;
     } type_float;
     struct {
-        i32    val;
+        i64    val;
         cst_t *cst;
     } type_int;
 }

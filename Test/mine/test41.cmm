@@ -17,6 +17,7 @@ int main() {
     b.y = read();
 
     write(manhattan(a, b));
+    return 0;
 }
 
 int abs(int x) {

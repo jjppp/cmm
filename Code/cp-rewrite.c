@@ -6,7 +6,6 @@
 VISITOR_DEF(IR, cp_rewrite, RET_TYPE);
 
 static void cp_rewrite(IR_t *ir, cp_data_t *out) {
-    ASSERT(out->super.magic == MAGIC, "data magic");
     VISITOR_DISPATCH(IR, cp_rewrite, ir, out);
 }
 
@@ -18,7 +17,7 @@ void do_cp_rewrite(cfg_t *cfg) {
     LIST_ITER(cfg->blocks, blk) {
         cp_data_t *pd = (cp_data_t *) df.data_at(df.data_in, blk->id);
         LIST_ITER(blk->instrs.head, ir) {
-            df.transfer_instr(ir, (data_t *) pd);
+            df.transfer_instr(ir, pd);
             cp_rewrite(ir, pd);
         }
         // ir_remove_mark(&blk->instrs);

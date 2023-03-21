@@ -27,22 +27,19 @@ static void kill(oprd_t oprd, set_t *copy) {
     }
 }
 
-static void transfer(IR_t *ir, data_t *out) {
+static void transfer(IR_t *ir, void *out) {
     VISITOR_DISPATCH(IR, copy, ir, ARG);
 }
 
 static void data_init(copy_data_t *data) {
-    data->super.magic = MAGIC;
     set_cpy(&data->copy, &UNIVERSE);
 }
 
 static void data_fini(copy_data_t *data) {
-    data->super.magic = MAGIC;
     set_fini(&data->copy);
 }
 
 static bool merge(copy_data_t *into, const copy_data_t *rhs) {
-    ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     return set_intersect(&into->copy, &rhs->copy);
 }
 
@@ -50,18 +47,18 @@ static void *data_at(void *ptr, u32 index) {
     return &(((copy_data_t *) ptr)[index]);
 }
 
-static bool data_eq(data_t *lhs, data_t *rhs) {
+static bool data_eq(void *lhs, void *rhs) {
     return set_eq(
         &((copy_data_t *) lhs)->copy,
         &((copy_data_t *) rhs)->copy);
 }
 
-static void data_cpy(data_t *dst, data_t *src) {
+static void data_cpy(void *dst, void *src) {
     set_fini(&((copy_data_t *) dst)->copy);
     set_cpy(&((copy_data_t *) dst)->copy, &((copy_data_t *) src)->copy);
 }
 
-static void data_mov(data_t *dst, data_t *src) {
+static void data_mov(void *dst, void *src) {
     swap(((copy_data_t *) dst)->copy, ((copy_data_t *) src)->copy);
 }
 
@@ -72,7 +69,6 @@ dataflow do_copy(void *data_in, void *data_out, cfg_t *cfg) {
         .transfer_instr = transfer,
         .transfer_block = NULL,
         .DSIZE          = sizeof(copy_data_t),
-        .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_fini      = (void *) data_fini,
         .data_at        = data_at,

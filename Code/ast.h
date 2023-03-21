@@ -151,7 +151,7 @@ struct EXPR_DOT_t {
 
 struct EXPR_INT_t {
     EXTENDS(AST_t);
-    i32 value;
+    i64 value;
 };
 
 struct EXPR_FLT_t {

@@ -31,8 +31,8 @@ AST_t *ast_alloc(ast_kind_t kind, u32 fst_l, ...) {
 }
 
 VISIT(EXPR_INT) {
-    node->value = va_arg(ap, i32);
-    LOG("%d", node->value);
+    node->value = va_arg(ap, i64);
+    LOG("%ld", node->value);
 }
 
 VISIT(EXPR_FLT) {

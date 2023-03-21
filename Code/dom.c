@@ -6,26 +6,21 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAGIC 0x20020308
-
 static set_t UNIVERSE;
 
-static void transfer(block_t *blk, data_t *data) {
+static void transfer(block_t *blk, void *data) {
     set_insert(&((dom_data_t *) data)->dom, blk);
 }
 
 static void data_init(dom_data_t *data) {
-    data->super.magic = MAGIC;
     set_cpy(&data->dom, &UNIVERSE);
 }
 
 static void data_fini(dom_data_t *data) {
-    data->super.magic = MAGIC;
     set_fini(&data->dom);
 }
 
 static bool merge(dom_data_t *into, const dom_data_t *rhs) {
-    ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     return set_intersect(&into->dom, &rhs->dom);
 }
 
@@ -33,18 +28,18 @@ static void *data_at(void *ptr, u32 index) {
     return &(((dom_data_t *) ptr)[index]);
 }
 
-static bool data_eq(data_t *lhs, data_t *rhs) {
+static bool data_eq(void *lhs, void *rhs) {
     return set_eq(
         &((dom_data_t *) lhs)->dom,
         &((dom_data_t *) rhs)->dom);
 }
 
-static void data_cpy(data_t *dst, data_t *src) {
+static void data_cpy(void *dst, void *src) {
     set_fini(&((dom_data_t *) dst)->dom);
     set_cpy(&((dom_data_t *) dst)->dom, &((dom_data_t *) src)->dom);
 }
 
-static void data_mov(data_t *dst, data_t *src) {
+static void data_mov(void *dst, void *src) {
     swap(((dom_data_t *) dst)->dom, ((dom_data_t *) src)->dom);
 }
 
@@ -55,7 +50,6 @@ dataflow do_dom(void *data_in, void *data_out, cfg_t *cfg) {
         .transfer_instr = NULL,
         .transfer_block = transfer,
         .DSIZE          = sizeof(dom_data_t),
-        .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_fini      = (void *) data_fini,
         .data_at        = data_at,

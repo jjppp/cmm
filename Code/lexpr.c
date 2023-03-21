@@ -9,9 +9,15 @@
 #define ARG list
 VISITOR_DEF(AST, lexpr, RET_TYPE);
 
-ir_list lexpr_gen(AST_t *node) {
+extern oprd_t oprd_tar();
+extern void   oprd_push(oprd_t oprd);
+extern void   oprd_pop();
+
+ir_list lexpr_gen(AST_t *node, oprd_t tar) {
+    oprd_push(tar);
     ir_list ARG = {0};
     VISITOR_DISPATCH(AST, lexpr, node, &ARG);
+    oprd_pop();
     return ARG;
 }
 
@@ -20,25 +26,26 @@ VISIT(EXPR_IDEN) {
     syment_t *sym  = node->sym;
     ASSERT(sym != NULL, "absent sym");
 
-    ir_append(&iden, ir_alloc(IR_ASSIGN, var_alloc(NULL, node->super.fst_l), sym->var));
+    ir_append(&iden, ir_alloc(IR_ASSIGN, oprd_tar(), sym->var));
     RETURN(iden);
 }
 
 VISIT(EXPR_DOT) {
-    ir_list base = lexpr_gen(node->base);
+    oprd_t base_var = var_alloc(NULL, node->super.fst_l);
+
+    ir_list base = lexpr_gen(node->base, base_var);
     oprd_t  off  = lit_alloc(node->field->off);
 
-    oprd_t base_var  = base.var;
-    oprd_t field_var = var_alloc(NULL, node->super.fst_l);
     ir_append(
         &base,
         ir_alloc(IR_BINARY,
-                 OP_ADD, field_var, base_var, off));
+                 OP_ADD, oprd_tar(), base_var, off));
     RETURN(base);
 }
 
 VISIT(EXPR_ARR) {
-    ir_list arr     = lexpr_gen(node->arr);
+    oprd_t  pos     = var_alloc(NULL, node->super.fst_l);
+    ir_list arr     = lexpr_gen(node->arr, pos);
     type_t  arr_typ = {0};
     switch (node->arr->kind) {
         case EXPR_IDEN: {
@@ -58,15 +65,16 @@ VISIT(EXPR_ARR) {
 
     u32 cnt = 0;
     LIST_ITER(node->ind, it) {
-        ir_list ind      = ast_gen(it);
+        oprd_t  ind_var  = var_alloc(NULL, node->super.fst_l);
+        ir_list ind      = ast_gen(it, ind_var);
         oprd_t  acc_size = lit_alloc(arr_typ.acc[cnt++]);
         oprd_t  tmp      = var_alloc(NULL, 0);
         ir_append(&ind,
                   ir_alloc(IR_BINARY,
-                           OP_MUL, tmp, ind.var, acc_size));
+                           OP_MUL, tmp, ind_var, acc_size));
         ir_append(&ind,
                   ir_alloc(IR_BINARY,
-                           OP_ADD, var_alloc(NULL, 0), arr.var, tmp));
+                           OP_ADD, oprd_tar(), pos, tmp));
         ir_concat(&arr, ind);
     }
     RETURN(arr);

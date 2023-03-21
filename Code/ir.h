@@ -91,7 +91,6 @@ struct chain_t {
 struct IR_list {
     IR_t    *head, *tail;
     chain_t *fls, *tru;
-    oprd_t   var;
     u32      size;
 };
 
@@ -148,7 +147,7 @@ void ir_fun_free(ir_fun_t *fun);
 
 char *oprd_to_str(oprd_t oprd);
 
-ir_list ast_gen(AST_t *node);
+ir_list ast_gen(AST_t *node, oprd_t tar);
 
 void chain_insert(chain_t **chain, IR_t *ir);
 

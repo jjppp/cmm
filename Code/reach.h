@@ -3,7 +3,6 @@
 
 typedef struct reach_data_t reach_data_t;
 struct reach_data_t {
-    EXTENDS(data_t);
     bool reachable;
 };
 

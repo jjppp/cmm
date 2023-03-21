@@ -9,7 +9,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAGIC 998244353
 #define RET_TYPE def_data_t *
 #define ARG out
 VISITOR_DEF(IR, def, RET_TYPE);
@@ -17,11 +16,11 @@ VISITOR_DEF(IR, def, RET_TYPE);
 static mapent_t entries[65536];
 static dataflow live_df;
 
-static void def_check(IR_t *node, data_t *data) {
+static void def_check(IR_t *node, void *data) {
     VISITOR_DISPATCH(IR, def, node, data);
 }
 
-static void transfer_block(block_t *blk, data_t *data_in) {
+static void transfer_block(block_t *blk, void *data_in) {
     LIST_ITER(blk->instrs.head, ir) {
         def_check(ir, data_in);
     }
@@ -38,17 +37,14 @@ static void transfer_block(block_t *blk, data_t *data_in) {
 }
 
 static void data_init(def_data_t *data) {
-    data->super.magic = MAGIC;
     set_init(&data->defs);
 }
 
 static void data_fini(def_data_t *data) {
-    data->super.magic = MAGIC;
     set_fini(&data->defs);
 }
 
 static bool merge(def_data_t *into, const def_data_t *rhs) {
-    ASSERT(rhs->super.magic == MAGIC, "rhs magic");
     return set_merge(&into->defs, &rhs->defs);
 }
 
@@ -56,18 +52,18 @@ static void *data_at(void *ptr, u32 index) {
     return &(((def_data_t *) ptr)[index]);
 }
 
-static bool data_eq(data_t *lhs, data_t *rhs) {
+static bool data_eq(void *lhs, void *rhs) {
     return set_eq(
         &((def_data_t *) lhs)->defs,
         &((def_data_t *) rhs)->defs);
 }
 
-static void data_cpy(data_t *dst, data_t *src) {
+static void data_cpy(void *dst, void *src) {
     set_fini(&((def_data_t *) dst)->defs);
     set_cpy(&((def_data_t *) dst)->defs, &((def_data_t *) src)->defs);
 }
 
-static void data_mov(data_t *dst, data_t *src) {
+static void data_mov(void *dst, void *src) {
     swap(((def_data_t *) dst)->defs, ((def_data_t *) src)->defs);
 }
 
@@ -83,7 +79,6 @@ dataflow do_def(void *data_in, void *data_out, cfg_t *cfg) {
         .transfer_instr = def_check,
         .transfer_block = transfer_block,
         .DSIZE          = sizeof(def_data_t),
-        .DMAGIC         = MAGIC,
         .data_init      = (void *) data_init,
         .data_fini      = (void *) data_fini,
         .data_at        = data_at,
