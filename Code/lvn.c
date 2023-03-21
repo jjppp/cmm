@@ -145,6 +145,16 @@ static val_t bintab_lookup(op_kind_t op, val_t lhs, val_t rhs) {
     return (val_t) ent->ptr;
 }
 
+static void oprd_holds(oprd_t oprd, val_t val) { // oprd = val
+    val_t holding = (val_t) map_find(&holding_map, (void *) oprd.id);
+    if (holding) { // kill oprd
+        cvar_remove(holding, oprd);
+        map_remove(&holding_map, (void *) oprd.id);
+    }
+    cvar_insert(val, oprd);
+    map_insert(&holding_map, (void *) oprd.id, (void *) val);
+}
+
 static val_t oprd_to_val(oprd_t oprd) {
     val_t holding = 0;
     switch (oprd.kind) {
@@ -153,6 +163,12 @@ static val_t oprd_to_val(oprd_t oprd) {
             if (holding) {
                 return holding;
             }
+            val_t val = unrtab_lookup(oprd);
+            if (!val) {
+                val = unrtab_insert(oprd);
+                oprd_holds(oprd, val);
+            }
+            return val;
         case OPRD_LIT: {
             val_t val = unrtab_lookup(oprd);
             if (!val) {
@@ -163,16 +179,6 @@ static val_t oprd_to_val(oprd_t oprd) {
         }
     }
     UNREACHABLE;
-}
-
-static void oprd_holds(oprd_t oprd, val_t val) { // oprd = val
-    val_t holding = (val_t) map_find(&holding_map, (void *) oprd.id);
-    if (holding) { // kill oprd
-        cvar_remove(holding, oprd);
-        map_remove(&holding_map, (void *) oprd.id);
-    }
-    cvar_insert(val, oprd);
-    map_insert(&holding_map, (void *) oprd.id, (void *) val);
 }
 
 static void oprd_rewrite(oprd_t *oprd, val_t val) {
