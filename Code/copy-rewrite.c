@@ -85,8 +85,6 @@ VISIT(IR_LOAD) {
     node->mark |= rewrite(&node->lhs, copy);
 }
 
-VISIT_UNDEF(IR_NULL);
-
 VISIT_EMPTY(IR_DREF);
 VISIT_EMPTY(IR_CALL);
 VISIT_EMPTY(IR_READ);

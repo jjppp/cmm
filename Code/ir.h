@@ -4,7 +4,6 @@
 #include "common.h"
 
 #define IR(F)    \
-    F(IR_NULL)   \
     F(IR_LABEL)  \
     F(IR_ASSIGN) \
     F(IR_BINARY) \
@@ -28,7 +27,6 @@
     F(IR_LOAD)
 
 #define IR_WITH_ARG(F, ARG) \
-    F(IR_NULL, ARG)         \
     F(IR_LABEL, ARG)        \
     F(IR_ASSIGN, ARG)       \
     F(IR_BINARY, ARG)       \
@@ -46,6 +44,7 @@
     F(IR_WRITE, ARG)
 
 typedef enum {
+    IR_NULL,
     IR(LIST)
 } ir_kind_t;
 

@@ -8,7 +8,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#define MAGIC 0x210093
 #define RET_TYPE copy_data_t *
 #define ARG out
 VISITOR_DEF(IR, copy, RET_TYPE);
@@ -135,8 +134,6 @@ VISIT(IR_DEC) {
 VISIT(IR_PARAM) {
     kill(node->tar, &out->copy);
 }
-
-VISIT_UNDEF(IR_NULL);
 
 VISIT_EMPTY(IR_GOTO);
 VISIT_EMPTY(IR_LABEL);

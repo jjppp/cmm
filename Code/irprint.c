@@ -46,7 +46,6 @@ VISIT(IR_BINARY) {
         case OP_SUB: op_str = "-"; break;
         case OP_MUL: op_str = "*"; break;
         case OP_DIV: op_str = "/"; break;
-        case OP_MOD: op_str = "%"; break;
         default: UNREACHABLE;
     }
 
@@ -118,5 +117,3 @@ VISIT(IR_READ) {
 VISIT(IR_WRITE) {
     fprintf(fout, "WRITE %s\n", oprd_to_str(node->lhs));
 }
-
-VISIT_UNDEF(IR_NULL);

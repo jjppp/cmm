@@ -140,7 +140,5 @@ VISIT(IR_PARAM) {
     kill(out, node->tar);
 }
 
-VISIT_UNDEF(IR_NULL);
-
 VISIT_EMPTY(IR_GOTO);
 VISIT_EMPTY(IR_LABEL);

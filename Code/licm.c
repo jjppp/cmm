@@ -14,6 +14,9 @@ typedef struct loop_t {
 static bool *vis;
 
 static bool outof_loop(oprd_t oprd, set_t *defs, loop_t *loop) {
+    if (oprd.kind == OPRD_LIT) {
+        return true;
+    }
     set_iter(defs, it) {
         IR_t *ir = it.val;
         if (ir->tar.id == oprd.id) {
@@ -26,18 +29,17 @@ static bool outof_loop(oprd_t oprd, set_t *defs, loop_t *loop) {
 }
 
 static bool inv_check(IR_t *ir, set_t *defs, loop_t *loop) {
-#define IS_CONST(OPRD) ((OPRD).kind == OPRD_LIT)
     switch (ir->kind) {
-        case IR_BINARY:
-            return ((IS_CONST(ir->lhs) || outof_loop(ir->lhs, defs, loop))
-                    && (IS_CONST(ir->rhs) || outof_loop(ir->rhs, defs, loop)));
+        case IR_BINARY: return (outof_loop(ir->lhs, defs, loop) && outof_loop(ir->rhs, defs, loop));
         // TODO: still buggy
-        // case IR_ASSIGN:
-        //     return outof_loop(ir->lhs, defs, loop);
-        default:
-            return false;
+        case IR_ASSIGN: return outof_loop(ir->lhs, defs, loop);
+        default: return false;
     }
     UNREACHABLE;
+}
+
+static bool can_hoist(IR_t *ir, loop_t *loop) {
+    return false;
 }
 
 static void loop_init(loop_t *loop, block_t *hdr) {
@@ -79,7 +81,8 @@ static void mark_inv(loop_t *loop, dataflow df) {
         LIST_ITER(blk->instrs.head, ir) {
             def_data_t *pd = df.data_at(df.data_in, blk->id);
 
-            if (inv_check(ir, &pd->defs, loop)) {
+            if (inv_check(ir, &pd->defs, loop)
+                && can_hoist(ir, loop)) {
                 ir->parent = loop->pre_hdr;
             }
             df.transfer_instr(ir, pd);

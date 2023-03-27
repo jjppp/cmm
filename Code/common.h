@@ -183,7 +183,6 @@ struct shared {
     F(OP_SUB)        \
     F(OP_MUL)        \
     F(OP_DIV)        \
-    F(OP_MOD)        \
     F(OP_NEG)
 
 #define SYMS(F) \

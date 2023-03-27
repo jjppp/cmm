@@ -337,5 +337,3 @@ VISIT(IR_WRITE) {
     node->tar = va_arg(ap, oprd_t);
     node->lhs = va_arg(ap, oprd_t);
 }
-
-VISIT_UNDEF(IR_NULL);

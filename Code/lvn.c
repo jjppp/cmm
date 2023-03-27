@@ -262,8 +262,6 @@ VISIT(IR_ARG) {
     oprd_rewrite(&node->lhs, expr);
 }
 
-VISIT_UNDEF(IR_NULL);
-
 VISIT_EMPTY(IR_GOTO);
 VISIT_EMPTY(IR_DEC);
 VISIT_EMPTY(IR_PARAM);

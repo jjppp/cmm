@@ -258,8 +258,6 @@ VISIT(IR_PARAM) { // intra-procedural, safe
     fact_insert(out, node->tar, NAC);
 }
 
-VISIT_UNDEF(IR_NULL);
-
 VISIT_EMPTY(IR_GOTO);
 VISIT_EMPTY(IR_LABEL);
 VISIT_EMPTY(IR_BRANCH);

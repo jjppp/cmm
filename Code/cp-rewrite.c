@@ -70,8 +70,6 @@ VISIT(IR_STORE) {
     rewrite(&node->lhs, fact_get(out, node->lhs));
 }
 
-VISIT_UNDEF(IR_NULL);
-
 VISIT_EMPTY(IR_DREF);
 VISIT_EMPTY(IR_LOAD);
 VISIT_EMPTY(IR_CALL);
