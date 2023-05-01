@@ -66,7 +66,8 @@ struct oprd_t {
         i64  val;
         uptr id;
     };
-    u32 lineno;
+    u32  lineno;
+    uptr offset;
 };
 
 struct IR_t {
@@ -97,6 +98,7 @@ struct IR_fun_t {
     char      str[MAX_SYM_LEN];
     ir_list   instrs;
     ir_fun_t *next;
+    u32       sf_size;
 };
 
 void ir_append(ir_list *list, IR_t *ir);

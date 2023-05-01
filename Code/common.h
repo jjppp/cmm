@@ -190,14 +190,14 @@ struct shared {
     F(SYM_VAR)  \
     F(SYM_FUN)
 
-static inline void *zalloc(u32 size) {
+__attribute__((unused)) static inline void *zalloc(u32 size) {
     void *ptr = malloc(size);
     bzero(ptr, size);
     LOG("zalloc %u @ %p", size, ptr);
     return ptr;
 }
 
-static inline void zfree(void *ptr) {
+__attribute__((unused)) static inline void zfree(void *ptr) {
     LOG("zfree @ %p", ptr);
     free(ptr);
 }

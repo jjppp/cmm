@@ -1,6 +1,7 @@
 # VSCode
 .cache/
 compile_commands.json
+.vscode/
 
 # Tests
 Test/*.py
