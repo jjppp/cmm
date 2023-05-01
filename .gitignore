@@ -1,3 +1,21 @@
+# VSCode
+.cache/
+compile_commands.json
+
+# Tests
+Test/*.py
+*.cmm
+*.output
+Test/lab1/
+Test/lab2/
+Test/lab3/
+simulator/
+Code/gen-cfg
+
+# Submit
+201250101.zip
+report.pdf
+
 # Binary
 parser
 .gdbinit
