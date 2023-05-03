@@ -57,7 +57,7 @@ void reg_alloc(ir_fun_t *fun) {
     memset(&hashtab, 0, sizeof(hashtab));
     offset = 0;
 
-    LIST_ITER(fun->instrs.head, it) {
+    LIST_REV_ITER(fun->instrs.tail, it) {
         if (it->kind == IR_PARAM) {
             alloc(&it->tar);
         }
