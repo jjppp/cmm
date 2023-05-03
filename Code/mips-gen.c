@@ -135,7 +135,7 @@ VISIT(IR_BINARY) {
 }
 
 VISIT(IR_DREF) {
-    load_oprd(&node->lhs, $t0);
+    emit("  addi $t0, $sp, %d", cur_fun->sf_size - node->lhs.offset + 4);
     store_oprd(&node->tar, $t0);
 }
 
