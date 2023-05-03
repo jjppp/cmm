@@ -74,9 +74,10 @@ VISIT(EXPR_ARR) {
                            OP_MUL, tmp, ind_var, acc_size));
         ir_append(&ind,
                   ir_alloc(IR_BINARY,
-                           OP_ADD, oprd_tar(), pos, tmp));
+                           OP_ADD, pos, pos, tmp));
         ir_concat(&arr, ind);
     }
+    ir_append(&arr, ir_alloc(IR_ASSIGN, oprd_tar(), pos));
     RETURN(arr);
 }
 
