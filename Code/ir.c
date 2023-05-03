@@ -44,9 +44,9 @@ char *oprd_to_str(oprd_t oprd) {
             break;
         case OPRD_VAR:
             if (oprd.name != NULL) {
-                snprintf(buf, sizeof(buf), "n_%s%lu", oprd.name, oprd.val);
+                snprintf(buf, sizeof(buf), "n_%s%lu(%lu)", oprd.name, oprd.val, oprd.offset);
             } else {
-                snprintf(buf, sizeof(buf), "t_%lu_at_%u_", oprd.val, oprd.lineno);
+                snprintf(buf, sizeof(buf), "t_%lu_at_%u_(%lu)", oprd.val, oprd.lineno, oprd.offset);
             }
             break;
         default: UNREACHABLE;

@@ -37,10 +37,12 @@ static void alloc(oprd_t *oprd) {
     }
     hashent_t *ent = hash_lookup(&hashtab, oprd->name);
     if (ent->ptr == NULL) {
+        offset += 4;
         symcpy(ent->str, oprd->name);
         ent->ptr     = (void *) offset;
         oprd->offset = offset;
-        offset += 4;
+    } else {
+        oprd->offset = (uptr) ent->ptr;
     }
 }
 

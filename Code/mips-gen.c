@@ -24,10 +24,22 @@ static void emit(const char *fmt, ...) {
 }
 
 static void mips_gen_fun(ir_fun_t *fun) {
+    reg_alloc(fun);
     emit("%s:", fun->str);
+    if (!symcmp(fun->str, "main")) {
+        emit("  addi $sp, $sp, -%d", 4 + fun->sf_size);
+        emit("  sw $sp, $sp, -%d", 4 + fun->sf_size);
+    }
+
     cur_fun = fun;
     LIST_ITER(fun->instrs.head, it) {
+        fprintf(fout, "#");
+        ir_print(fout, it);
         VISITOR_DISPATCH(IR, mips_gen, it, NULL);
+    }
+
+    if (!symcmp(fun->str, "main")) {
+        emit("  addi $sp, $sp, %d", 4 + fun->sf_size);
     }
 }
 
@@ -46,7 +58,7 @@ void mips_gen(FILE *file, ir_fun_t *prog) {
     fout = file;
     emit(".data\n"
          "_prompt: .asciiz \"Enter an integer:\"\n"
-         "_ret: .asciiz \"\n\"\n"
+         "_ret: .asciiz \"\\n\"\n"
          ".globl main\n"
          ".text\n"
          "read:\n"
@@ -71,11 +83,11 @@ void mips_gen(FILE *file, ir_fun_t *prog) {
 static void load_oprd(const oprd_t *oprd, regs_t reg) {
     switch (oprd->kind) {
         case OPRD_VAR: {
-            emit("  lw %s, %d($sp)\n", REGS_NAMES[reg], cur_fun->sf_size - oprd->offset);
+            emit("  lw %s, %d($sp)", REGS_NAMES[reg], cur_fun->sf_size - oprd->offset + 4);
             break;
         }
         case OPRD_LIT: {
-            emit("  move %s, %d", REGS_NAMES[reg], oprd->val);
+            emit("  li %s, %d", REGS_NAMES[reg], oprd->val);
             break;
         }
         default: UNREACHABLE;
@@ -84,6 +96,7 @@ static void load_oprd(const oprd_t *oprd, regs_t reg) {
 
 static void store_oprd(const oprd_t *oprd, regs_t reg) {
     ASSERT(oprd->kind == OPRD_VAR, "storing non var");
+    emit("  sw %s, %d($sp)\n", REGS_NAMES[reg], cur_fun->sf_size - oprd->offset + 4);
 }
 
 VISIT(IR_LABEL) {

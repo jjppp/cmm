@@ -42,3 +42,5 @@ typedef enum {
 } regs_t;
 
 void mips_gen(FILE *file, ir_fun_t *prog);
+
+void reg_alloc(ir_fun_t *fun);
