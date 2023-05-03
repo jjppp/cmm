@@ -1,3 +1,4 @@
+#include "common.h"
 #include "hashtab.h"
 #include "ir.h"
 #include "visitor.h"
@@ -30,20 +31,26 @@ VISITOR_DEF(IR, mips_reg, RET_TYPE);
  *        ------------
  */
 
-// alloc 4 bytes for non-param-regs if not previously allocated
-static void alloc(oprd_t *oprd) {
+// alloc `size` bytes for non-param-regs if not previously allocated
+static void alloc_with(oprd_t *oprd, u32 size) {
     if (oprd->kind != OPRD_VAR) {
         return;
     }
-    hashent_t *ent = hash_lookup(&hashtab, oprd->name);
+    char oprd_str[SYM_STR_SIZE];
+    symcpy(oprd_str, oprd_to_str(*oprd));
+    hashent_t *ent = hash_lookup(&hashtab, oprd_str);
     if (ent->ptr == NULL) {
-        offset += 4;
-        symcpy(ent->str, oprd->name);
+        offset += size;
+        symcpy(ent->str, oprd_str);
         ent->ptr     = (void *) offset;
         oprd->offset = offset;
     } else {
         oprd->offset = (uptr) ent->ptr;
     }
+}
+
+static void alloc(oprd_t *oprd) {
+    alloc_with(oprd, 4);
 }
 
 void reg_alloc(ir_fun_t *fun) {
@@ -102,14 +109,7 @@ VISIT(IR_RETURN) {
 
 VISIT(IR_DEC) {
     // ! Check if multiple `DEC`s can be called with identical lhs regs.
-    oprd_t    *oprd = &node->tar;
-    hashent_t *ent  = hash_lookup(&hashtab, oprd->name);
-    if (ent->ptr == NULL) {
-        symcpy(ent->str, oprd->name);
-        ent->ptr     = (void *) offset;
-        oprd->offset = offset;
-        offset += node->lhs.val;
-    }
+    alloc_with(&node->tar, node->lhs.val);
 }
 
 VISIT(IR_ARG) {

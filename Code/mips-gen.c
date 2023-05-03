@@ -24,11 +24,9 @@ static void emit(const char *fmt, ...) {
 }
 
 static void mips_gen_fun(ir_fun_t *fun) {
-    reg_alloc(fun);
     emit("%s:", fun->str);
     if (!symcmp(fun->str, "main")) {
         emit("  addi $sp, $sp, -%d", 4 + fun->sf_size);
-        emit("  sw $sp, $sp, -%d", 4 + fun->sf_size);
     }
 
     cur_fun = fun;
@@ -77,6 +75,7 @@ void mips_gen(FILE *file, ir_fun_t *prog) {
          "  move $v0, $0\n"
          "  jr $ra\n");
 
+    LIST_FOREACH(prog, reg_alloc);
     LIST_FOREACH(prog, mips_gen_fun);
 }
 
@@ -210,6 +209,7 @@ VISIT(IR_CALL) {
     emit("  sw $ra, 0($sp)");
     emit("  jal %s", node->str);
     emit("  lw $ra, 0($sp)");
+    emit("  addi $sp, $sp, 4");
 
     // locals
     emit("  addi $sp, $sp, %d", tar->sf_size);
