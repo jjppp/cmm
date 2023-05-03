@@ -1,41 +1,44 @@
 #pragma once
 
 #include "common.h"
+#include "ir.h"
 
 #define REGS(F) \
-    F(ZERO)     \
-    F(AT)       \
-    F(V0)       \
-    F(V1)       \
-    F(A0)       \
-    F(A1)       \
-    F(A2)       \
-    F(A3)       \
-    F(T0)       \
-    F(T1)       \
-    F(T2)       \
-    F(T3)       \
-    F(T4)       \
-    F(T5)       \
-    F(T6)       \
-    F(T7)       \
-    F(S0)       \
-    F(S1)       \
-    F(S2)       \
-    F(S3)       \
-    F(S4)       \
-    F(S5)       \
-    F(S6)       \
-    F(S7)       \
-    F(T8)       \
-    F(T9)       \
-    F(K0)       \
-    F(K1)       \
-    F(GP)       \
-    F(SP)       \
-    F(FP)       \
-    F(RA)
+    F($zero)    \
+    F($at)      \
+    F($v0)      \
+    F($v1)      \
+    F($a0)      \
+    F($a1)      \
+    F($a2)      \
+    F($a3)      \
+    F($t0)      \
+    F($t1)      \
+    F($t2)      \
+    F($t3)      \
+    F($t4)      \
+    F($t5)      \
+    F($t6)      \
+    F($t7)      \
+    F($s0)      \
+    F($s1)      \
+    F($s2)      \
+    F($s3)      \
+    F($s4)      \
+    F($s5)      \
+    F($s6)      \
+    F($s7)      \
+    F($t8)      \
+    F($t9)      \
+    F($k0)      \
+    F($k1)      \
+    F($gp)      \
+    F($sp)      \
+    F($fp)      \
+    F($ra)
 
 typedef enum {
     REGS(LIST)
 } regs_t;
+
+void mips_gen(FILE *file, ir_fun_t *prog);

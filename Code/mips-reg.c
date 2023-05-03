@@ -56,6 +56,7 @@ void reg_alloc(ir_fun_t *fun) {
     LIST_ITER(fun->instrs.head, it) {
         VISITOR_DISPATCH(IR, mips_reg, it, NULL);
     }
+    fun->sf_size = offset;
 }
 
 VISIT_EMPTY(IR_LABEL);

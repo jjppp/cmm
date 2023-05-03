@@ -25,6 +25,8 @@ typedef int8_t    i8;
 
 #define STRINGIFY(S) STRINGIFY_(S)
 #define STRINGIFY_(S) #S
+#define CONCAT(S, T) CONCAT_(S, T)
+#define CONCAT_(S, T) S##T
 #define CASE(X) case (X):
 #define TODO(FEATURE)                                                                   \
     do {                                                                                \

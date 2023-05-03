@@ -3,6 +3,8 @@
 #include "cfg.h"
 #include "common.h"
 #include "cst.h"
+#include "ir.h"
+#include "mips.h"
 #include "opt.h"
 
 #define LAB3
@@ -83,49 +85,30 @@ void gen(const char *sfname, const char *ofname) {
     ast_gen(root, var_alloc(NULL, 0));
     ir_check(&prog->instrs);
 
-    FOPEN(ofname, file, "w") {
-        if (!file) {
-            perror(ofname);
-            exit(1);
-        }
-        ir_fun_print(file, prog);
-    }
-
     LIST_ITER(prog, it) {
         cfg_t *cfg = cfg_build(it);
         LIST_APPEND(cfgs, cfg);
     }
-    FOPEN("./cfg.dot", file, "w") {
-        if (!file) {
-            perror("./cfg.dot");
-            exit(1);
-        }
-        cfg_fprint(file, sfname, cfgs);
-    }
-
     LIST_FOREACH(cfgs, optimize);
-    FOPEN("./opt-cfg.dot", file, "w") {
-        if (!file) {
-            perror("./opt-cfg.dot");
-            exit(1);
-        }
-        cfg_fprint(file, sfname, cfgs);
-    }
-
     ir_fun_free(prog);
     prog = NULL;
     LIST_ITER(cfgs, cfg) {
         ir_fun_t *fun = cfg_destruct(cfg);
         LIST_APPEND(prog, fun);
     }
-    static char buf[8192];
-    snprintf(buf, sizeof(buf), "opt-%s", ofname);
-    FOPEN(buf, file, "w") {
+    FOPEN("out.ir", file, "w") {
         if (!file) {
-            perror(buf);
+            perror("out.ir");
             exit(1);
         }
         ir_fun_print(file, prog);
+    }
+    FOPEN(ofname, file, "w") {
+        if (!file) {
+            perror(ofname);
+            exit(1);
+        }
+        mips_gen(file, prog);
     }
 }
 
