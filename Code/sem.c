@@ -27,7 +27,7 @@ type_t ast_check(AST_t *node) {
     }
     type_t ARG = {0};
     VISITOR_DISPATCH(AST, sem, node, &ARG);
-    return ARG;
+    return node->type = ARG;
 }
 
 VISIT(CONS_PROG) {

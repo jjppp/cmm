@@ -68,6 +68,7 @@ struct AST_t {
     AST_t     *next;
     u32        fst_l;
     ast_kind_t kind;
+    type_t     type;
 };
 
 #define AST_EXTEND(NODE) typedef struct NODE##_t NODE##_t;

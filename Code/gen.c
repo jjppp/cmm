@@ -264,7 +264,11 @@ VISIT(DECL_VAR) {
 VISIT(EXPR_ARR) {
     oprd_t  pos = var_alloc(NULL, node->super.fst_l);
     ir_list arr = lexpr_gen((AST_t *) node, pos);
-    ir_append(&arr, ir_alloc(IR_LOAD, oprd_tar(), pos));
+    if (node->super.type.kind == TYPE_PRIM_INT) {
+        ir_append(&arr, ir_alloc(IR_LOAD, oprd_tar(), pos));
+    } else {
+        ir_append(&arr, ir_alloc(IR_ASSIGN, oprd_tar(), pos));
+    }
     RETURN(arr);
 }
 
