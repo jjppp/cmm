@@ -24,9 +24,11 @@ static void emit(const char *fmt, ...) {
 }
 
 static void mips_gen_fun(ir_fun_t *fun) {
-    emit("%s:", fun->str);
     if (!symcmp(fun->str, "main")) {
+        emit("%s:", fun->str);
         emit("  addi $sp, $sp, -%d", 4 + fun->sf_size);
+    } else {
+        emit("__fun__%s:", fun->str);
     }
 
     cur_fun = fun;
@@ -207,7 +209,7 @@ VISIT(IR_CALL) {
 
     emit("  addi $sp, $sp, -4");
     emit("  sw $ra, 0($sp)");
-    emit("  jal %s", node->str);
+    emit("  jal __fun__%s", node->str);
     emit("  lw $ra, 0($sp)");
     emit("  addi $sp, $sp, 4");
 
