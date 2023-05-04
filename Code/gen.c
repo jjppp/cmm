@@ -284,6 +284,7 @@ VISIT(EXPR_CALL) {
         oprd_t arg_var = var_alloc(NULL, node->super.fst_l);
         call           = ast_gen(node->expr, arg_var);
         ir_append(&call, ir_alloc(IR_WRITE, oprd_tar(), arg_var));
+        ir_append(&call, ir_alloc(IR_ASSIGN, oprd_tar(), lit_alloc(0)));
     } else {
         ir_list arglist = {0};
         LIST_ITER(node->expr, it) {
