@@ -23,6 +23,15 @@ static void emit(const char *fmt, ...) {
     va_end(ap);
 }
 
+static void emit_sp(const i32 offset) {
+    if (offset >= -32768 && offset < 32768) {
+        emit("  addi $sp, $sp, %d", offset);
+    } else {
+        emit("  li $t3, %d", offset);
+        emit("  add $sp, $sp, $t3", offset);
+    }
+}
+
 static void mips_gen_fun(ir_fun_t *fun) {
     emit("__fun__%s:", fun->str);
     cur_fun = fun;
@@ -67,17 +76,15 @@ void mips_gen(FILE *file, ir_fun_t *prog) {
          "  syscall\n"
          "  move $v0, $0\n"
          "  jr $ra\n"
-         "main:\n"
-         "  addi $sp, $sp, -%d\n"
-         "  addi $sp, $sp, -4\n"
+         "main:\n");
+    emit_sp(-get_fun("main")->sf_size);
+    emit("  addi $sp, $sp, -4\n"
          "  sw $ra, 0($sp)\n"
          "  jal __fun__main\n"
          "  lw $ra, 0($sp)\n"
-         "  addi $sp, $sp, 4\n"
-         "  addi $sp, $sp, %d\n"
-         "  jr $ra\n",
-         get_fun("main")->sf_size,
-         get_fun("main")->sf_size);
+         "  addi $sp, $sp, 4\n");
+    emit_sp(get_fun("main")->sf_size);
+    emit("  jr $ra\n");
 
     LIST_FOREACH(prog, mips_gen_fun);
 }
@@ -206,7 +213,7 @@ VISIT(IR_ARG) {
 VISIT(IR_CALL) {
     // args & locals
     ir_fun_t *tar = get_fun(node->str);
-    emit("  addi $sp, $sp, %d", -tar->sf_size);
+    emit_sp(-tar->sf_size);
 
     emit("  addi $sp, $sp, -4");
     emit("  sw $ra, 0($sp)");
@@ -215,7 +222,7 @@ VISIT(IR_CALL) {
     emit("  addi $sp, $sp, 4");
 
     // locals
-    emit("  addi $sp, $sp, %d", tar->sf_size);
+    emit_sp(tar->sf_size);
     store_oprd(&node->tar, $v0);
     narg = 0;
 }
