@@ -55,4 +55,5 @@ clean:
 	rm -f *.ir
 	rm -f *~
 submit: clean
+	rm ../201250101.zip
 	zip -r ../201250101.zip ../Code ../README.md ../report.pdf -x "./.git/*" 
