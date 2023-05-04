@@ -24,22 +24,12 @@ static void emit(const char *fmt, ...) {
 }
 
 static void mips_gen_fun(ir_fun_t *fun) {
-    if (!symcmp(fun->str, "main")) {
-        emit("%s:", fun->str);
-        emit("  addi $sp, $sp, -%d", 4 + fun->sf_size);
-    } else {
-        emit("__fun__%s:", fun->str);
-    }
-
+    emit("__fun__%s:", fun->str);
     cur_fun = fun;
     LIST_ITER(fun->instrs.head, it) {
         fprintf(fout, "#");
         ir_print(fout, it);
         VISITOR_DISPATCH(IR, mips_gen, it, NULL);
-    }
-
-    if (!symcmp(fun->str, "main")) {
-        emit("  addi $sp, $sp, %d", 4 + fun->sf_size);
     }
 }
 
@@ -56,6 +46,7 @@ static ir_fun_t *get_fun(const char *str) {
 
 void mips_gen(FILE *file, ir_fun_t *prog) {
     fout = file;
+    LIST_FOREACH(prog, reg_alloc);
     emit(".data\n"
          "_prompt: .asciiz \"Enter an integer:\"\n"
          "_ret: .asciiz \"\\n\"\n"
@@ -75,9 +66,19 @@ void mips_gen(FILE *file, ir_fun_t *prog) {
          "  la $a0, _ret\n"
          "  syscall\n"
          "  move $v0, $0\n"
-         "  jr $ra\n");
+         "  jr $ra\n"
+         "main:\n"
+         "  addi $sp, $sp, -%d\n"
+         "  addi $sp, $sp, -4\n"
+         "  sw $ra, 0($sp)\n"
+         "  jal __fun__main\n"
+         "  lw $ra, 0($sp)\n"
+         "  addi $sp, $sp, 4\n"
+         "  addi $sp, $sp, %d\n"
+         "  jr $ra\n",
+         get_fun("main")->sf_size,
+         get_fun("main")->sf_size);
 
-    LIST_FOREACH(prog, reg_alloc);
     LIST_FOREACH(prog, mips_gen_fun);
 }
 
