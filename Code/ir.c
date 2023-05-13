@@ -1,6 +1,6 @@
 #include "ir.h"
-#include "ast.h"
 #include "common.h"
+#include "hashtab.h"
 #include "visitor.h"
 #include "symtab.h"
 #include <stdarg.h>
@@ -44,9 +44,9 @@ char *oprd_to_str(oprd_t oprd) {
             break;
         case OPRD_VAR:
             if (oprd.name != NULL) {
-                snprintf(buf, sizeof(buf), "n_%s%lu", oprd.name, oprd.val);
+                snprintf(buf, sizeof(buf), "%s", oprd.name);
             } else {
-                snprintf(buf, sizeof(buf), "t_%lu_at_%u_", oprd.val, oprd.lineno);
+                snprintf(buf, sizeof(buf), "tmp_%lu", oprd.id);
             }
             break;
         default: UNREACHABLE;
@@ -120,6 +120,38 @@ void ir_list_free(ir_list *list) {
     list->head = NULL;
     list->tail = NULL;
     list->size = 0;
+}
+
+void ir_resolve(ir_fun_t *fun) {
+    static hashtab_t labels;
+    memset(&labels, 0, sizeof(labels));
+
+    if (fun == NULL) {
+        return;
+    }
+    LIST_ITER(fun->instrs.head, it) {
+        if (it->kind == IR_LABEL) {
+            hashent_t *ent = hash_lookup(&labels, it->str);
+            if (ent->ptr == NULL) {
+                symcpy(ent->str, it->str);
+                ent->ptr = it;
+            }
+        }
+    }
+    LIST_ITER(fun->instrs.head, it) {
+        switch (it->kind) {
+            case IR_GOTO:
+            case IR_BRANCH: {
+                hashent_t *ent = hash_lookup(&labels, it->str);
+                ASSERT(ent->ptr != NULL, "label not exist");
+                it->jmpto = ent->ptr;
+            }
+            default: {
+            }
+        }
+    }
+    ir_resolve(fun->next);
+    ir_check(&fun->instrs);
 }
 
 IR_t *ir_alloc(ir_kind_t kind, ...) {
@@ -266,7 +298,7 @@ void ir_check(ir_list *list) {
 }
 
 VISIT(IR_LABEL) {
-    snprintf(node->str, sizeof(node->str), "label%u", node->id);
+    symmov(node->str, va_arg(ap, char *));
 }
 
 VISIT(IR_ASSIGN) {
@@ -297,14 +329,14 @@ VISIT(IR_STORE) {
 }
 
 VISIT(IR_GOTO) {
-    node->jmpto = va_arg(ap, IR_t *);
+    symmov(node->str, va_arg(ap, char *));
 }
 
 VISIT(IR_BRANCH) {
-    node->op    = va_arg(ap, op_kind_t);
-    node->lhs   = va_arg(ap, oprd_t);
-    node->rhs   = va_arg(ap, oprd_t);
-    node->jmpto = va_arg(ap, IR_t *);
+    node->op  = va_arg(ap, op_kind_t);
+    node->lhs = va_arg(ap, oprd_t);
+    node->rhs = va_arg(ap, oprd_t);
+    symmov(node->str, va_arg(ap, char *));
 }
 
 VISIT(IR_RETURN) {
@@ -334,6 +366,5 @@ VISIT(IR_READ) {
 }
 
 VISIT(IR_WRITE) {
-    node->tar = va_arg(ap, oprd_t);
     node->lhs = va_arg(ap, oprd_t);
 }

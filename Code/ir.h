@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ast.h"
 #include "common.h"
+#include <stdbool.h>
 
 #define IR(F)    \
     F(IR_LABEL)  \
@@ -69,6 +69,10 @@ struct oprd_t {
     u32  lineno;
     uptr offset;
 };
+
+typedef enum {
+    OPS(LIST)
+} op_kind_t;
 
 struct IR_t {
     EXTENDS(shared);
@@ -148,10 +152,10 @@ void ir_fun_free(ir_fun_t *fun);
 
 char *oprd_to_str(oprd_t oprd);
 
-ir_list ast_gen(AST_t *node, oprd_t tar);
-
 void chain_insert(chain_t **chain, IR_t *ir);
 
 void chain_resolve(chain_t **chain, IR_t *ir);
 
 void chain_merge(chain_t **into, chain_t *rhs);
+
+void ir_resolve(ir_fun_t *fun);

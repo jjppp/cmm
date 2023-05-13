@@ -2,8 +2,8 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-GCFLAGS = -std=c99 -Wall -Werror -O2 -I.
-CFLAGS = -std=c99 -Wall -Werror -O2 -I.
+GCFLAGS = -std=c99 -Wall -Werror -O2 -I. -ggdb
+CFLAGS = -std=c99 -Wall -Werror -O2 -I. -ggdb
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
@@ -52,7 +52,6 @@ clean:
 	rm -f test-symtab test-visitor
 	rm -f *.jpg
 	rm -f *.dot
-	rm -f *.ir
 	rm -f *~
 submit: clean
 	rm ../201250101.zip

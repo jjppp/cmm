@@ -1,5 +1,4 @@
 #include "symtab.h"
-#include "ast.h"
 #include "common.h"
 #include "hashtab.h"
 #include <stdio.h>

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "ast.h"
 #include "ir.h"
+
+#include <stdarg.h>
 
 #define VISITOR_METHOD_ASSIGN(NAME) .visit_##NAME = (void *) visit_##NAME,
 #define VISITOR_METHOD_DECLARE(NAME, ARG_TYPE) static void visit_##NAME(NAME##_t *node, ARG_TYPE);
@@ -28,7 +29,6 @@
 
 // register visitors
 #define VISITORS(F) \
-    F(AST)          \
     F(IR)
 
 #define VISITOR_DISPATCH_DEF(ACCEPTOR) \

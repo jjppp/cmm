@@ -77,8 +77,16 @@ typedef int8_t    i8;
         __auto_type __tmp_y = (Y);                   \
         (__tmp_x > __tmp_y) ? (__tmp_x) : (__tmp_y); \
     })
-#define FOPEN(FNAME, F, MODE) \
-    for (FILE *F = fopen(FNAME, MODE); F != NULL; fclose(F), F = NULL)
+#define FOPEN(FNAME, F, MODE, SNIPPET)     \
+    for (FILE *F = fopen(FNAME, MODE);;) { \
+        if (!file) {                       \
+            perror(argv[1]);               \
+            exit(1);                       \
+        }                                  \
+        SNIPPET;                           \
+        fclose(F);                         \
+        break;                             \
+    }
 
 /* refcount ptr. obj must extend struct shared. */
 #define POINTS_TO(PTR, OBJ)                                    \
@@ -161,6 +169,9 @@ struct shared {
 #define LIST_FOREACH(LIST, FUN) \
     LIST_ITER(LIST, __it)       \
     FUN(__it);
+#define LIST_MAP_REDUCE(LIST, FUN, RESULT) \
+    LIST_ITER(LIST, __it)                  \
+    LIST_APPEND(RESULT, FUN(__it));
 
 #define OPS(F)   \
     ARITH_OPS(F) \
