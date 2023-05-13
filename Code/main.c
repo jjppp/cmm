@@ -27,10 +27,10 @@ i32 main(i32 argc, char **argv) {
     }
     ir_resolve(prog);
 
-    // LIST_MAP_REDUCE(prog, cfg_build, cfgs);
-    // LIST_FOREACH(cfgs, optimize);
-    // prog = NULL;
-    // LIST_MAP_REDUCE(cfgs, cfg_destruct, prog);
+    LIST_MAP_REDUCE(prog, cfg_build, cfgs);
+    LIST_FOREACH(cfgs, optimize);
+    prog = NULL;
+    LIST_MAP_REDUCE(cfgs, cfg_destruct, prog);
     FOPEN(argv[2], file, "w", {
         ir_fun_print(file, prog);
     });
