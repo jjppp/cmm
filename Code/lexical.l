@@ -17,7 +17,7 @@ DELIM [ \t\r]
 WS {DELIM}+
 LETTER [_a-zA-Z]
 DIGIT [0-9]
-INT ([1-9]{DIGIT}*)|0
+INT -?([1-9]{DIGIT}*)|0
 LT <
 LE <=
 EQ ==
