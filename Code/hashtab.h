@@ -1,7 +1,7 @@
 #pragma once
 #include "common.h"
 
-#define MAX_TAB_SIZE 8192
+#define MAX_TAB_SIZE 65536
 
 typedef struct hashent_t {
     char  str[MAX_SYM_LEN];
