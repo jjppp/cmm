@@ -298,7 +298,7 @@ void ir_check(ir_list *list) {
 }
 
 VISIT(IR_LABEL) {
-    symmov(node->str, va_arg(ap, char *));
+    symcpy(node->str, va_arg(ap, char *));
 }
 
 VISIT(IR_ASSIGN) {
@@ -329,14 +329,14 @@ VISIT(IR_STORE) {
 }
 
 VISIT(IR_GOTO) {
-    symmov(node->str, va_arg(ap, char *));
+    symcpy(node->str, va_arg(ap, char *));
 }
 
 VISIT(IR_BRANCH) {
     node->op  = va_arg(ap, op_kind_t);
     node->lhs = va_arg(ap, oprd_t);
     node->rhs = va_arg(ap, oprd_t);
-    symmov(node->str, va_arg(ap, char *));
+    symcpy(node->str, va_arg(ap, char *));
 }
 
 VISIT(IR_RETURN) {

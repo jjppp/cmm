@@ -94,8 +94,10 @@ cfg_t *cfg_build(ir_fun_t *fun) {
     *cfg           = (cfg_t){0};
     ir_list instrs = fun->instrs;
     symcpy(cfg->str, fun->str);
-    IR_t *done = ir_alloc(IR_LABEL);
     blk_cnt    = 0;
+    static char done_str[MAX_SYM_LEN + 5];
+    snprintf(done_str, sizeof(done_str), "done_%s", fun->str);
+    IR_t *done = ir_alloc(IR_LABEL, done_str);
 
     LIST_ITER(instrs.head, it) {
         if (is_start(it) || is_term(it->prev)) {
