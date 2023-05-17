@@ -28,7 +28,13 @@ i32 main(i32 argc, char **argv) {
     ir_resolve(prog);
 
     LIST_MAP_REDUCE(prog, cfg_build, cfgs);
+    FOPEN("cfg.dot", file, "w", {
+        cfg_fprint(file, "cfg.dot", cfgs);
+    });
     LIST_FOREACH(cfgs, optimize);
+    FOPEN("opt-cfg.dot", file, "w", {
+        cfg_fprint(file, "opt-cfg.dot", cfgs);
+    });
     prog = NULL;
     LIST_MAP_REDUCE(cfgs, cfg_destruct, prog);
     FOPEN(argv[2], file, "w", {

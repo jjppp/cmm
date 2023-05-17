@@ -41,7 +41,7 @@ static oprd_t var_lookup(char *str) {
         return oprd;
     }
     return (oprd_t) {
-        .name = str,
+        .name = ent->str,
         .kind = OPRD_VAR,
         .id = (uptr) ent->ptr,
         .lineno = 0,
