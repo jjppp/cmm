@@ -1,0 +1,17 @@
+FUNCTION main :
+  ARG #1
+  ARG a
+  ARG &b
+  j := CALL foo
+
+  LABEL l1:
+  GOTO l1
+  IF a == b GOTO l1
+  GOTO l2
+  IF a < b GOTO l1
+  IF a != b GOTO l2
+  IF a > b GOTO l1
+  IF a <= b GOTO l2
+  IF a >= b GOTO l2
+  LABEL l2:
+  RETURN a
